@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  FLUTTER_VERSION: "3.41.9"
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies (app)
+        working-directory: app
+        run: flutter pub get
+      - name: Dependencies (cargokit - rust_builder)
+        working-directory: packages/localsend_isolates/rust_builder/cargokit/build_tool
+        run: flutter pub get
+      - name: Remove gen directory (app)
+        working-directory: app
+        run: rm -rf lib/gen
+      - name: Check format (app)
+        working-directory: app
+        run: dart format --set-exit-if-changed lib test
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Dependencies (app)
+        working-directory: app
+        run: flutter pub get
+      - name: Dependencies (cargokit - rust_builder)
+        working-directory: packages/localsend_isolates/rust_builder/cargokit/build_tool
+        run: flutter pub get
+      - name: Analyze (app)
+        working-directory: app
+        run: flutter analyze
+      - name: Test (app)
+        working-directory: app
+        run: flutter test
+
+  packaging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Extract version from pubspec.yaml
+        id: pubspec_version
+        run: |
+          VERSION=$(grep '^version: ' app/pubspec.yaml | sed 's/version: //' | sed 's/\+.*//')
+          echo "Pubspec version is $VERSION"
+          echo "pubspec_version=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from Inno Setup configuration
+        id: inno_version
+        run: |
+          VERSION=$(grep '#define MyAppVersion ' support/scripts/compile_windows_exe-inno.iss | sed 's/#define MyAppVersion "//' | sed 's/"//')
+          echo "Inno Setup version is $VERSION"
+          echo "inno_version=$VERSION" >> $GITHUB_ENV
+
+      - name: Extract version from CLI Cargo.toml
+        id: cli_version
+        run: |
+          VERSION=$(grep '^version = ' cli/Cargo.toml | sed 's/version = "//' | sed 's/"//')
+          echo "CLI version is $VERSION"
+          echo "cli_version=$VERSION" >> $GITHUB_ENV
+
+      - name: Compare pubspec, Inno Setup and CLI versions
+        run: |
+          if [ "$pubspec_version" != "$inno_version" ] || [ "$pubspec_version" != "$cli_version" ]; then
+            echo "Version mismatch detected!"
+            exit 1
+          else
+            echo "Versions match."
+          fi
+

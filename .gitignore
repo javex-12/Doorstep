@@ -1,0 +1,25 @@
+.idea
+
+# Linux AppImage
+/app/AppDir
+/app/appimage-build
+
+.refena_inspector/
+
+/secrets
+
+# FVM Version Cache
+.fvm/
+
+# macOS
+.DS_Store
+
+# Personal local helper scripts (wireless debug / fast relaunch)
+/dev-scripts/
+
+# Build outputs (release artifacts copied to dist/)
+/dist/
+
+# Local build logs
+/*.log
+/app/*.log

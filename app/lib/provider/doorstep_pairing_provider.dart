@@ -1,0 +1,271 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:localsend_app/model/persistence/paired_device.dart';
+import 'package:localsend_app/provider/device_info_provider.dart';
+import 'package:localsend_app/provider/doorstep_settings_provider.dart';
+import 'package:localsend_app/provider/http_provider.dart';
+import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
+import 'package:localsend_app/provider/persistence_provider.dart';
+import 'package:localsend_app/util/doorstep_pairing_helper.dart';
+import 'package:localsend_isolates/constants.dart';
+import 'package:localsend_isolates/model/device.dart';
+import 'package:localsend_isolates/rust/api/model.dart' as rust_model;
+import 'package:localsend_isolates/util/rust.dart';
+import 'package:logging/logging.dart';
+import 'package:refena_flutter/refena_flutter.dart';
+
+final _logger = Logger('DoorstepPairing');
+
+/// How long a pairing handshake is accepted after the laptop shows its QR code.
+const _pairingWindow = Duration(seconds: 90);
+
+final doorstepPairingProvider = NotifierProvider<DoorstepPairingNotifier, List<PairedDevice>>((ref) {
+  return DoorstepPairingNotifier();
+});
+
+class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
+  /// The laptop token that is currently allowed to complete a pairing
+  /// handshake (in-memory, set when the pairing QR is shown).
+  String? _pendingPairingToken;
+  DateTime? _pendingPairingUntil;
+
+  @override
+  List<PairedDevice> init() {
+    final persistence = ref.read(persistenceProvider);
+    final raw = persistence.getPairedDevicesRaw();
+    return raw.map((e) => PairedDevice.fromJson(jsonDecode(e) as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> _save(List<PairedDevice> devices) async {
+    final persistence = ref.read(persistenceProvider);
+    await persistence.setPairedDevicesRaw(
+      devices.map((d) => jsonEncode(d.toJson())).toList(),
+    );
+  }
+
+  /// Returns (creating and persisting on first call) the long-lived pairing
+  /// token of *this* device.
+  Future<String> getOrCreateOwnToken() async {
+    final persistence = ref.read(persistenceProvider);
+    final existing = persistence.getDoorstepOwnToken();
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+    final token = DoorstepPairingPayload.generateDeviceToken();
+    await persistence.setDoorstepOwnToken(token);
+    return token;
+  }
+
+  /// Opens the pairing window: for the next [_pairingWindow], a device that
+  /// registers back with [token] is trusted as the one that scanned the QR.
+  void beginPairing(String token) {
+    _pendingPairingToken = token;
+    _pendingPairingUntil = DateTime.now().add(_pairingWindow);
+  }
+
+  bool _isPairingActive(String token) {
+    final until = _pendingPairingUntil;
+    if (until == null || DateTime.now().isAfter(until)) {
+      _pendingPairingToken = null;
+      _pendingPairingUntil = null;
+      return false;
+    }
+    return _pendingPairingToken == token;
+  }
+
+  /// Accepts an incoming pairing request from a scanned QR payload.
+  /// This is the *phone* side: the laptop is stored as a paired device.
+  Future<PairedDevice> acceptPairing({
+    required DoorstepPairingPayload payload,
+    required String localIp,
+    required int localPort,
+  }) async {
+    final device = PairedDevice(
+      id: payload.deviceId,
+      alias: payload.alias,
+      fingerprint: payload.fingerprint,
+      // The token that proves trust is the one embedded in the scanned QR —
+      // the laptop only accepts connections presenting it. Generating a fresh
+      // token here would silently break reconnects.
+      token: payload.token,
+      lastKnownIp: payload.ip,
+      port: payload.port,
+      lastSeen: DateTime.now(),
+    );
+
+    final updated = [...state.where((d) => d.id != device.id), device];
+    state = updated;
+    await _save(updated);
+    return device;
+  }
+
+  /// The *laptop* side of the two-way handshake: a device registered itself on
+  /// this server. If the register carries the Doorstep handshake carrier with
+  /// the token of a QR code this laptop is (or was) showing, the device is
+  /// stored as paired. Registers without the carrier (or with a mismatched
+  /// token) are ignored by the pairing layer.
+  ///
+  /// Returns the created/updated device, or `null` when the register is not a
+  /// valid Doorstep handshake.
+  Future<PairedDevice?> acceptRegisterHandshake({
+    required String? deviceModel,
+    required String fingerprint,
+    required String alias,
+    required String ip,
+    required int port,
+  }) async {
+    final handshake = DoorstepPairingHandshake.parse(deviceModel);
+    if (handshake == null) {
+      return null;
+    }
+
+    final alreadyPaired = state.any((d) => d.fingerprint == fingerprint);
+    if (!alreadyPaired && !_isPairingActive(handshake.laptopToken)) {
+      _logger.warning('Rejecting pairing handshake from $alias: no active pairing window for this token');
+      return null;
+    }
+
+    final device = PairedDevice(
+      id: fingerprint,
+      alias: alias,
+      fingerprint: fingerprint,
+      // The phone's own token — the trust anchor for the reverse direction.
+      token: handshake.phoneToken,
+      lastKnownIp: ip,
+      port: port,
+      lastSeen: DateTime.now(),
+    );
+
+    final updated = [...state.where((d) => d.id != device.id), device];
+    state = updated;
+    await _save(updated);
+
+    // The pairing window is consumed by the first accepted handshake.
+    _pendingPairingToken = null;
+    _pendingPairingUntil = null;
+
+    _logger.info('Paired with $alias ($ip:$port) via QR handshake');
+    return device;
+  }
+
+  /// Called when a device reconnects — updates its last-known IP and timestamp.
+  Future<void> updateLastSeen(String deviceId, String newIp) async {
+    final updated = state.map((d) {
+      if (d.id == deviceId) {
+        return d.copyWith(lastKnownIp: newIp, lastSeen: DateTime.now());
+      }
+      return d;
+    }).toList();
+    state = updated;
+    await _save(updated);
+  }
+
+  /// Revoke a paired device by id — removes its token and entry.
+  Future<void> revokeDevice(String deviceId) async {
+    final updated = state.where((d) => d.id != deviceId).toList();
+    state = updated;
+    await _save(updated);
+  }
+
+  /// Sends this device's identity to [device] over the standard LocalSend
+  /// `register` endpoint, carrying the Doorstep handshake tokens.
+  ///
+  /// The laptop answers by storing this device in its own paired list (and by
+  /// updating the last-known IP, so the laptop can reach us after DHCP drift).
+  /// Returns `true` when the register request succeeded.
+  Future<bool> registerWithPairedDevice(PairedDevice device) async {
+    final ip = reachableIpOf(device);
+    if (ip == null) {
+      _logger.warning('Cannot reach paired device ${device.alias}: no IP known');
+      return false;
+    }
+
+    final deviceInfo = ref.read(deviceFullInfoProvider);
+    final ownToken = await getOrCreateOwnToken();
+    final payload = rust_model.RegisterDto(
+      alias: deviceInfo.alias,
+      version: protocolVersion,
+      deviceModel: DoorstepPairingHandshake.encode(
+        deviceInfo.deviceModel ?? '',
+        laptopToken: device.token,
+        phoneToken: ownToken,
+      ),
+      deviceType: deviceInfo.deviceType.toRust(),
+      token: deviceInfo.fingerprint,
+      port: deviceInfo.port,
+      protocol: deviceInfo.getProtocolType(),
+      hasWebInterface: deviceInfo.download,
+    );
+
+    try {
+      final client = ref.read(httpProvider).pinnedTo(device.fingerprint);
+      await client.register(
+        protocol: payload.protocol,
+        ip: ip,
+        port: device.port,
+        payload: payload,
+      );
+      _logger.info('Registered with paired device ${device.alias} at $ip:${device.port}');
+      return true;
+    } catch (e) {
+      _logger.warning('Failed to register with paired device ${device.alias}: $e');
+      return false;
+    }
+  }
+
+  /// Re-registers with every paired device whose token this device knows.
+  ///
+  /// The phone uses this to reconnect after a restart or a network change: the
+  /// laptop refreshes the phone's IP and last-seen, so auto-transfer keeps
+  /// working without re-scanning. No-op on desktop (the laptop does not need
+  /// to announce itself to the phones it already knows) and while Doorstep
+  /// sleep mode is active (battery saver).
+  Future<void> reconnectToPairedDevices() async {
+    if (defaultTargetPlatform != TargetPlatform.android && defaultTargetPlatform != TargetPlatform.iOS) {
+      return;
+    }
+    if (ref.read(doorstepSettingsProvider).sleepMode) {
+      _logger.info('Sleep mode active — skipping reconnect announcements');
+      return;
+    }
+    for (final device in state) {
+      // ignore: discarded_futures
+      unawaited(registerWithPairedDevice(device));
+    }
+  }
+
+  /// Prefers a freshly discovered address (from the ongoing discovery) over
+  /// the stored last-known IP, so DHCP/IP changes do not break reachability.
+  String? reachableIpOf(PairedDevice device) {
+    final nearby = ref.read(nearbyDevicesProvider).allDevices[device.fingerprint];
+    if (nearby?.ip != null && nearby!.ip != '-' && nearby.ip!.isNotEmpty) {
+      return nearby.ip;
+    }
+    if (device.lastKnownIp.isNotEmpty && device.lastKnownIp != '0.0.0.0' && device.lastKnownIp != '-') {
+      return device.lastKnownIp;
+    }
+    return null;
+  }
+
+  /// Builds the send target for [paired], preferring a freshly discovered
+  /// address over the stored last-known IP. Shared by the folder watcher and
+  /// the live-browser pull flow.
+  Device resolveTarget(PairedDevice paired) {
+    final nearby = ref.read(nearbyDevicesProvider).allDevices[paired.fingerprint];
+    return Device(
+      signalingId: null,
+      ip: (nearby?.ip != null && nearby!.ip != '-' && nearby.ip!.isNotEmpty) ? nearby.ip : paired.lastKnownIp,
+      version: protocolVersion,
+      port: nearby?.port ?? paired.port,
+      https: true,
+      fingerprint: paired.fingerprint,
+      alias: paired.alias,
+      deviceModel: nearby?.deviceModel,
+      deviceType: DeviceType.mobile,
+      download: false,
+      discoveryMethods: nearby?.discoveryMethods ?? const {},
+    );
+  }
+}
