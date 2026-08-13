@@ -12,7 +12,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Doorstep គឺជាកម្មវិធីឥតគិតថ្លៃ, បើកបង្ហាញប្រភពកូដ ដែលអនុញ្ញាតឱ្យអ្នកចែករំលែកឯកសារ និងសារដោយសុវត្ថិភាពជាមួយឧបករណ៍ដែលនៅជិតៗដែលស្ថិតនៅលើបណ្តាញមូលដ្ឋានតែមួយរបស់អ្នកដោយមិនចាំបាច់ភ្ជាប់អ៊ីនធឺណិត។
 
@@ -56,15 +56,15 @@ Doorstep គឺជាកម្មវិធីដែលដំណើរការ�
 ស្វែងយល់ និងអានបន្ថែមអំពី [distribution channels][].
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -104,7 +104,7 @@ Doorstep គឺជាកម្មវិធីដែលដំណើរការ�
 
 (ត្រូវបានធ្វើបច្ចុប្បន្នភាពនៅក្នុងជំនាន់ v1.15.0)
 
-ដើម្បីចាប់ផ្តើមកម្មវិធីដែលលាក់ (តែក្នុង tray ប៉ុណ្ណោះ) សូមប្រើ `--hidden` (ឧទាហរណ៍៖ `localsend_app.exe --hidden`)។
+ដើម្បីចាប់ផ្តើមកម្មវិធីដែលលាក់ (តែក្នុង tray ប៉ុណ្ណោះ) សូមប្រើ `--hidden` (ឧទាហរណ៍៖ `doorstep.exe --hidden`)។
 
 នៅក្នុងជំនាន់ v1.14.0 និងពីមុនៗ កម្មវិធីនឹងចាប់ផ្តើមលាក់ប្រសិនបើ `autostart` ត្រូវបានកំណត់ ហើយការកំណត់លាក់កម្មវិធីនឹងត្រូវបានបើក។
 

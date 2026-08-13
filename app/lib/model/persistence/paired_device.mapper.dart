@@ -59,6 +59,13 @@ class PairedDeviceMapper extends ClassMapperBase<PairedDevice> {
     opt: true,
     def: const [],
   );
+  static DeviceTrustLevel _$trustLevel(PairedDevice v) => v.trustLevel;
+  static const Field<PairedDevice, DeviceTrustLevel> _f$trustLevel = Field(
+    'trustLevel',
+    _$trustLevel,
+    opt: true,
+    def: DeviceTrustLevel.persistent,
+  );
 
   @override
   final MappableFields<PairedDevice> fields = const {
@@ -71,6 +78,7 @@ class PairedDeviceMapper extends ClassMapperBase<PairedDevice> {
     #lastSeen: _f$lastSeen,
     #autoTransfer: _f$autoTransfer,
     #allowedFolderIds: _f$allowedFolderIds,
+    #trustLevel: _f$trustLevel,
   };
 
   static PairedDevice _instantiate(DecodingData data) {
@@ -84,6 +92,7 @@ class PairedDeviceMapper extends ClassMapperBase<PairedDevice> {
       lastSeen: data.dec(_f$lastSeen),
       autoTransfer: data.dec(_f$autoTransfer),
       allowedFolderIds: data.dec(_f$allowedFolderIds),
+      trustLevel: data.dec(_f$trustLevel),
     );
   }
 
@@ -161,6 +170,7 @@ abstract class PairedDeviceCopyWith<$R, $In extends PairedDevice, $Out>
     DateTime? lastSeen,
     bool? autoTransfer,
     List<String>? allowedFolderIds,
+    DeviceTrustLevel? trustLevel,
   });
   PairedDeviceCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -191,6 +201,7 @@ class _PairedDeviceCopyWithImpl<$R, $Out>
     DateTime? lastSeen,
     bool? autoTransfer,
     List<String>? allowedFolderIds,
+    DeviceTrustLevel? trustLevel,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -202,6 +213,7 @@ class _PairedDeviceCopyWithImpl<$R, $Out>
       if (lastSeen != null) #lastSeen: lastSeen,
       if (autoTransfer != null) #autoTransfer: autoTransfer,
       if (allowedFolderIds != null) #allowedFolderIds: allowedFolderIds,
+      if (trustLevel != null) #trustLevel: trustLevel,
     }),
   );
   @override
@@ -215,6 +227,7 @@ class _PairedDeviceCopyWithImpl<$R, $Out>
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
     autoTransfer: data.get(#autoTransfer, or: $value.autoTransfer),
     allowedFolderIds: data.get(#allowedFolderIds, or: $value.allowedFolderIds),
+    trustLevel: data.get(#trustLevel, or: $value.trustLevel),
   );
 
   @override

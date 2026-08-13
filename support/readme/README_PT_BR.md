@@ -12,7 +12,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 O Doorstep é um aplicativo gratuito e de código aberto que permite você compartilhar arquivos e mensagens de maneira segura com dispositivos próximos através da sua rede local sem a necessidade de uma conexão com a internet.
 
@@ -57,15 +57,15 @@ Doorstep é um aplicativo multiplataforma que permite comunicação segura entre
 Leia mais sobre [distribution channels][].
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -112,7 +112,7 @@ O aplicativo usará este arquivo para armazenar as configurações, em vez do lo
 
 (Atualizado na versão v1.15.0)
 
-Para iniciar o aplicativo oculto (apenas na bandeja), use a flag `--hidden` (exemplo: `localsend_app.exe --hidden`).
+Para iniciar o aplicativo oculto (apenas na bandeja), use a flag `--hidden` (exemplo: `doorstep.exe --hidden`).
 
 Na versão v1.14.0 e anteriores, o aplicativo inicia oculto se a flag `autostart` estiver definida e a configuração de ocultação estiver habilitada.
 

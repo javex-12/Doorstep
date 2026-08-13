@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 
 bool checkPlatform(List<TargetPlatform> platforms, {bool web = false}) {

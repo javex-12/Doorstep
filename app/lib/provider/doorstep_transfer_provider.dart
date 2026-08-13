@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:localsend_app/model/cross_file.dart';
-import 'package:localsend_app/model/persistence/paired_device.dart';
-import 'package:localsend_app/model/state/doorstep_transfer_state.dart';
-import 'package:localsend_app/model/state/send/send_session_state.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/provider/network/send_provider.dart';
-import 'package:localsend_app/provider/progress_provider.dart';
+import 'package:doorstep_app/model/cross_file.dart';
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/model/state/doorstep_transfer_state.dart';
+import 'package:doorstep_app/model/state/send/send_session_state.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/network/send_provider.dart';
+import 'package:doorstep_app/provider/progress_provider.dart';
 import 'package:localsend_isolates/model/file_status.dart';
 import 'package:localsend_isolates/model/session_status.dart';
 import 'package:localsend_isolates/util/rust.dart';

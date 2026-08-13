@@ -1,4 +1,4 @@
-import 'package:localsend_app/provider/persistence_provider.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// User-facing Doorstep behavior switches, persisted separately from the

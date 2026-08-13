@@ -12,7 +12,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Doorstep เป็นแอปที่ช่วยให้การส่งไฟล์ระหว่างอุปกรณ์เป็นไปอย่างปลอดภัยโดยไม่จำเป็นต้องใช้อินเทอร์เน็ต
 
@@ -56,15 +56,15 @@ Doorstep เป็นแอปข้ามแพลตฟอร์มที่�
 อ่านเพิ่มเติมเกี่ยวกับ [distribution channels][].
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -94,7 +94,7 @@ Doorstep เป็นแอปข้ามแพลตฟอร์มที่�
 
 (อัปเดตในเวอร์ชัน v1.15.0)
 
-เพื่อเริ่มแอปเป็นไอคอนถาดกราฟิก (เฉพาะไอคอนถาดกราฟิกอย่างเดียว) ใช้คำสั่ง --hidden (ตัวอย่าง: localsend_app.exe --hidden)
+เพื่อเริ่มแอปเป็นไอคอนถาดกราฟิก (เฉพาะไอคอนถาดกราฟิกอย่างเดียว) ใช้คำสั่ง --hidden (ตัวอย่าง: doorstep.exe --hidden)
 
 ในเวอร์ชัน v1.14.0 หรือก่อนหน้า ตัวแอปจะเริ่มเป็นไอคอนถาดกราฟิกถ้าใส่ flag `autostart` และเปิดโหมดซ่อน
 

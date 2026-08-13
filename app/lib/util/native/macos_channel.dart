@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_app/util/native/taskbar_helper.dart';
+import 'package:doorstep_app/util/native/tray_helper.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/util/native/taskbar_helper.dart';
-import 'package:localsend_app/util/native/tray_helper.dart';
 
 const _methodChannel = MethodChannel('main-delegate-channel');
 

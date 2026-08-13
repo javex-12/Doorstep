@@ -1,6 +1,6 @@
+import 'package:doorstep_app/util/ui/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_app/util/ui/snackbar.dart';
 
 class CopyableText extends StatelessWidget {
   final TextSpan? prefix;

@@ -8,7 +8,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.org.localsend.localsendApp</string>
+		<string>group.com.doorstep.app</string>
 	</array>
 </dict>
 </plist>

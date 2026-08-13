@@ -44,9 +44,9 @@ final class ShareController: ExtensionController {
             Defaults[.pendingStrings].append(string)
         }
         
-        // Launch localsend app if it's not running
-        let localsendAppURL = getParentAppURL()
-        launchAppIfNeeded(appURL: localsendAppURL)
+        // Launch Doorstep app if it's not running
+        let doorstepAppURL = getParentAppURL()
+        launchAppIfNeeded(appURL: doorstepAppURL)
         
         // Close the share extension
         context.completeRequest(returningItems: [], completionHandler: nil)

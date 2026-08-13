@@ -6,17 +6,9 @@ body:
   - type: checkboxes
     id: confirm
     attributes:
-      label: Read [this](https://github.com/localsend/localsend/issues/528) before anything
-      options:
-        - label: I have read it.
-        - label: Issues not fitting are closed.
-
-  - type: checkboxes
-    id: duplication
-    attributes:
       label: "Make sure about:"
       options:
-        - label: This issue is not duplicated with any other open or closed issues.
+        - label: I have searched existing issues and this is not a duplicate.
           required: true
         - label: This issue is a feature request, not a bug report.
           required: true

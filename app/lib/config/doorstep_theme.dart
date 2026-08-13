@@ -24,6 +24,27 @@ class DoorstepTheme {
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightTextMain = Color(0xFF1A1D20);
 
+  // ── Theme-aware lookups ───────────────────────────────────────────────────
+  // The Doorstep pages keep their branded look but follow the app's active
+  // theme (brightness + user color mode), so changing the color in settings
+  // is reflected on every page — not just the settings page and nav.
+
+  /// Page background: deep steel black in dark mode, clean light grey in light.
+  static Color backgroundOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? background : lightBackground;
+
+  /// Card / sheet surface color, matching the current brightness.
+  static Color surfaceOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? surface : lightSurface;
+
+  /// Card border color, matching the current brightness.
+  static Color borderOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? surfaceBorder : const Color(0xFFE2E8F0);
+
+  /// The brand accent as resolved from the active theme (follows the user's
+  /// chosen color mode / dynamic color).
+  static Color primaryOf(BuildContext context) => Theme.of(context).colorScheme.primary;
+
   static ThemeData get darkTheme => _build(Brightness.dark);
 
   static ThemeData get lightTheme => _build(Brightness.light);

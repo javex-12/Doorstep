@@ -5,20 +5,20 @@ part 'purchase_state.mapper.dart';
 
 enum PurchaseItem {
   donate5(
-    androidId: 'localsend_android_donate_5',
-    iosId: 'localsend_ios_donate_5',
+    androidId: 'doorstep_android_donate_5',
+    iosId: 'doorstep_ios_donate_5',
   ),
   donate10(
-    androidId: 'localsend_android_donate_10',
-    iosId: 'localsend_ios_donate_10',
+    androidId: 'doorstep_android_donate_10',
+    iosId: 'doorstep_ios_donate_10',
   ),
   donate20(
-    androidId: 'localsend_android_donate_20',
-    iosId: 'localsend_ios_donate_20',
+    androidId: 'doorstep_android_donate_20',
+    iosId: 'doorstep_ios_donate_20',
   ),
   donate50(
-    androidId: 'localsend_android_donate_50',
-    iosId: 'localsend_ios_donate_50',
+    androidId: 'doorstep_android_donate_50',
+    iosId: 'doorstep_ios_donate_50',
   )
   ;
 

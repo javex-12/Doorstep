@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:doorstep_app/config/theme.dart';
+import 'package:doorstep_app/gen/strings.g.dart';
 import 'package:flutter/material.dart';
 import 'package:legalize/legalize.dart';
-import 'package:localsend_app/config/theme.dart';
-import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_isolates/util/file_path_helper.dart';
 import 'package:routerino/routerino.dart';
 

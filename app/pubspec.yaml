@@ -1,5 +1,5 @@
-name: localsend_app
-description: An open source cross-platform alternative to AirDrop
+name: doorstep_app
+description: Doorstep - a LAN-only file bridge. Pair once, drop files into a folder, and they arrive on your phone automatically.
 homepage: https://localsend.org/
 publish_to: "none"
 

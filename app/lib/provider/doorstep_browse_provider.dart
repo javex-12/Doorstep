@@ -3,23 +3,23 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:localsend_app/model/persistence/paired_device.dart';
-import 'package:localsend_app/model/persistence/watched_folder.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/provider/doorstep_transfer_provider.dart';
-import 'package:localsend_app/provider/doorstep_watcher_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/util/native/cross_file_converters.dart';
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/model/persistence/watched_folder.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
+import 'package:doorstep_app/provider/doorstep_watcher_provider.dart';
+import 'package:doorstep_app/provider/settings_provider.dart';
+import 'package:doorstep_app/util/native/cross_file_converters.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:refena_flutter/refena_flutter.dart';
 
 final _logger = Logger('DoorstepBrowse');
 
-/// The live folder browser is served on `localSendPort + 1`. The phone learns
+/// The live folder browser is served on `doorstepPort + 1`. The phone learns
 /// the laptop's LocalSend port from the pairing QR and derives the same port,
 /// so both sides stay in sync even when the port is customized.
-int doorstepBrowsePort(int localSendPort) => localSendPort + 1;
+int doorstepBrowsePort(int doorstepPort) => doorstepPort + 1;
 
 /// System junk that must never show up in the phone-side browser.
 const _hiddenFileNames = <String>{'.DS_Store', 'Thumbs.db', 'desktop.ini'};

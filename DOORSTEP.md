@@ -2,6 +2,8 @@
 
 > **Tagline:** *"Your phone is now another folder on your computer."*
 
+**Author:** [cydercoder](https://cydercoder.vercel.app) · [@javex-12](https://github.com/javex-12)
+
 Doorstep is a LAN-only file bridge built on the LocalSend protocol. Pair a device once, designate a folder as a drop zone, and files move between your phone and computer automatically — no app-opening, no device re-discovery, no cloud.
 
 **License:** Apache-2.0 (fork of [LocalSend](https://github.com/localsend/localsend))

@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:localsend_app/util/native/channel/android_channel.dart';
-import 'package:localsend_app/util/native/ios_channel.dart';
-import 'package:localsend_app/util/native/macos_channel.dart';
+
+import 'package:doorstep_app/util/native/channel/android_channel.dart';
+import 'package:doorstep_app/util/native/ios_channel.dart';
+import 'package:doorstep_app/util/native/macos_channel.dart';
 
 Future<bool> getSystemAnimationsStatus() async {
   if (Platform.isAndroid) {

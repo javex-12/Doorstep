@@ -15,7 +15,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Doorstep는 인터넷에 연결하지 않고도 로컬 네트워크를 통해 주변 기기들과 파일 및 메시지를 안전하게 공유할 수 있는 무료 오픈소스 앱입니다.
 
@@ -59,15 +59,15 @@ Doorstep는 REST API 및 HTTPS 암호화를 통해 기기 간의 파일을 안�
 [배포 채널][distribution channels]에서 더 자세한 내용을 찾아볼 수 있습니다.
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -107,7 +107,7 @@ Doorstep는 REST API 및 HTTPS 암호화를 통해 기기 간의 파일을 안�
 
 (v1.15.0에서 업데이트됨)
 
-앱이 (작업표시줄에) 숨겨진 상태로 실행하게 하려면, `--hidden` 플래그를 사용하세요 (예시: `localsend_app.exe --hidden`).
+앱이 (작업표시줄에) 숨겨진 상태로 실행하게 하려면, `--hidden` 플래그를 사용하세요 (예시: `doorstep.exe --hidden`).
 
 v1.14.0보다 낮은 버전에서는, `autostart` 플래그가 설정되어 있고, 숨김 설정이 활성화되어 있을 때 앱이 숨겨진 상태로 실행됩니다.
 

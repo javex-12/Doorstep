@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:localsend_isolates/util/content_uri_helper.dart';
 import 'package:logging/logging.dart';
 
-const _methodChannel = MethodChannel('org.localsend.localsend_app/localsend');
+const _methodChannel = MethodChannel('com.doorstep.app/doorstep');
 final _logger = Logger('AndroidSaf');
 
 /// Opens [uri] for reading and returns an owned Linux file descriptor.

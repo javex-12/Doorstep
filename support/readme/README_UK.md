@@ -15,7 +15,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Doorstep — це безплатна програма з відкритим вихідним кодом, яка дозволяє вам безпечно обмінюватися файлами та повідомленнями з пристроями поблизу через локальну мережу, без необхідності підключення до Інтернету.
 
@@ -60,15 +60,15 @@ Doorstep — це кросплатформна програма, яка забе
 Детальніше про [канали дистрибуції][].
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -109,7 +109,7 @@ Doorstep — це кросплатформна програма, яка забе
 
 (Оновлено з v1.15.0)
 
-Щоб запустити програму приховано (лише в треї), використовуйте прапорець `--hidden` (наприклад: `localsend_app.exe --hidden`).
+Щоб запустити програму приховано (лише в треї), використовуйте прапорець `--hidden` (наприклад: `doorstep.exe --hidden`).
 
 У версії 1.14.0 та більш ранніх випусках програма запускається приховано, якщо встановлено прапорець `--autostart` та увімкнено налаштування прихованого запуску.
 

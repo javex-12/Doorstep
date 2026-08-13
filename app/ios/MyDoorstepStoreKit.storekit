@@ -25,7 +25,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "localsend_ios_donate_5",
+      "productID" : "doorstep_ios_donate_5",
       "referenceName" : "Doorstep Donation (05)",
       "type" : "NonConsumable"
     },
@@ -40,7 +40,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "localsend_ios_donate_10",
+      "productID" : "doorstep_ios_donate_10",
       "referenceName" : "Doorstep Donation (10)",
       "type" : "NonConsumable"
     },
@@ -55,7 +55,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "localsend_ios_donate_20",
+      "productID" : "doorstep_ios_donate_20",
       "referenceName" : "Doorstep Donation (20)",
       "type" : "NonConsumable"
     },
@@ -70,7 +70,7 @@
           "locale" : "en_US"
         }
       ],
-      "productID" : "localsend_ios_donate_50",
+      "productID" : "doorstep_ios_donate_50",
       "referenceName" : "Doorstep Donation (50)",
       "type" : "NonConsumable"
     }

@@ -42,6 +42,13 @@ class WatchedFolderMapper extends ClassMapperBase<WatchedFolder> {
     opt: true,
     def: true,
   );
+  static List<String> _$targetDeviceIds(WatchedFolder v) => v.targetDeviceIds;
+  static const Field<WatchedFolder, List<String>> _f$targetDeviceIds = Field(
+    'targetDeviceIds',
+    _$targetDeviceIds,
+    opt: true,
+    def: const [],
+  );
   static DateTime _$createdAt(WatchedFolder v) => v.createdAt;
   static const Field<WatchedFolder, DateTime> _f$createdAt = Field(
     'createdAt',
@@ -55,6 +62,7 @@ class WatchedFolderMapper extends ClassMapperBase<WatchedFolder> {
     #path: _f$path,
     #autoTransfer: _f$autoTransfer,
     #enabled: _f$enabled,
+    #targetDeviceIds: _f$targetDeviceIds,
     #createdAt: _f$createdAt,
   };
 
@@ -65,6 +73,7 @@ class WatchedFolderMapper extends ClassMapperBase<WatchedFolder> {
       path: data.dec(_f$path),
       autoTransfer: data.dec(_f$autoTransfer),
       enabled: data.dec(_f$enabled),
+      targetDeviceIds: data.dec(_f$targetDeviceIds),
       createdAt: data.dec(_f$createdAt),
     );
   }
@@ -131,12 +140,15 @@ extension WatchedFolderValueCopy<$R, $Out>
 
 abstract class WatchedFolderCopyWith<$R, $In extends WatchedFolder, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get targetDeviceIds;
   $R call({
     String? id,
     String? name,
     String? path,
     bool? autoTransfer,
     bool? enabled,
+    List<String>? targetDeviceIds,
     DateTime? createdAt,
   });
   WatchedFolderCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -151,12 +163,20 @@ class _WatchedFolderCopyWithImpl<$R, $Out>
   late final ClassMapperBase<WatchedFolder> $mapper =
       WatchedFolderMapper.ensureInitialized();
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get targetDeviceIds => ListCopyWith(
+    $value.targetDeviceIds,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(targetDeviceIds: v),
+  );
+  @override
   $R call({
     String? id,
     String? name,
     String? path,
     bool? autoTransfer,
     bool? enabled,
+    List<String>? targetDeviceIds,
     DateTime? createdAt,
   }) => $apply(
     FieldCopyWithData({
@@ -165,6 +185,7 @@ class _WatchedFolderCopyWithImpl<$R, $Out>
       if (path != null) #path: path,
       if (autoTransfer != null) #autoTransfer: autoTransfer,
       if (enabled != null) #enabled: enabled,
+      if (targetDeviceIds != null) #targetDeviceIds: targetDeviceIds,
       if (createdAt != null) #createdAt: createdAt,
     }),
   );
@@ -175,6 +196,7 @@ class _WatchedFolderCopyWithImpl<$R, $Out>
     path: data.get(#path, or: $value.path),
     autoTransfer: data.get(#autoTransfer, or: $value.autoTransfer),
     enabled: data.get(#enabled, or: $value.enabled),
+    targetDeviceIds: data.get(#targetDeviceIds, or: $value.targetDeviceIds),
     createdAt: data.get(#createdAt, or: $value.createdAt),
   );
 

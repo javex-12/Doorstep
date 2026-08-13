@@ -20,7 +20,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Doorstep 是一个自由、开源的应用程序，允许你在本地网络上安全地与附近设备分享文件和消息，无需互联网连接。
 
@@ -66,15 +66,15 @@ Doorstep 是一个跨平台应用程序，使用 REST API 和 HTTPS 加密实现
 了解更多关于[发行渠道][]的信息。
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -114,7 +114,7 @@ Doorstep 是一个跨平台应用程序，使用 REST API 和 HTTPS 加密实现
 
 （更新于 v1.15.0）
 
-使用 `--hidden` 命令行参数隐藏式启动（只在系统托盘里显示）此应用（例如： `localsend_app.exe --hidden`）。
+使用 `--hidden` 命令行参数隐藏式启动（只在系统托盘里显示）此应用（例如： `doorstep.exe --hidden`）。
 
 在 v1.14.0 或更早的版本中，如果设置了 `autostart` 标志，并且启用了隐藏设置，则应用程序将会隐藏式启动。
 

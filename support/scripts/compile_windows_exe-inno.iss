@@ -6,9 +6,9 @@
 #define MyAppName "Doorstep"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Tien Do Nam"
-#define MyAppURL "https://localsend.org"
-#define MyAppExeName "localsend_app.exe"
-#define MyAppMsixHelper "localsend_msix_helper.msix"
+#define MyAppURL "https://github.com/javex-12/Doorstep"
+#define MyAppExeName "doorstep.exe"
+#define MyAppMsixHelper "doorstep_msix_helper.msix"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -27,7 +27,7 @@ DisableProgramGroupPage=yes
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=D:\inno-result
-OutputBaseFilename=localsend
+OutputBaseFilename=Doorstep
 SetupIconFile=D:\inno\logo.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
@@ -83,7 +83,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -Command Add-AppxPackage .\localsend_msix_helper.msix -ExternalLocation $(Get-Location)"; WorkingDir: {app}; Flags: nowait postinstall
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -Command Add-AppxPackage .\doorstep_msix_helper.msix -ExternalLocation $(Get-Location)"; WorkingDir: {app}; Flags: nowait postinstall
 
 [UninstallRun]
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -Command Remove-AppxPackage $(Get-AppxPackage com.flutter.localsendapp)"; WorkingDir: {app}; Flags: nowait
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -Command Remove-AppxPackage $(Get-AppxPackage com.flutter.doorstepapp)"; WorkingDir: {app}; Flags: nowait

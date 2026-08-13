@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
+import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_app/model/persistence/color_mode.dart';
+import 'package:doorstep_app/model/send_mode.dart';
+import 'package:doorstep_app/model/state/settings_state.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/model/send_mode.dart';
-import 'package:localsend_app/model/state/settings_state.dart';
-import 'package:localsend_app/provider/persistence_provider.dart';
 import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:refena_flutter/refena_flutter.dart';

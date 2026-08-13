@@ -89,12 +89,12 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "org.localsend" "\0"
+            VALUE "CompanyName", "Doorstep" "\0"
             VALUE "FileDescription", "Doorstep" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "Doorstep" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 org.localsend. All rights reserved." "\0"
-            VALUE "OriginalFilename", "localsend_app.exe" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 cydercoder. All rights reserved." "\0"
+            VALUE "OriginalFilename", "doorstep.exe" "\0"
             VALUE "ProductName", "Doorstep" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END

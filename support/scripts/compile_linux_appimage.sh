@@ -10,9 +10,10 @@
 # git reset --hard origin/main
 # git pull
 
+REPO_DIR="$(basename "$PWD")"
 cd ..
 rm -rf /tmp/build
-cp localsend /tmp/build -r
+cp "$REPO_DIR" /tmp/build -r
 pushd /tmp/build
 
 git submodule update --init
@@ -35,5 +36,5 @@ rm -rf AppDir
 rm -rf appimage-build
 
 popd
-cd localsend
+cd "$REPO_DIR"
 cp /tmp/build/Doorstep-latest-x86_64.AppImage .

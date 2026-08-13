@@ -5,7 +5,7 @@
 [ci-badge]: https://github.com/javex-12/Doorstep/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/javex-12/Doorstep/actions/workflows/ci.yml
 
-[GitHub][github] • [Product Spec](DOORSTEP.md)
+[GitHub][github] • [Product Spec](DOORSTEP.md) • by [cydercoder](https://cydercoder.vercel.app)
 
 [English (Default)](README.md) • [Español](/support/readme/README_ES.md) • [فارسی](/support/readme/README_FA.md) • [Filipino](/support/readme/README_PH.md) • [Français](/support/readme/README_FR.md) • [Indonesia](/support/readme/README_ID.md) • [Italiano](/support/readme/README_IT.md) • [日本語](/support/readme/README_JA.md) • [ភាសាខ្មែរ](/support/readme/README_KM.md) • [한국어](/support/readme/README_KO.md) • [Polski](/support/readme/README_PL.md) • [Português Brasil](/support/readme/README_PT_BR.md) • [Русский](/support/readme/README_RU.md) • [ภาษาไทย](/support/readme/README_TH.md) • [Türkçe](/support/readme/README_TR.md) • [Українська](/support/readme/README_UK.md) • [Tiếng Việt](/support/readme/README_VI.md) • [中文](/support/readme/README_ZH.md)
 
@@ -36,40 +36,22 @@ Doorstep is a cross-platform app that enables secure communication between devic
 
 ## Screenshots
 
-<img src="https://raw.githubusercontent.com/javex-12/Doorstep/main/assets/img/logo512.png" alt="Doorstep logo" height="300"/>
+<img src="https://raw.githubusercontent.com/javex-12/Doorstep/main/app/assets/doorstep/logo.png" alt="Doorstep logo" height="300"/>
 
 ## Download
 
-It is recommended to download the app either from an app store or from a package manager because the app does not have an auto-update.
+Grab the latest build for your platform from the [Releases page][latest] — every release ships ready-to-run installers and packages. No account, no cloud, no auto-update needed: just download and go.
 
-| Windows                 | macOS                   | Linux              | Android        | iOS           | Fire OS    |
-|-------------------------|-------------------------|--------------------|----------------|---------------|------------|
-| [Winget][]              | [App Store][]           | [Flathub][]        | [Play Store][] | [App Store][] | [Amazon][] |
-| [Scoop][]               | [Homebrew][]            | [Nixpkgs][]        | [F-Droid][]    |               |            |
-| [Chocolatey][]          | [DMG Installer][latest] | [Snap][]           | [APK][latest]  |               |            |
-| [EXE Installer][latest] |                         | [AUR][]            |                |               |            |
-| [Portable ZIP][latest]  |                         | [TAR][latest]      |                |               |            |
-|                         |                         | [DEB][latest]      |                |               |            |
-|                         |                         | [AppImage][latest] |                |               |            |
+| Windows                        | Android                | macOS            | Linux            | iOS             |
+|--------------------------------|------------------------|------------------|------------------|-----------------|
+| [EXE Installer][latest]        | [APK (64-bit)][latest] | [DMG Installer][latest] | [AppImage][latest] | (coming soon)   |
+| [Portable ZIP][latest]         | [APK (32-bit)][latest] |                  | [TAR][latest]    |                 |
+|                                |                        |                  | [DEB][latest]    |                 |
 
-Read more about [distribution channels][].
+> App stores (Play Store, App Store, Microsoft Store) and package managers are coming soon.
 
-> [!CAUTION]
-> **Unofficial MSIX preview:** you can try builds from the latest commits at [localsend.ob-buff.dev](https://localsend.ob-buff.dev/). Stability is not guaranteed and all custom code tweaks are listed on that site.
-
-[windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
-[amazon]: https://www.amazon.com/dp/B0BW6MP732
-[winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
-[scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
-[chocolatey]: https://community.chocolatey.org/packages/localsend
-[homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
-[nixpkgs]: https://search.nixos.org/packages?show=localsend
-[snap]: https://snapcraft.io/localsend
-[aur]: https://aur.archlinux.org/packages/localsend-bin
+[latest]: https://github.com/javex-12/Doorstep/releases/latest
+[distribution channels]: https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md#distribution
 [latest]: https://github.com/javex-12/Doorstep/releases/latest
 [distribution channels]: https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md#distribution
 
@@ -107,7 +89,9 @@ The app will use this file to store settings instead of the default location.
 
 (Updated in v1.15.0)
 
-To start the app hidden (only in tray), use the `--hidden` flag (example: `localsend_app.exe --hidden`).
+To start the app hidden (only in tray), use the `--hidden` flag (example: `doorstep.exe --hidden`).
+
+> **Note:** the release binaries are named `doorstep` for compatibility with the LocalSend protocol tooling the fork builds on; the app itself is **Doorstep**.
 
 On v1.14.0 and earlier, the app starts hidden if `autostart` flag is set, and the hidden setting is enabled.
 
@@ -237,7 +221,7 @@ appimage-builder --recipe AppImageBuilder.yml
 
 **Snap**
 
-Instructions in [localsend/snap/README.md](https://github.com/localsend/snap/blob/main/README.md)
+Snap packaging is not yet published for Doorstep — you can still build the binary locally (see below).
 
 ## Contributors
 

@@ -4,7 +4,7 @@ import 'package:logging/logging.dart';
 
 part 'android_channel.mapper.dart';
 
-const _methodChannel = MethodChannel('org.localsend.localsend_app/localsend');
+const _methodChannel = MethodChannel('com.doorstep.app/doorstep');
 final _logger = Logger('AndroidSaf');
 
 /// From Android 10 and above, we need to use the Storage Access Framework (SAF) to access files due to the scoped storage.

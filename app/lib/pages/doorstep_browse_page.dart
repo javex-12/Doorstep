@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/provider/doorstep_browse_provider.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/widget/doorstep_card.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/model/persistence/paired_device.dart';
-import 'package:localsend_app/provider/doorstep_browse_provider.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/widget/doorstep_card.dart';
 import 'package:localsend_isolates/util/file_size_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 

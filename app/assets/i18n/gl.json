@@ -215,7 +215,7 @@
   "receiveOptionsPage": {
     "title": "Opcións",
     "destination": "@:settingsTab.receive.destination",
-    "appDirectory": "(Cartafol Localsend)",
+    "appDirectory": "(Cartafol Doorstep)",
     "saveToGallery": "@:settingsTab.receive.saveToGallery",
     "saveToGalleryOff": "Desactivado automáticamente porque hai cartafois."
   },

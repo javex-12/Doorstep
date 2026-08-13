@@ -1,17 +1,14 @@
 import 'package:collection/collection.dart';
+import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_app/pages/debug/debug_page.dart';
+import 'package:doorstep_app/widget/doorstep_logo.dart';
+import 'package:doorstep_app/widget/responsive_list_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/pages/debug/debug_page.dart';
-import 'package:localsend_app/widget/doorstep_logo.dart';
-import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:routerino/routerino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 part 'contributors.dart';
-
-part 'packagers.dart';
-
 part 'translators.dart';
 
 final _translatorWithGithubRegex = RegExp(r'(.+) \(@([\w\-_]+)\)');
@@ -32,7 +29,7 @@ class AboutPage extends StatelessWidget {
           const SizedBox(height: 20),
           const DoorstepLogo(withText: true),
           Text(
-            '© ${DateTime.now().year} Tien Do Nam',
+            '© ${DateTime.now().year} cydercoder',
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
@@ -40,9 +37,26 @@ class AboutPage extends StatelessWidget {
           const SizedBox(height: 20),
           Text(t.aboutPage.author, style: const TextStyle(fontWeight: FontWeight.bold)),
           Text.rich(
-            _buildContributor(
-              label: 'Tien Do Nam (@Tienisto)',
-              primaryColor: primaryColor,
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'cydercoder',
+                  style: TextStyle(color: primaryColor, fontWeight: FontWeight.w600),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      await launchUrl(Uri.parse('https://cydercoder.vercel.app'), mode: LaunchMode.externalApplication);
+                    },
+                ),
+                const TextSpan(text: '  ·  '),
+                TextSpan(
+                  text: '@javex-12',
+                  style: TextStyle(color: primaryColor),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      await launchUrl(Uri.parse('https://github.com/javex-12'), mode: LaunchMode.externalApplication);
+                    },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -55,39 +69,6 @@ class AboutPage extends StatelessWidget {
               ),
             );
           }),
-          const SizedBox(height: 20),
-          Text(t.aboutPage.packagers, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Table(
-            columnWidths: const {
-              0: IntrinsicColumnWidth(),
-              1: FlexColumnWidth(),
-            },
-            children: [
-              ..._packagers.entries.map(
-                (e) => TableRow(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: Text(e.key),
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        children: e.value.mapIndexed(
-                          (index, translator) {
-                            return _buildContributor(
-                              label: translator,
-                              primaryColor: primaryColor,
-                              newLine: index != 0,
-                            );
-                          },
-                        ).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 20),
           Text(t.aboutPage.translators, style: const TextStyle(fontWeight: FontWeight.bold)),
           Table(
@@ -127,21 +108,15 @@ class AboutPage extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () async {
-                  await launchUrl(Uri.parse('https://localsend.org'));
-                },
-                child: const Text('Based on LocalSend — Apache-2.0 License'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  await launchUrl(Uri.parse('https://github.com/localsend/localsend'), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse('https://github.com/javex-12/Doorstep'), mode: LaunchMode.externalApplication);
                 },
                 child: const Text('Source Code (Github)'),
               ),
               TextButton(
                 onPressed: () async {
-                  await launchUrl(Uri.parse('https://codeberg.org/localsend/localsend'), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse('https://github.com/localsend/localsend'), mode: LaunchMode.externalApplication);
                 },
-                child: const Text('Source Code (Codeberg)'),
+                child: const Text('Based on LocalSend — Apache-2.0 License'),
               ),
               TextButton(
                 onPressed: () async {

@@ -370,7 +370,7 @@ class _Translations$receiveOptionsPage$gl extends Translations$receiveOptionsPag
   @override
   String get destination => _root.settingsTab.receive.destination;
   @override
-  String get appDirectory => '(Cartafol Localsend)';
+  String get appDirectory => '(Cartafol Doorstep)';
   @override
   String get saveToGallery => _root.settingsTab.receive.saveToGallery;
   @override

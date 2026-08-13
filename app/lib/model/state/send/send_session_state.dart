@@ -1,6 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:localsend_app/model/state/send/sending_file.dart';
-import 'package:localsend_app/model/state/server/receive_session_state.dart';
+import 'package:doorstep_app/model/state/send/sending_file.dart';
+import 'package:doorstep_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/model/session_status.dart';
 

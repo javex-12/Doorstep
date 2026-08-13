@@ -1,15 +1,15 @@
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/persistence/receive_history_entry.dart';
+import 'package:doorstep_app/model/state/doorstep_transfer_state.dart';
+import 'package:doorstep_app/provider/doorstep_arrival_provider.dart';
+import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
+import 'package:doorstep_app/provider/receive_history_provider.dart';
+import 'package:doorstep_app/util/native/open_file.dart';
+import 'package:doorstep_app/widget/door_entry_animation.dart';
+import 'package:doorstep_app/widget/doorstep_card.dart';
+import 'package:doorstep_app/widget/doorstep_header.dart';
+import 'package:doorstep_app/widget/file_thumbnail.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/model/persistence/receive_history_entry.dart';
-import 'package:localsend_app/model/state/doorstep_transfer_state.dart';
-import 'package:localsend_app/provider/doorstep_arrival_provider.dart';
-import 'package:localsend_app/provider/doorstep_transfer_provider.dart';
-import 'package:localsend_app/provider/receive_history_provider.dart';
-import 'package:localsend_app/util/native/open_file.dart';
-import 'package:localsend_app/widget/door_entry_animation.dart';
-import 'package:localsend_app/widget/doorstep_card.dart';
-import 'package:localsend_app/widget/doorstep_header.dart';
-import 'package:localsend_app/widget/file_thumbnail.dart';
 import 'package:localsend_isolates/util/file_size_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -43,7 +43,7 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
     _trackArrival(received);
 
     return Scaffold(
-      backgroundColor: DoorstepTheme.background,
+      backgroundColor: DoorstepTheme.backgroundOf(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),

@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
+import 'package:doorstep_app/provider/doorstep_watcher_provider.dart';
+import 'package:doorstep_app/provider/http_provider.dart';
+import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
+import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
-import 'package:localsend_app/model/persistence/paired_device.dart';
-import 'package:localsend_app/provider/device_info_provider.dart';
-import 'package:localsend_app/provider/doorstep_settings_provider.dart';
-import 'package:localsend_app/provider/http_provider.dart';
-import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
-import 'package:localsend_app/provider/persistence_provider.dart';
-import 'package:localsend_app/util/doorstep_pairing_helper.dart';
 import 'package:localsend_isolates/constants.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:localsend_isolates/rust/api/model.dart' as rust_model;
@@ -77,10 +78,16 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
 
   /// Accepts an incoming pairing request from a scanned QR payload.
   /// This is the *phone* side: the laptop is stored as a paired device.
+  ///
+  /// [trustLevel] decides how the laptop is remembered:
+  ///  - [DeviceTrustLevel.persistent] — saved to disk, auto-reconnects.
+  ///  - [DeviceTrustLevel.temporary] — in-memory only, gone after restart,
+  ///    never auto-reconnected to.
   Future<PairedDevice> acceptPairing({
     required DoorstepPairingPayload payload,
     required String localIp,
     required int localPort,
+    required DeviceTrustLevel trustLevel,
   }) async {
     final device = PairedDevice(
       id: payload.deviceId,
@@ -93,11 +100,17 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
       lastKnownIp: payload.ip,
       port: payload.port,
       lastSeen: DateTime.now(),
+      trustLevel: trustLevel,
     );
 
     final updated = [...state.where((d) => d.id != device.id), device];
     state = updated;
-    await _save(updated);
+    // Temporary devices are session-only: never written to disk.
+    if (trustLevel == DeviceTrustLevel.persistent) {
+      await _save(updated);
+    } else {
+      _logger.info('Paired with ${device.alias} as a temporary device (not saved)');
+    }
     return device;
   }
 
@@ -136,17 +149,21 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
       lastKnownIp: ip,
       port: port,
       lastSeen: DateTime.now(),
+      trustLevel: handshake.trustLevel,
     );
 
     final updated = [...state.where((d) => d.id != device.id), device];
     state = updated;
-    await _save(updated);
+    // Temporary devices are session-only: never written to disk.
+    if (handshake.trustLevel == DeviceTrustLevel.persistent) {
+      await _save(updated);
+    }
 
     // The pairing window is consumed by the first accepted handshake.
     _pendingPairingToken = null;
     _pendingPairingUntil = null;
 
-    _logger.info('Paired with $alias ($ip:$port) via QR handshake');
+    _logger.info('Paired with $alias ($ip:$port) via QR handshake (${handshake.trustLevel.name})');
     return device;
   }
 
@@ -162,11 +179,15 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     await _save(updated);
   }
 
-  /// Revoke a paired device by id — removes its token and entry.
+  /// Revoke a paired device by id — removes its token and entry, and drops it
+  /// from every drop zone's target list so routing stays consistent.
   Future<void> revokeDevice(String deviceId) async {
     final updated = state.where((d) => d.id != deviceId).toList();
     state = updated;
     await _save(updated);
+    // Be smart: don't leave revoked devices dangling in folder routing.
+    // ignore: discarded_futures
+    unawaited(ref.notifier(doorstepWatcherProvider).removeDeviceFromTargets(deviceId));
   }
 
   /// Sends this device's identity to [device] over the standard LocalSend
@@ -191,6 +212,7 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
         deviceInfo.deviceModel ?? '',
         laptopToken: device.token,
         phoneToken: ownToken,
+        trustLevel: device.trustLevel,
       ),
       deviceType: deviceInfo.deviceType.toRust(),
       token: deviceInfo.fingerprint,
@@ -231,6 +253,11 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
       return;
     }
     for (final device in state) {
+      if (device.trustLevel != DeviceTrustLevel.persistent) {
+        // Temporary devices never reconnect automatically — by design.
+        _logger.info('Skipping reconnect to temporary device ${device.alias}');
+        continue;
+      }
       // ignore: discarded_futures
       unawaited(registerWithPairedDevice(device));
     }

@@ -1,23 +1,23 @@
 import 'dart:async';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/model/persistence/watched_folder.dart';
+import 'package:doorstep_app/pages/doorstep_browse_page.dart';
+import 'package:doorstep_app/pages/doorstep_pair_scan_page.dart';
+import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
+import 'package:doorstep_app/provider/doorstep_watcher_provider.dart';
+import 'package:doorstep_app/provider/network/send_provider.dart';
+import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
+import 'package:doorstep_app/util/native/file_picker.dart';
+import 'package:doorstep_app/util/native/pick_directory_path.dart';
+import 'package:doorstep_app/widget/doorstep_card.dart';
+import 'package:doorstep_app/widget/doorstep_header.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/model/persistence/paired_device.dart';
-import 'package:localsend_app/model/persistence/watched_folder.dart';
-import 'package:localsend_app/pages/doorstep_browse_page.dart';
-import 'package:localsend_app/pages/doorstep_pair_scan_page.dart';
-import 'package:localsend_app/provider/device_info_provider.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/provider/doorstep_settings_provider.dart';
-import 'package:localsend_app/provider/doorstep_watcher_provider.dart';
-import 'package:localsend_app/provider/network/send_provider.dart';
-import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
-import 'package:localsend_app/util/doorstep_pairing_helper.dart';
-import 'package:localsend_app/util/native/file_picker.dart';
-import 'package:localsend_app/util/native/pick_directory_path.dart';
-import 'package:localsend_app/widget/doorstep_card.dart';
-import 'package:localsend_app/widget/doorstep_header.dart';
 import 'package:localsend_isolates/model/device.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -50,7 +50,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     final deviceInfo = context.watch(deviceFullInfoProvider);
 
     return Scaffold(
-      backgroundColor: DoorstepTheme.background,
+      backgroundColor: DoorstepTheme.backgroundOf(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -593,7 +593,8 @@ class _DeviceCardState extends State<_DeviceCard> with SingleTickerProviderState
                 const SizedBox(height: 4),
                 Text(
                   '${widget.device.lastKnownIp}:${widget.device.port}  ·  '
-                  '${isOnline ? 'Online' : 'Last seen ${_formatAge(sinceLastSeen)}'}',
+                  '${isOnline ? 'Online' : 'Last seen ${_formatAge(sinceLastSeen)}'}  ·  '
+                  '${widget.device.trustLevel == DeviceTrustLevel.temporary ? 'Temporary' : 'Trusted'}',
                   style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 12),
                 ),
               ],
@@ -602,12 +603,48 @@ class _DeviceCardState extends State<_DeviceCard> with SingleTickerProviderState
           IconButton(
             icon: const Icon(Icons.link_off_rounded, color: DoorstepTheme.textMuted, size: 22),
             tooltip: 'Revoke pairing',
-            onPressed: () {
-              // ignore: discarded_futures
-              ref.notifier(doorstepPairingProvider).revokeDevice(widget.device.id);
-            },
+            onPressed: () => _confirmRevoke(context),
           ),
         ],
+      ),
+    );
+  }
+
+  void _confirmRevoke(BuildContext context) {
+    final isTemporary = widget.device.trustLevel == DeviceTrustLevel.temporary;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: DoorstepTheme.surface,
+          title: Text(
+            isTemporary ? 'Forget this device?' : 'Revoke ${widget.device.alias}?',
+            style: const TextStyle(color: DoorstepTheme.textMain, fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            isTemporary
+                ? 'This temporary connection will be closed. The device will need to scan your QR code again to reconnect.'
+                : '"${widget.device.alias}" will no longer be trusted. It will stop receiving files automatically and must scan your QR code again to reconnect.',
+            style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 14, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: DoorstepTheme.textMuted)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                // ignore: discarded_futures
+                ref.notifier(doorstepPairingProvider).revokeDevice(widget.device.id);
+              },
+              child: Text(
+                isTemporary ? 'Forget' : 'Revoke',
+                style: const TextStyle(color: DoorstepTheme.danger, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -654,6 +691,34 @@ class _FolderCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () => _pickTargetDevices(context, folder),
+                  borderRadius: BorderRadius.circular(100),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: DoorstepTheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(color: DoorstepTheme.primary.withValues(alpha: 0.25), width: 0.8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.send_to_mobile_rounded, size: 13, color: DoorstepTheme.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          _targetDevicesLabel(context, folder),
+                          style: const TextStyle(
+                            color: DoorstepTheme.primary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -692,6 +757,133 @@ class _FolderCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _targetDevicesLabel(BuildContext context, WatchedFolder folder) {
+    final paired = context.ref.read(doorstepPairingProvider);
+    if (folder.targetDeviceIds.isEmpty) return 'All devices';
+    final count = folder.targetDeviceIds.where((id) => paired.any((d) => d.id == id)).length;
+    return count == 0
+        ? 'No devices'
+        : count == 1
+        ? '1 device'
+        : '$count devices';
+  }
+
+  /// "Send to" selector: route this drop zone to specific paired devices.
+  Future<void> _pickTargetDevices(BuildContext context, WatchedFolder folder) async {
+    final paired = context.ref.read(doorstepPairingProvider);
+    final allSelected = folder.targetDeviceIds.isEmpty;
+    final selected = <String>{...folder.targetDeviceIds};
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
+            backgroundColor: DoorstepTheme.surface,
+            title: const Text(
+              'Send to…',
+              style: TextStyle(color: DoorstepTheme.textMain, fontWeight: FontWeight.bold),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Files dropped into "${folder.name}" go to the devices you pick here.',
+                    style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 13, height: 1.4),
+                  ),
+                  const SizedBox(height: 14),
+                  // All devices
+                  CheckboxListTile(
+                    value: allSelected,
+                    activeColor: DoorstepTheme.primary,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          selected.clear();
+                        }
+                      });
+                      if (value == true) Navigator.of(ctx).pop(true); // all mode
+                    },
+                    title: const Text(
+                      'All paired devices',
+                      style: TextStyle(color: DoorstepTheme.textMain, fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: const Text(
+                      'Every trusted device gets files from this folder',
+                      style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 11.5),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  if (paired.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Text(
+                        'No devices paired yet.',
+                        style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 12),
+                      ),
+                    )
+                  else
+                    ...paired.map(
+                      (d) => CheckboxListTile(
+                        value: !allSelected && selected.contains(d.id),
+                        activeColor: DoorstepTheme.primary,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selected.add(d.id);
+                            } else {
+                              selected.remove(d.id);
+                            }
+                          });
+                        },
+                        title: Text(
+                          d.alias,
+                          style: const TextStyle(color: DoorstepTheme.textMain, fontSize: 14),
+                        ),
+                        subtitle: Text(
+                          d.trustLevel == DeviceTrustLevel.temporary ? 'Temporary session' : 'Trusted device',
+                          style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 11.5),
+                        ),
+                        secondary: Icon(
+                          d.trustLevel == DeviceTrustLevel.temporary ? Icons.timer_rounded : Icons.check_circle_rounded,
+                          color: d.trustLevel == DeviceTrustLevel.temporary ? DoorstepTheme.warning : DoorstepTheme.success,
+                          size: 20,
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel', style: TextStyle(color: DoorstepTheme.textMuted)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text(
+                  'Apply',
+                  style: TextStyle(color: DoorstepTheme.primary, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result == null || !context.mounted) return;
+    if (result == true) {
+      // All devices
+      await context.ref.notifier(doorstepWatcherProvider).setFolderTargetDevices(folder.id, const []);
+    } else {
+      await context.ref.notifier(doorstepWatcherProvider).setFolderTargetDevices(folder.id, selected.toList());
+    }
   }
 
   void _confirmRemove(BuildContext context, WatchedFolder folder) {
@@ -758,9 +950,24 @@ class _PairingModal extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Open the Doorstep app on your phone and scan this code.\nYou only need to do this once — it reconnects automatically.',
+            'Open the Doorstep app on your phone and scan this code.\nYour phone will ask you whether this is a personal device.',
             textAlign: TextAlign.center,
             style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 10),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.wifi_rounded, color: DoorstepTheme.primary, size: 15),
+              SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Both devices must be on the same Wi-Fi network (or a hotspot).',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: DoorstepTheme.primary, fontSize: 11.5, height: 1.3),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
 

@@ -1,23 +1,21 @@
 import 'dart:async';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/state/doorstep_transfer_state.dart';
+import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
+import 'package:doorstep_app/provider/network/send_provider.dart';
+import 'package:doorstep_app/provider/network/server/server_provider.dart';
+import 'package:doorstep_app/widget/doorstep_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/gen/assets.gen.dart';
-import 'package:localsend_app/model/state/doorstep_transfer_state.dart';
-import 'package:localsend_app/provider/doorstep_transfer_provider.dart';
-import 'package:localsend_app/provider/network/send_provider.dart';
-import 'package:localsend_app/provider/network/server/server_provider.dart';
-import 'package:localsend_app/widget/doorstep_logo.dart';
 import 'package:localsend_isolates/model/session_status.dart';
 import 'package:refena_flutter/refena_flutter.dart';
-import 'package:video_player/video_player.dart';
 
 /// Full-screen loading screen shown while files are transferring.
 ///
-/// Plays `assets/doorstep/loading.mp4` on top of the entire app (mounted via
-/// `MaterialApp.builder`, so it covers every route). Renders nothing when no
-/// transfer is active. A close button dismisses it for the current transfer;
-/// it comes back for the next one.
+/// Mounted via `MaterialApp.builder` so it covers every route. It appears once
+/// per transfer batch and stays up until the whole batch is done — dismissing
+/// it hides it for the remainder of the batch (never once per file). Renders
+/// nothing when no transfer is active.
 class DoorstepTransferOverlay extends StatefulWidget {
   const DoorstepTransferOverlay({super.key});
 
@@ -25,31 +23,56 @@ class DoorstepTransferOverlay extends StatefulWidget {
   State<DoorstepTransferOverlay> createState() => _DoorstepTransferOverlayState();
 }
 
-class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with Refena {
-  /// True while the user dismissed the overlay for the current transfer.
-  /// Reset automatically once every transfer has finished, so the next
-  /// transfer shows the screen again.
-  bool _dismissed = false;
+/// The batch is considered finished (and the dismiss state resets) only after
+/// transfers have been idle for this long — long enough to smooth over the
+/// small gaps between sequential files in one batch.
+const _idleResetAfter = Duration(seconds: 4);
 
-  bool get _hasActiveTransfer {
-    // Narrow the watches to booleans so progress polls (every 300ms during a
-    // Doorstep transfer) do not rebuild this overlay on every tick.
+class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with Refena {
+  /// True while the user dismissed the overlay for the current batch.
+  bool _dismissed = false;
+  Timer? _idleTimer;
+
+  @override
+  void dispose() {
+    _idleTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Active Doorstep transfers (pending or in flight) — drives the file name,
+  /// count and progress ring.
+  List<DoorstepTransferState> get _activeDoorstep {
+    return ref.watch(
+      doorstepTransferProvider.select(
+        (list) => list.where((t) => t.status == DoorstepTransferStatus.pending || t.status == DoorstepTransferStatus.transferring).toList(),
+      ),
+    );
+  }
+
+  /// Whether any non-Doorstep send/receive session is in flight.
+  bool get _hasLegacyTransfer {
     final sending = ref.watch(sendProvider.select((sessions) => sessions.values.any((s) => s.status == SessionStatus.sending)));
     final receiving = ref.watch(serverProvider.select((s) => s?.session?.status)) == SessionStatus.sending;
-    final doorstep = ref.watch(
-      doorstepTransferProvider.select((list) => list.any((t) => t.status == DoorstepTransferStatus.transferring)),
-    );
-    return sending || receiving || doorstep;
+    return sending || receiving;
   }
 
   @override
   Widget build(BuildContext context) {
-    final active = _hasActiveTransfer;
+    final doorstep = _activeDoorstep;
+    final active = doorstep.isNotEmpty || _hasLegacyTransfer;
+
     if (!active) {
-      // All transfers finished — allow the next one to show the screen again.
-      _dismissed = false;
+      // Idle — after a grace period, allow the next batch to show the screen
+      // again. This keeps sequential files in one batch from re-showing it.
+      _idleTimer ??= Timer(_idleResetAfter, () {
+        if (mounted) setState(() => _dismissed = false);
+      });
       return const SizedBox.shrink();
     }
+
+    _idleTimer?.cancel();
+    _idleTimer = null;
+
     if (_dismissed) {
       return const SizedBox.shrink();
     }
@@ -57,23 +80,25 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
     return Material(
       type: MaterialType.transparency,
       child: Container(
-        color: Colors.black,
+        color: DoorstepTheme.background,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const _DoorstepLoadingVideo(),
             SafeArea(
               child: Align(
                 alignment: Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: IconButton(
-                    tooltip: 'Dismiss',
+                    tooltip: 'Hide for this batch',
                     onPressed: () => setState(() => _dismissed = true),
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close_rounded, color: DoorstepTheme.textMuted),
                   ),
                 ),
               ),
+            ),
+            Center(
+              child: _LoadingContent(doorstep: doorstep),
             ),
           ],
         ),
@@ -82,97 +107,138 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
   }
 }
 
-/// Plays the bundled loading video in a loop. Shows a static fallback while
-/// the video initializes and whenever playback is not possible.
-class _DoorstepLoadingVideo extends StatefulWidget {
-  const _DoorstepLoadingVideo();
+/// The animated centerpiece: logo, progress ring and current file.
+class _LoadingContent extends StatelessWidget {
+  final List<DoorstepTransferState> doorstep;
+
+  const _LoadingContent({required this.doorstep});
 
   @override
-  State<_DoorstepLoadingVideo> createState() => _DoorstepLoadingVideoState();
+  Widget build(BuildContext context) {
+    final hasDoorstep = doorstep.isNotEmpty;
+    final progress = hasDoorstep
+        ? (doorstep.map((t) => t.progress).reduce((a, b) => a + b) / doorstep.length).clamp(0.0, 1.0)
+        : 0.0;
+    final current = hasDoorstep ? doorstep.first : null;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Logo inside a smooth progress ring.
+        SizedBox(
+          width: 132,
+          height: 132,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: progress),
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) => CustomPaint(
+              painter: _ProgressRingPainter(progress: value),
+              child: Center(child: child),
+            ),
+            child: const _PulsingLogo(),
+          ),
+        ),
+        const SizedBox(height: 34),
+        Text(
+          hasDoorstep ? 'Sending to ${current!.targetDevice}' : 'Transferring…',
+          style: const TextStyle(
+            color: DoorstepTheme.textMain,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (hasDoorstep) ...[
+          Text(
+            current!.fileName,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: DoorstepTheme.primary, fontSize: 14.5),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            doorstep.length > 1 ? '${doorstep.length} file${doorstep.length == 1 ? '' : 's'} left' : 'Hang tight — almost there',
+            style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 12.5),
+          ),
+        ] else ...[
+          const Text(
+            'Files are moving between your devices',
+            style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 13),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
-class _DoorstepLoadingVideoState extends State<_DoorstepLoadingVideo> {
-  VideoPlayerController? _controller;
-  bool _ready = false;
+/// Gently pulsing Doorstep logo so the screen feels alive without noise.
+class _PulsingLogo extends StatefulWidget {
+  const _PulsingLogo();
+
+  @override
+  State<_PulsingLogo> createState() => _PulsingLogoState();
+}
+
+class _PulsingLogoState extends State<_PulsingLogo> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_init());
-  }
-
-  Future<void> _init() async {
-    final controller = VideoPlayerController.asset(Assets.doorstep.loading);
-    try {
-      await controller.initialize();
-      await controller.setLooping(true);
-      await controller.setVolume(0);
-      await controller.play();
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
-      setState(() {
-        _controller = controller;
-        _ready = true;
-      });
-    } catch (_) {
-      // Unsupported platform (no video_player implementation, e.g. Windows) or
-      // unreadable asset — the fallback screen below is shown instead.
-      await controller.dispose();
-    }
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
+    unawaited(_controller.repeat(reverse: true));
   }
 
   @override
   void dispose() {
-    unawaited(_controller?.dispose() ?? Future.value());
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = _controller;
-    if (_ready && controller != null && controller.value.isInitialized) {
-      return FittedBox(
-        fit: BoxFit.cover,
-        clipBehavior: Clip.hardEdge,
-        child: SizedBox(
-          width: controller.value.size.width,
-          height: controller.value.size.height,
-          child: VideoPlayer(controller),
-        ),
-      );
-    }
-    return const _DoorstepLoadingFallback();
+    return ScaleTransition(
+      scale: Tween(begin: 0.94, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+      child: const DoorstepLogo(withText: false, size: 76),
+    );
   }
 }
 
-/// Static loading screen shown when the video cannot play.
-class _DoorstepLoadingFallback extends StatelessWidget {
-  const _DoorstepLoadingFallback();
+/// Thin circular progress ring around the logo.
+class _ProgressRingPainter extends CustomPainter {
+  final double progress;
+
+  _ProgressRingPainter({required this.progress});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: DoorstepTheme.background,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const DoorstepLogo(withText: false),
-          const SizedBox(height: 28),
-          const SizedBox(
-            width: 34,
-            height: 34,
-            child: CircularProgressIndicator(strokeWidth: 3, color: DoorstepTheme.primary),
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Doorstep',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 7;
+
+    final track = Paint()
+      ..color = DoorstepTheme.surfaceBorder
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, track);
+
+    if (progress <= 0) return;
+    final arc = Paint()
+      ..color = DoorstepTheme.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.5708, // start at top
+      6.2832 * progress.clamp(0.0, 1.0),
+      false,
+      arc,
     );
   }
+
+  @override
+  bool shouldRepaint(covariant _ProgressRingPainter oldDelegate) => oldDelegate.progress != progress;
 }

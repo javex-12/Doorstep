@@ -40,7 +40,7 @@
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
   <Applications>
-    <Application Id="localsendapp" Executable="localsend_app.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="doorstepapp" Executable="doorstep.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements AppListEntry="none" BackgroundColor="transparent"
         DisplayName="Doorstep" Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png" Description="An open source cross-platform alternative to AirDrop">
@@ -56,11 +56,11 @@
         <uap:LockScreen BadgeLogo="Images\BadgeLogo.png" Notification="badge"/>
       </uap:VisualElements>
       <Extensions>
-        <desktop:Extension Category="windows.startupTask" Executable="localsend_app.exe" EntryPoint="Windows.FullTrustApplication" uap10:Parameters="autostart">
+        <desktop:Extension Category="windows.startupTask" Executable="doorstep.exe" EntryPoint="Windows.FullTrustApplication" uap10:Parameters="autostart">
           <desktop:StartupTask TaskId="doorstep" Enabled="false" DisplayName="Doorstep"/>
         </desktop:Extension>
         <uap:Extension Category="windows.shareTarget">
-          <uap:ShareTarget Description="Send to Localsend">
+          <uap:ShareTarget Description="Send to Doorstep">
             <uap:SupportedFileTypes>
               <uap:SupportsAnyFileType />
             </uap:SupportedFileTypes>

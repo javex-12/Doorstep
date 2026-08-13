@@ -3,41 +3,41 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:doorstep_app/config/refena.dart';
+import 'package:doorstep_app/config/theme.dart';
+import 'package:doorstep_app/pages/home_page.dart';
+import 'package:doorstep_app/pages/home_page_controller.dart';
+import 'package:doorstep_app/provider/animation_provider.dart';
+import 'package:doorstep_app/provider/app_arguments_provider.dart';
+import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_browse_provider.dart';
+import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
+import 'package:doorstep_app/provider/network/server/server_provider.dart';
+import 'package:doorstep_app/provider/network/webrtc/signaling_provider.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
+// [FOSS_REMOVE_START]
+import 'package:doorstep_app/provider/purchase_provider.dart';
+// [FOSS_REMOVE_END]
+import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:doorstep_app/provider/settings_provider.dart';
+import 'package:doorstep_app/provider/tv_provider.dart';
+import 'package:doorstep_app/provider/window_dimensions_provider.dart';
+import 'package:doorstep_app/util/i18n.dart';
+import 'package:doorstep_app/util/native/autostart_helper.dart';
+import 'package:doorstep_app/util/native/cache_helper.dart';
+import 'package:doorstep_app/util/native/context_menu_helper.dart';
+import 'package:doorstep_app/util/native/cross_file_converters.dart';
+import 'package:doorstep_app/util/native/device_info_helper.dart';
+import 'package:doorstep_app/util/native/macos_channel.dart';
+import 'package:doorstep_app/util/native/platform_check.dart';
+import 'package:doorstep_app/util/native/tray_helper.dart';
+import 'package:doorstep_app/util/notification_strings.dart';
+import 'package:doorstep_app/util/ui/dynamic_colors.dart';
+import 'package:doorstep_app/util/ui/snackbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
-import 'package:localsend_app/config/refena.dart';
-import 'package:localsend_app/config/theme.dart';
-import 'package:localsend_app/pages/home_page.dart';
-import 'package:localsend_app/pages/home_page_controller.dart';
-import 'package:localsend_app/provider/animation_provider.dart';
-import 'package:localsend_app/provider/app_arguments_provider.dart';
-import 'package:localsend_app/provider/device_info_provider.dart';
-import 'package:localsend_app/provider/doorstep_browse_provider.dart';
-import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
-import 'package:localsend_app/provider/network/server/server_provider.dart';
-import 'package:localsend_app/provider/network/webrtc/signaling_provider.dart';
-import 'package:localsend_app/provider/persistence_provider.dart';
-// [FOSS_REMOVE_START]
-import 'package:localsend_app/provider/purchase_provider.dart';
-// [FOSS_REMOVE_END]
-import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
-import 'package:localsend_app/provider/settings_provider.dart';
-import 'package:localsend_app/provider/tv_provider.dart';
-import 'package:localsend_app/provider/window_dimensions_provider.dart';
-import 'package:localsend_app/util/i18n.dart';
-import 'package:localsend_app/util/native/autostart_helper.dart';
-import 'package:localsend_app/util/native/cache_helper.dart';
-import 'package:localsend_app/util/native/context_menu_helper.dart';
-import 'package:localsend_app/util/native/cross_file_converters.dart';
-import 'package:localsend_app/util/native/device_info_helper.dart';
-import 'package:localsend_app/util/native/macos_channel.dart';
-import 'package:localsend_app/util/native/platform_check.dart';
-import 'package:localsend_app/util/native/tray_helper.dart';
-import 'package:localsend_app/util/notification_strings.dart';
-import 'package:localsend_app/util/ui/dynamic_colors.dart';
-import 'package:localsend_app/util/ui/snackbar.dart';
 import 'package:localsend_isolates/api_route_builder.dart';
 import 'package:localsend_isolates/constants.dart';
 import 'package:localsend_isolates/isolate.dart';
@@ -79,6 +79,10 @@ Future<RefenaContainer> preInit(List<String> args) async {
 
   if (persistenceService.isFirstAppStart && !persistenceService.isPortableMode()) {
     await enableContextMenu();
+  } else {
+    // Repair the Windows "Send to Doorstep" shortcut if the app was moved —
+    // otherwise Windows reports the exe as unavailable.
+    await refreshContextMenu(); // ignore: discarded_futures
   }
 
   // On Windows, automatically blacklist Hyper-V / Docker / WSL virtual adapters

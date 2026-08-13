@@ -1,6 +1,6 @@
 enum ColorMode {
   system, // dynamic colors
-  localsend,
+  doorstep,
   oled,
   yaru,
 }

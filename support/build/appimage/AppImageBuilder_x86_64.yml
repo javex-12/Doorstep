@@ -7,11 +7,11 @@ script:
 AppDir:
   path: AppDir
   app_info:
-    id: org.localsend.localsend_app
+    id: com.doorstep.app
     name: Doorstep
-    icon: localsend
+    icon: doorstep
     version: latest
-    exec: localsend_app
+    exec: doorstep
     exec_args: $@
   apt:
     arch:

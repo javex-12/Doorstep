@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:localsend_app/model/persistence/favorite_device.dart';
+import 'package:doorstep_app/model/persistence/favorite_device.dart';
 import 'package:localsend_isolates/model/device.dart';
 
 extension FavoriteDevicesExt on Iterable<FavoriteDevice> {

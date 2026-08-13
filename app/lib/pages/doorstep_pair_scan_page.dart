@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/provider/device_info_provider.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/util/doorstep_pairing_helper.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -55,6 +56,16 @@ class _DoorstepPairScanPageState extends State<DoorstepPairScanPage> with Refena
       setState(() => _processing = true);
       try {
         await _controller.stop();
+        if (!mounted) return;
+
+        // Ask the user how much this device is trusted before saving anything.
+        final trust = await _askTrustLevel(payload.alias);
+        if (trust == null) {
+          // User cancelled — resume scanning.
+          setState(() => _processing = false);
+          await _controller.start();
+          return;
+        }
 
         final deviceInfo = ref.read(deviceFullInfoProvider);
         final paired = await ref
@@ -63,6 +74,7 @@ class _DoorstepPairScanPageState extends State<DoorstepPairScanPage> with Refena
               payload: payload,
               localIp: deviceInfo.ip ?? '0.0.0.0',
               localPort: deviceInfo.port,
+              trustLevel: trust,
             );
 
         final handshakeOk = await ref.notifier(doorstepPairingProvider).registerWithPairedDevice(paired);
@@ -85,6 +97,52 @@ class _DoorstepPairScanPageState extends State<DoorstepPairScanPage> with Refena
       }
       return;
     }
+  }
+
+  /// Shows the "how much do you trust this device?" dialog.
+  /// Returns the chosen [DeviceTrustLevel], or `null` when cancelled.
+  Future<DeviceTrustLevel?> _askTrustLevel(String alias) async {
+    return showDialog<DeviceTrustLevel>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: DoorstepTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Trust this device?',
+          style: TextStyle(color: DoorstepTheme.textMain, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '"$alias" just asked to connect to this phone.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 14, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            _TrustOption(
+              icon: Icons.home_rounded,
+              title: 'My personal device',
+              subtitle: 'Remember it, reconnect automatically, files always arrive',
+              onTap: () => Navigator.of(ctx).pop(DeviceTrustLevel.persistent),
+            ),
+            const SizedBox(height: 10),
+            _TrustOption(
+              icon: Icons.timer_rounded,
+              title: 'Temporary — this session only',
+              subtitle: 'No reconnects, forgotten when the app closes',
+              onTap: () => Navigator.of(ctx).pop(DeviceTrustLevel.temporary),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel', style: TextStyle(color: DoorstepTheme.textMuted)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showHint(String message) {
@@ -150,16 +208,36 @@ class _DoorstepPairScanPageState extends State<DoorstepPairScanPage> with Refena
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                   decoration: BoxDecoration(
-                    color: DoorstepTheme.background.withValues(alpha: 0.85),
+                    color: DoorstepTheme.background.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: DoorstepTheme.surfaceBorder),
                   ),
-                  child: const Text(
-                    'Point your camera at the QR code on the Doorstep app on your laptop. You only need to do this once.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 13, height: 1.4),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.wifi_rounded, color: DoorstepTheme.primary, size: 18),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'Both devices must be on the same Wi-Fi network —\nor connect the phone to your laptop\u2019s hotspot.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: DoorstepTheme.primary, fontSize: 12.5, height: 1.35, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Then point your camera at the QR code shown in the Doorstep app on your laptop.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 12.5, height: 1.4),
+                      ),
+                    ],
                   ),
                 ),
                 if (_hint != null) ...[
@@ -274,6 +352,64 @@ class _PairedInfo {
   final int port;
 
   const _PairedInfo({required this.alias, required this.ip, required this.port});
+}
+
+/// One selectable trust option in the "Trust this device?" dialog.
+class _TrustOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _TrustOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: DoorstepTheme.surfaceBorder.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DoorstepTheme.surfaceBorder, width: 0.8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: DoorstepTheme.primary, size: 24),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: DoorstepTheme.textMain,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 11.5, height: 1.3),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Camera error / permission view ───────────────────────────────────────────

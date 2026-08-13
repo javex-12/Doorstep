@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:doorstep_app/model/persistence/paired_device.dart';
+
 class DoorstepPairingPayload {
   final String deviceId;
   final String alias;
@@ -86,18 +88,30 @@ class DoorstepPairingHandshake {
   /// The real device model, with the carrier stripped off.
   final String cleanDeviceModel;
 
+  /// Whether the pairing phone wants this to be a remembered (persistent)
+  /// device or a session-only (temporary) one. Defaults to persistent.
+  final DeviceTrustLevel trustLevel;
+
   const DoorstepPairingHandshake({
     required this.laptopToken,
     required this.phoneToken,
     required this.cleanDeviceModel,
+    this.trustLevel = DeviceTrustLevel.persistent,
   });
 
   static const _separator = '|doorstep=';
 
   /// Encodes [deviceModel] plus the handshake tokens into the register payload's
-  /// `deviceModel` field.
-  static String encode(String deviceModel, {required String laptopToken, required String phoneToken}) {
-    return '$deviceModel$_separator$laptopToken.$phoneToken';
+  /// `deviceModel` field. The trailing trust flag (`t0` / `t1`) is optional so
+  /// older peers still parse the carrier.
+  static String encode(
+    String deviceModel, {
+    required String laptopToken,
+    required String phoneToken,
+    DeviceTrustLevel trustLevel = DeviceTrustLevel.persistent,
+  }) {
+    final trust = trustLevel == DeviceTrustLevel.persistent ? 't1' : 't0';
+    return '$deviceModel$_separator$laptopToken.$phoneToken.$trust';
   }
 
   /// Parses the carrier out of a register payload's `deviceModel` field.
@@ -108,14 +122,17 @@ class DoorstepPairingHandshake {
     if (index == -1) return null;
 
     final cleanDeviceModel = deviceModel.substring(0, index);
-    final tokens = deviceModel.substring(index + _separator.length).split('.');
-    if (tokens.length != 2 || tokens[0].isEmpty || tokens[1].isEmpty) {
+    final parts = deviceModel.substring(index + _separator.length).split('.');
+    if (parts.length < 2 || parts[0].isEmpty || parts[1].isEmpty) {
       return null;
     }
+    // Third segment: `t1` (persistent) or `t0` (temporary). Absent => persistent.
+    final trustLevel = parts.length >= 3 && parts[2] == 't0' ? DeviceTrustLevel.temporary : DeviceTrustLevel.persistent;
     return DoorstepPairingHandshake(
-      laptopToken: tokens[0],
-      phoneToken: tokens[1],
+      laptopToken: parts[0],
+      phoneToken: parts[1],
       cleanDeviceModel: cleanDeviceModel,
+      trustLevel: trustLevel,
     );
   }
 }

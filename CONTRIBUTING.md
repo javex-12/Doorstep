@@ -62,81 +62,18 @@ If you discover a security issue in Doorstep, please do not submit an issue to t
 
 ## Distribution
 
-Git based distribution:
+Doorstep is distributed directly from this repository — every release ships ready-to-run binaries for all supported platforms.
 
-| Channel        | Repository          | Maintainer                                         |
-|----------------|---------------------|----------------------------------------------------|
-| [Winget][]     | [Winget Repo][]     | [@sitiom][], [@Tienisto], Github Actions           |
-| [Scoop][]      | [Scoop Repo][]      | [@sitiom][], [@Tienisto], Github Actions           |
-| [Chocolatey][] | [Chocolatey Repo][] | [@brogers5][]                                      |
-| [Homebrew][]   | [Homebrew Repo][]   | [@Tienisto][], Github Actions                      |
-| [Flathub][]    | [Flathub Repo][]    | [@proletarius101][], [@Tienisto][], Github Actions |
-| [AUR][]        | [AUR Repo][]        | [@Nixuge][]                                        |
-| [Nixpkgs][]    | [Nixpkgs Repo][]    | [@sikmir][], [@linsui][]                           |
-| [F-Droid][]    | [F-Droid Repo][]    | [@linsui][], [@Tienisto][], [F-Droid CI][]         |
-| [Snap][]       | [Snap Repo][]       | [@thatLeaflet][]                                   |
+| Platform | Artifacts |
+|----------|-----------|
+| Windows  | EXE installer, portable ZIP (built by the release pipeline) |
+| Android  | APKs for 32-bit (`armeabi-v7a`) and 64-bit (`arm64-v8a`, `x86_64`) devices |
+| macOS    | DMG installer |
+| Linux    | AppImage, TAR, DEB |
 
-[winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
-[winget repo]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
-[scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
-[scoop repo]: https://github.com/ScoopInstaller/Extras/blob/master/bucket/localsend.json
-[chocolatey]: https://community.chocolatey.org/packages/localsend
-[chocolatey repo]: https://github.com/brogers5/chocolatey-package-localsend/tree/main
-[homebrew]: https://formulae.brew.sh/cask/localsend
-[homebrew repo]: https://github.com/Homebrew/homebrew-cask/blob/master/Casks/l/localsend.rb
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
-[flathub repo]: https://github.com/flathub/org.localsend.localsend_app
-[aur]: https://aur.archlinux.org/packages/localsend-bin
-[aur repo]: https://aur.archlinux.org/localsend-bin.git
-[nixpkgs]: https://search.nixos.org/packages?show=localsend
-[nixpkgs repo]: https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/localsend/default.nix
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
-[f-droid repo]: https://gitlab.com/fdroid/fdroiddata/-/blob/master/metadata/org.localsend.localsend_app.yml
-[snap]: https://snapcraft.io/localsend
-[snap repo]: https://github.com/localsend/snap
+Maintained by [cydercoder](https://cydercoder.vercel.app) ([@javex-12](https://github.com/javex-12)).
 
-Manual distribution:
-
-| Channel        | Maintainer                               |
-|----------------|------------------------------------------|
-| [App Store][]  | [@Tienisto](https://github.com/Tienisto) |
-| [Play Store][] | [@Tienisto](https://github.com/Tienisto) |
-| [Amazon][]     | [@Tienisto](https://github.com/Tienisto) |
-
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[amazon]: https://www.amazon.com/dp/B0BW6MP732
-
-Binary distribution:
-
-| Type        | Maintainer    | Credits                      |
-|-------------|---------------|------------------------------|
-| Windows ZIP | [@Tienisto][] |                              |
-| MSIX        | [@Tienisto][] |                              |
-| EXE         | [@Tienisto][] |                              |
-| APK         | [@Tienisto][] |                              |
-| TAR         | [@Tienisto][] |                              |
-| DEB         | [@Tienisto][] |                              |
-| AppImage    | [@Tienisto][] | [@TheGB0077][]               |
-| DMG         | [@Tienisto][] |                              |
-
-[@Tienisto]: https://github.com/Tienisto
-[@TheGB0077]: https://github.com/TheGB0077
-[@sitiom]: https://github.com/sitiom
-[@Nixuge]: https://github.com/Nixuge
-[@proletarius101]: https://github.com/proletarius101
-[@brogers5]: https://github.com/brogers5
-[@sikmir]: https://github.com/sikmir
-[@linsui]: https://github.com/linsui
-[@thatLeaflet]: https://github.com/thatLeaflet
-[F-Droid CI]: https://gitlab.com/fdroidci
-
-TODO:
-
-You can help in publishing Doorstep on more platforms. Please create an issue to notify us!
-
-- Traditional Linux distributions (Debian, Fedora, etc.)
-- (Your idea here)
+App stores and package managers (Play Store, App Store, winget, etc.) are planned but not yet published. If you would like to help package Doorstep, please open an issue!
 
 ## Notes
 

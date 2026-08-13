@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:localsend_app/model/persistence/watched_folder.dart';
-import 'package:localsend_app/provider/doorstep_pairing_provider.dart';
-import 'package:localsend_app/provider/doorstep_transfer_provider.dart';
-import 'package:localsend_app/provider/persistence_provider.dart';
-import 'package:localsend_app/util/native/cross_file_converters.dart';
+import 'package:doorstep_app/model/persistence/watched_folder.dart';
+import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
+import 'package:doorstep_app/util/native/cross_file_converters.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -141,8 +141,11 @@ class DoorstepWatcherNotifier extends Notifier<List<WatchedFolder>> {
 
       final crossFile = await CrossFileConverters.convertFile(file);
       final devices = ref.read(doorstepPairingProvider).where((d) {
+        // Folder-centric routing: this drop zone targets a subset of devices.
+        final targeted = folder.targetDeviceIds.isEmpty || folder.targetDeviceIds.contains(d.id);
+        // Device-centric gate (per-device opt-out), kept for compatibility.
         final folderAllowed = d.allowedFolderIds.isEmpty || d.allowedFolderIds.contains(folder.id);
-        return d.autoTransfer && folderAllowed;
+        return d.autoTransfer && targeted && folderAllowed;
       }).toList();
 
       if (devices.isEmpty) {
@@ -200,6 +203,40 @@ class DoorstepWatcherNotifier extends Notifier<List<WatchedFolder>> {
       return f;
     }).toList();
 
+    state = updated;
+    await _saveFolders(updated);
+  }
+
+  /// Routes a drop zone to a specific set of paired devices.
+  /// An empty [deviceIds] means "all devices".
+  Future<void> setFolderTargetDevices(String folderId, List<String> deviceIds) async {
+    final updated = state.map((f) {
+      if (f.id == folderId) {
+        return f.copyWith(targetDeviceIds: deviceIds);
+      }
+      return f;
+    }).toList();
+
+    state = updated;
+    await _saveFolders(updated);
+  }
+
+  /// Cleans a revoked device out of every drop zone's target list, so the
+  /// routing stays honest. A folder whose targets all got revoked falls back
+  /// to "all devices" (empty list). No-op when the folder list is empty (e.g.
+  /// on phones, which never have drop zones).
+  Future<void> removeDeviceFromTargets(String deviceId) async {
+    var changed = false;
+    final updated = state.map((f) {
+      if (f.targetDeviceIds.contains(deviceId)) {
+        changed = true;
+        return f.copyWith(
+          targetDeviceIds: f.targetDeviceIds.where((id) => id != deviceId).toList(),
+        );
+      }
+      return f;
+    }).toList();
+    if (!changed) return;
     state = updated;
     await _saveFolders(updated);
   }

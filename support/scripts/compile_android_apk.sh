@@ -15,9 +15,10 @@
 # git reset --hard origin/main
 # git pull
 
+REPO_DIR="$(basename "$PWD")"
 cd ..
 rm -rf /tmp/build
-cp localsend /tmp/build -r
+cp "$REPO_DIR" /tmp/build -r
 pushd /tmp/build
 
 git submodule update --init
@@ -28,4 +29,4 @@ dart run build_runner build -d
 flutter build apk
 
 popd
-cd localsend
+cd "$REPO_DIR"

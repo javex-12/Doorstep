@@ -12,7 +12,7 @@
 [homepage]: https://localsend.org
 [discord]: https://discord.gg/GSRWmQNP87
 [github]: https://github.com/localsend/localsend
-[codeberg]: https://codeberg.org/localsend/localsend
+[codeberg]: https://github.com/javex-12/Doorstep
 
 Ang Doorstep ay isang libreng, open-source na app na nagbibigay-daan sa iyo na ligtas na mag-share ng mga file at mensahe sa mga kalapit na device sa iyong lokal network nang hindi nangangailangan ng koneksyon sa internet.
 
@@ -56,15 +56,15 @@ Inirerekomenda na i-download ang app mula sa app store o mula sa package manager
 Magbasa nang higit pa tungkol sa [distribution channels][].
 
 [windows store]: https://www.microsoft.com/store/apps/9NCB4Z0TZ6RR
-[app store]: https://apps.apple.com/us/app/localsend/id1661733229
-[play store]: https://play.google.com/store/apps/details?id=org.localsend.localsend_app
-[f-droid]: https://f-droid.org/packages/org.localsend.localsend_app
+[app store]: https://github.com/javex-12/Doorstep/releases/latest
+[play store]: https://github.com/javex-12/Doorstep/releases/latest
+[f-droid]: https://github.com/javex-12/Doorstep/releases/latest
 [amazon]: https://www.amazon.com/dp/B0BW6MP732
 [winget]: https://github.com/microsoft/winget-pkgs/tree/master/manifests/l/Doorstep/Doorstep
 [scoop]: https://scoop.sh/#/apps?s=0&d=1&o=true&q=localsend&id=fb88113be361ca32c0dcac423cb4afdeda0b0c66
 [chocolatey]: https://community.chocolatey.org/packages/localsend
 [homebrew]: https://formulae.brew.sh/cask/localsend
-[flathub]: https://flathub.org/apps/details/org.localsend.localsend_app
+[flathub]: https://github.com/javex-12/Doorstep/releases/latest
 [nixpkgs]: https://search.nixos.org/packages?show=localsend
 [snap]: https://snapcraft.io/localsend
 [aur]: https://aur.archlinux.org/packages/localsend-bin
@@ -104,7 +104,7 @@ Gagamitin ng app ang file na ito upang i-save ang mga setting sa halip na ang de
 
 (Na-update sa v1.15.0)
 
-Upang simulan ang app na nakatago (lamang sa tray), gamitin ang `--hidden` flag (halimbawa: `localsend_app.exe --hidden`).
+Upang simulan ang app na nakatago (lamang sa tray), gamitin ang `--hidden` flag (halimbawa: `doorstep.exe --hidden`).
 
 Sa v1.14.0 at mas maaga, ang app ay magsisimula nang nakatago kung ang `autostart` flag ay naka-set, at ang hidden setting ay naka-enable.
 

@@ -57,6 +57,45 @@ Future<bool> isContextMenuEnabled() async {
   }
 }
 
+/// Repairs the "Send to Doorstep" shortcut if it is stale.
+///
+/// Windows' SendTo shortcut stores the absolute path of the exe at the time it
+/// was created. If the app is later moved (e.g. the folder was re-extracted
+/// from a zip), Windows reports "doorstep.exe is not available". Running
+/// this on every desktop start re-creates the shortcut pointing at the *current*
+/// exe whenever the stored target no longer exists.
+Future<void> refreshContextMenu() async {
+  if (defaultTargetPlatform != TargetPlatform.windows) {
+    return;
+  }
+  try {
+    final shortcutFile = File(_getWindowsFilePath(_windowsFileName));
+    if (!await shortcutFile.exists()) {
+      return; // Not enabled — nothing to repair.
+    }
+
+    // Read the shortcut's target. If it still resolves to this exe, leave it.
+    final script =
+        '''
+\$ShortcutFile = "${_getWindowsFilePath(_windowsFileName)}"
+\$WScriptShell = New-Object -ComObject WScript.Shell
+\$Shortcut = \$WScriptShell.CreateShortcut(\$ShortcutFile)
+Write-Output \$Shortcut.TargetPath
+''';
+    final result = await Process.run('powershell', ['-Command', script]);
+    final currentExe = Platform.resolvedExecutable.replaceAll('/', '\\');
+    final storedTarget = result.stdout?.toString().trim();
+    if (storedTarget != null && storedTarget.isNotEmpty && storedTarget.toLowerCase() == currentExe.toLowerCase()) {
+      return; // Shortcut already points at this exe.
+    }
+
+    _logger.info('SendTo shortcut is stale ($storedTarget), re-creating for $currentExe');
+    await enableContextMenu();
+  } catch (e) {
+    _logger.warning('Failed to refresh context menu: $e');
+  }
+}
+
 const _windowsFileName = 'Doorstep';
 
 String _getWindowsFilePath(String appName) {

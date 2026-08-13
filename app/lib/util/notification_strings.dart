@@ -1,4 +1,4 @@
-import 'package:localsend_app/gen/strings.g.dart';
+import 'package:doorstep_app/gen/strings.g.dart';
 import 'package:localsend_isolates/util/notification_strings.dart';
 
 /// The translations that `localsend_isolates` needs, taken from the current locale.

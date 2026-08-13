@@ -1,11 +1,11 @@
+import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_app/model/persistence/color_mode.dart';
+import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/util/native/platform_check.dart';
+import 'package:doorstep_app/util/ui/dynamic_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
-import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/provider/device_info_provider.dart';
-import 'package:localsend_app/util/native/platform_check.dart';
-import 'package:localsend_app/util/ui/dynamic_colors.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:yaru/yaru.dart' as yaru;
 
@@ -19,9 +19,9 @@ ThemeData getTheme(ColorMode colorMode, Brightness brightness, DynamicColors? dy
     return _getYaruTheme(brightness);
   }
 
-  // The Doorstep brand is the default "localsend" color mode: a slate-based
+  // The Doorstep brand is the default color mode: a slate-based
   // palette with electric-indigo accents in both light and dark.
-  if (colorMode == ColorMode.localsend) {
+  if (colorMode == ColorMode.doorstep) {
     return _getDoorstepTheme(brightness);
   }
 
@@ -174,7 +174,7 @@ ColorScheme _determineColorScheme(ColorMode mode, Brightness brightness, Dynamic
 
   final colorScheme = switch (mode) {
     ColorMode.system => brightness == Brightness.light ? dynamicColors?.light : dynamicColors?.dark,
-    ColorMode.localsend => null,
+    ColorMode.doorstep => null,
     ColorMode.oled => (dynamicColors?.dark ?? defaultColorScheme).copyWith(
       surface: Colors.black,
     ),

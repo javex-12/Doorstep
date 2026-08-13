@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_app/config/doorstep_theme.dart';
 
 class DoorstepCard extends StatefulWidget {
   final Widget child;
@@ -68,12 +68,13 @@ class _DoorstepCardState extends State<DoorstepCard> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(24);
+    final primary = DoorstepTheme.primaryOf(context);
     final cardWidget = Container(
       decoration: BoxDecoration(
-        color: widget.backgroundColor ?? DoorstepTheme.surface,
+        color: widget.backgroundColor ?? DoorstepTheme.surfaceOf(context),
         borderRadius: borderRadius,
         border: Border.all(
-          color: widget.borderColor ?? DoorstepTheme.surfaceBorder,
+          color: widget.borderColor ?? DoorstepTheme.borderOf(context),
           width: 0.8,
         ),
       ),
@@ -83,8 +84,8 @@ class _DoorstepCardState extends State<DoorstepCard> with SingleTickerProviderSt
         child: InkWell(
           borderRadius: borderRadius,
           onTap: widget.onTap,
-          splashColor: DoorstepTheme.primary.withValues(alpha: 0.08),
-          highlightColor: DoorstepTheme.primary.withValues(alpha: 0.04),
+          splashColor: primary.withValues(alpha: 0.08),
+          highlightColor: primary.withValues(alpha: 0.04),
           child: Padding(
             padding: widget.padding ?? const EdgeInsets.all(18),
             child: widget.child,

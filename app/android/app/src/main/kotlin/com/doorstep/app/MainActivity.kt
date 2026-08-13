@@ -1,4 +1,4 @@
-package org.localsend.localsend_app
+package com.doorstep.app
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -15,7 +15,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 
-private const val CHANNEL = "org.localsend.localsend_app/localsend"
+private const val CHANNEL = "com.doorstep.app/doorstep"
 private const val REQUEST_CODE_PICK_DIRECTORY = 1
 private const val REQUEST_CODE_PICK_DIRECTORY_PATH = 2
 private const val REQUEST_CODE_PICK_FILE = 3
