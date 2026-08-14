@@ -558,6 +558,110 @@
     line-height: 1.6;
   }
 
+  /* ---------- Contribute / GitHub CTA ---------- */
+  .contribute {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contribute h2 { margin-bottom: 12px; }
+  .contribute .sub { margin-bottom: 32px; }
+
+  .contribute-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 36px;
+  }
+
+  .gh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--primary-blue);
+    color: #0B132B;
+    text-decoration: none;
+    padding: 15px 30px;
+    border-radius: var(--radius-pill);
+    font-size: 17px;
+    font-weight: 800;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+  }
+
+  .gh-btn:hover {
+    background: #93C5FF;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(124, 183, 255, 0.3);
+  }
+
+  .gh-btn.secondary {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--surface-border);
+  }
+
+  .gh-btn.secondary:hover {
+    background: var(--surface-hover);
+    border-color: var(--text-muted);
+    box-shadow: none;
+  }
+
+  .gh-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+  .contribute-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    text-align: left;
+  }
+
+  .contribute-links a {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--bg-card-subtle);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    color: var(--text-main);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .contribute-links a:hover {
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+  }
+
+  .contribute-links .cl-icon {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--primary-blue-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .contribute-links .cl-icon svg { width: 20px; height: 20px; fill: var(--primary-blue); }
+
+  .contribute-links .cl-title { font-weight: 700; font-size: 15.5px; margin-bottom: 3px; }
+  .contribute-links .cl-desc { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; }
+
+  @media (max-width: 840px) {
+    .contribute-links { grid-template-columns: 1fr; }
+    .contribute { padding: 36px 24px; }
+  }
+
   /* ---------- Footer ---------- */
   footer {
     background: #070D1E;
@@ -639,7 +743,7 @@
 
     <!-- Dynamic Smart System Detector Card -->
     <div class="smart-card" id="smart-detector">
-      <div class="smart-badge-pill">⚡ Auto-Detected Device</div>
+      <div class="smart-badge-pill">Auto-Detected Device</div>
       <h3 id="detected-title">Checking your device...</h3>
       <p class="detected-desc" id="detected-desc">Detecting operating system & architecture for one-click setup.</p>
       <a class="smart-btn" id="smart-btn" href="https://github.com/javex-12/Doorstep/releases">
@@ -780,6 +884,53 @@
   </div>
 </section>
 
+<!-- ================= CONTRIBUTE / GITHUB ================= -->
+<section id="contribute">
+  <div class="container center">
+    <div class="contribute">
+      <h2>Doorstep is open source</h2>
+      <p class="sub">Built in public on GitHub. Star the repo, report a bug, or help shape the next release.</p>
+      <div class="contribute-actions">
+        <a class="gh-btn" href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+          Star on GitHub
+        </a>
+        <a class="gh-btn secondary" href="https://github.com/javex-12/Doorstep/issues" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          Report a Problem
+        </a>
+        <a class="gh-btn secondary" href="https://github.com/javex-12/Doorstep/fork" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M14 2h-4v2h4V2zm2 4v2h4v2h-2v2h-2V8h-2V6h2zm-8 2v2H6v2h2v2h2v2H8v-2H6v-2H4V6h2v2h2zm6 4v-2h2v2h-2zm0 0v2h-2v-2h2zm-2 6v-2h4v2h-4z"/></svg>
+          Contribute
+        </a>
+      </div>
+      <div class="contribute-links">
+        <a href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
+          <span class="cl-icon"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></span>
+          <span>
+            <div class="cl-title">Browse the source</div>
+            <div class="cl-desc">100% open code — read it, audit it, trust it.</div>
+          </span>
+        </a>
+        <a href="https://github.com/javex-12/Doorstep/issues/new" target="_blank" rel="noopener">
+          <span class="cl-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></span>
+          <span>
+            <div class="cl-title">Request a feature</div>
+            <div class="cl-desc">Tell us what you want — every idea is welcome.</div>
+          </span>
+        </a>
+        <a href="https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">
+          <span class="cl-icon"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span>
+          <span>
+            <div class="cl-title">Contribute code</div>
+            <div class="cl-desc">Flutter & Rust devs welcome — see the contributing guide.</div>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= FOOTER ================= -->
 <footer>
   <div class="container">
@@ -813,7 +964,7 @@
       downloadUrl = 'https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Setup.exe';
       recommendationText = 'We detected you are on Windows. Click below to download the setup installer.';
       btnTextEl.textContent = 'Download Doorstep for Windows (.exe Installer)';
-      noteEl.textContent = '⚡ Run Doorstep-1.0.0-Setup.exe for quick guided setup';
+      noteEl.textContent = 'Run Doorstep-1.0.0-Setup.exe for quick guided setup';
     } 
     // Detect Android
     else if (/Android/i.test(ua)) {
