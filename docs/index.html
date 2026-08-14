@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doorstep — Share files between your phone and computer, no internet needed</title>
+<meta name="description" content="Doorstep is a free, private file-sharing app. Pair your phone and computer once with a QR code, drop a file into a folder, and it arrives automatically. No internet, no cloud, no accounts.">
+<meta property="og:title" content="Doorstep — Send files phone ↔ computer, offline">
+<meta property="og:description" content="Free, private, no account. Pair once with a QR code and files arrive automatically.">
+<meta property="og:image" content="logo.png">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root {
+    --navy: #02112d;
+    --navy-light: #0a2a5e;
+    --teal: #17b8a6;
+    --teal-dark: #0e8f81;
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --text: #1c2733;
+    --muted: #5c6b7a;
+    --border: #e2e8f0;
+    --warn-bg: #fff7e6;
+    --warn-border: #f5c518;
+    --ok-bg: #e8f8f5;
+    --ok-border: #17b8a6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 18px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Header ---------- */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: #fff;
+    padding: 64px 0 72px;
+    text-align: center;
+  }
+  .logo-wrap { margin-bottom: 20px; }
+  .logo-wrap img { width: 112px; height: 112px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+  header h1 { font-size: 52px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+  header .tagline { font-size: 22px; opacity: 0.92; max-width: 640px; margin: 0 auto 28px; }
+  .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+    padding: 8px 18px; border-radius: 999px; font-size: 15px; font-weight: 600;
+  }
+  .badge .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--teal); margin-right: 8px; }
+
+  /* ---------- Sections ---------- */
+  section { padding: 56px 0; }
+  section h2 { font-size: 34px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.3px; }
+  section .sub { color: var(--muted); font-size: 19px; max-width: 700px; margin-bottom: 36px; }
+  .center { text-align: center; }
+  .center .sub { margin-left: auto; margin-right: auto; }
+
+  /* ---------- How it works ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .step {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px 24px; text-align: center; box-shadow: 0 2px 10px rgba(2,17,45,0.05);
+  }
+  .step .num {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: #fff;
+    font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .step h3 { font-size: 20px; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 16.5px; }
+
+  /* ---------- Downloads ---------- */
+  .downloads { background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .dl-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .dl-card {
+    border: 2px solid var(--border); border-radius: 18px; padding: 28px; background: var(--card);
+    display: flex; flex-direction: column; transition: border-color .2s;
+  }
+  .dl-card:hover { border-color: var(--teal); }
+  .dl-card .os { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .dl-card h3 { font-size: 26px; margin-bottom: 8px; }
+  .dl-card p { color: var(--muted); font-size: 16px; flex: 1; }
+  .btn {
+    display: inline-block; background: var(--teal); color: #fff; text-decoration: none;
+    padding: 16px 28px; border-radius: 12px; font-size: 19px; font-weight: 700; text-align: center;
+    margin-top: 18px; transition: background .2s;
+  }
+  .btn:hover { background: var(--teal-dark); }
+  .btn.secondary { background: var(--navy); }
+  .btn.secondary:hover { background: var(--navy-light); }
+  .btn.small { padding: 10px 18px; font-size: 15.5px; margin-top: 10px; }
+
+  .variant-box {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin-top: 14px;
+  }
+  .variant-box h4 { font-size: 16.5px; margin-bottom: 10px; color: var(--navy); }
+  .variant { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px dashed var(--border); }
+  .variant:first-of-type { border-top: none; }
+  .variant .v-info { flex: 1; }
+  .variant .v-name { font-weight: 700; font-size: 16.5px; }
+  .variant .v-desc { color: var(--muted); font-size: 14.5px; }
+
+  .pick-note {
+    background: var(--navy); color: #fff; border-radius: 14px; padding: 22px 26px; font-size: 17.5px; text-align: center;
+  }
+  .pick-note strong { color: var(--teal); }
+
+  /* ---------- Install notes ---------- */
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .note { border-radius: 16px; padding: 26px; }
+  .note.warn { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+  .note.ok { background: var(--ok-bg); border: 1px solid var(--ok-border); }
+  .note h3 { font-size: 20px; margin-bottom: 10px; }
+  .note p, .note li { font-size: 16.5px; }
+  .note ul { padding-left: 20px; margin-top: 8px; }
+  .note li { margin-bottom: 6px; }
+  .note strong { color: inherit; }
+
+  /* ---------- FAQ ---------- */
+  .faq { max-width: 760px; margin: 0 auto; }
+  details {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; margin-bottom: 14px;
+  }
+  summary { font-size: 19px; font-weight: 700; cursor: pointer; color: var(--navy); }
+  details p { margin-top: 12px; color: var(--muted); font-size: 17px; }
+
+  /* ---------- Footer ---------- */
+  footer { background: var(--navy); color: rgba(255,255,255,0.85); padding: 40px 0; font-size: 15.5px; text-align: center; }
+  footer a { color: var(--teal); }
+  footer .small { opacity: 0.7; margin-top: 8px; font-size: 14px; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 760px) {
+    body { font-size: 17px; }
+    header { padding: 48px 0 56px; }
+    header h1 { font-size: 40px; }
+    .steps, .dl-cards, .notes { grid-template-columns: 1fr; }
+    section { padding: 44px 0; }
+    section h2 { font-size: 29px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <div class="container">
+    <div class="logo-wrap"><img src="logo.png" alt="Doorstep logo"></div>
+    <h1>Doorstep</h1>
+    <p class="tagline">Send files between your phone and your computer —<br>with no internet, no cloud, and no account.</p>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span>100% Free</span>
+      <span class="badge"><span class="dot"></span>No Account</span>
+      <span class="badge"><span class="dot"></span>No Internet Needed</span>
+      <span class="badge"><span class="dot"></span>Private &amp; Encrypted</span>
+      <span class="badge"><span class="dot"></span>Open Source</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section id="how">
+  <div class="container center">
+    <h2>How it works</h2>
+    <p class="sub">Three simple steps. You only pair your phone and computer <strong>once</strong> — after that, files arrive automatically.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Connect both to the same Wi-Fi</h3>
+        <p>Your phone and computer must be on the same network — home Wi-Fi, a hotspot, or a router cable.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Scan the QR code once</h3>
+        <p>Open Doorstep on your computer, then scan the code shown on screen with your phone. Choose <em>Personal device</em> to stay connected forever.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Drop files, done</h3>
+        <p>Copy a file into your Doorstep folder on the computer — it appears on your phone automatically. Send from your phone too.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DOWNLOADS ================= -->
+<section class="downloads" id="download">
+  <div class="container center">
+    <h2>Download Doorstep</h2>
+    <p class="sub">Free forever. Pick the version for your device below — don't worry, we'll tell you which one.</p>
+
+    <div class="dl-cards">
+      <!-- Android -->
+      <div class="dl-card">
+        <div class="os">Android</div>
+        <h3>Android Phone or Tablet</h3>
+        <p>Works on nearly every Android phone, including older and budget models.</p>
+        <a class="btn" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-arm64.apk">Download for Android</a>
+        <div class="variant-box">
+          <h4>Not sure which file? Most people want the one above. If it fails to install, try another:</h4>
+          <div class="variant">
+            <div class="v-info">
+              <div class="v-name">Doorstep for most phones (ARM64)</div>
+              <div class="v-desc">Modern phones from the last ~8 years. Recommended.</div>
+            </div>
+            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-arm64.apk">Download</a>
+          </div>
+          <div class="variant">
+            <div class="v-info">
+              <div class="v-name">Doorstep for older phones (ARMv7)</div>
+              <div class="v-desc">Only if the ARM64 version says "not compatible".</div>
+            </div>
+            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-armv7.apk">Download</a>
+          </div>
+          <div class="variant">
+            <div class="v-info">
+              <div class="v-name">Doorstep for emulators / Intel tablets (x86_64)</div>
+              <div class="v-desc">Only if you run Android on an Intel or AMD machine.</div>
+            </div>
+            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-x86_64.apk">Download</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Windows -->
+      <div class="dl-card">
+        <div class="os">Windows</div>
+        <h3>Windows Computer</h3>
+        <p>Works on Windows 10 and Windows 11. No installation wizard — just unzip and run.</p>
+        <a class="btn secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Windows-x64.zip">Download for Windows</a>
+        <div class="variant-box">
+          <h4>How to open it:</h4>
+          <div class="variant">
+            <div class="v-info">
+              <div class="v-name">After downloading the .zip file</div>
+              <div class="v-desc">Right-click it → <strong>Extract All</strong> → open the folder → double-click <strong>doorstep.exe</strong>.</div>
+            </div>
+          </div>
+          <div class="variant">
+            <div class="v-info">
+              <div class="v-name">SmartScreen warning?</div>
+              <div class="v-desc">Click <strong>More info</strong> → <strong>Run anyway</strong>. It's safe — see the note below.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pick-note">
+      💡 <strong>Tip:</strong> If your phone can't install the first file, download the <em>older phones (ARMv7)</em> version instead. When in doubt, start with the big green button.
+    </div>
+  </div>
+</section>
+
+<!-- ================= INSTALL NOTES ================= -->
+<section id="install">
+  <div class="container center">
+    <h2>⚠️ Please read before installing</h2>
+    <p class="sub">Doorstep is not on the Google Play Store or the Microsoft Store yet, so your device may show a warning. That's normal — here's what to do.</p>
+    <div class="notes">
+      <div class="note warn">
+        <h3>📱 On Android: "Google Play Protect" warning</h3>
+        <p>When you tap the downloaded file, Android may say <em>"Google Play Protect doesn't recognize this app"</em> and try to block it.</p>
+        <ul>
+          <li>Tap <strong>More details</strong></li>
+          <li>Tap <strong>Install anyway</strong> (or <strong>OK</strong>)</li>
+          <li>The app is safe and open source — this warning only appears because the app isn't sold on the Play Store yet.</li>
+        </ul>
+      </div>
+      <div class="note warn">
+        <h3>🔓 On Android: "Install from unknown sources"</h3>
+        <p>If your phone asks for permission to install apps from your browser or file manager:</p>
+        <ul>
+          <li>Tap <strong>Settings</strong> (or <strong>Allow from this source</strong>)</li>
+          <li>Turn the switch <strong>on</strong></li>
+          <li>Go back and tap <strong>Install</strong></li>
+        </ul>
+      </div>
+      <div class="note ok">
+        <h3>✅ Is it safe?</h3>
+        <p>Yes. Doorstep is <strong>free and open source</strong> — anyone can read its code. Your files are sent <strong>directly between your own devices</strong> on your home network. Nothing is uploaded, no account is created, and no company can see your files.</p>
+      </div>
+      <div class="note ok">
+        <h3>🖥️ On Windows: "Windows protected your PC"</h3>
+        <p>Windows SmartScreen may say the app is unrecognized. That's because it isn't digitally signed by a store yet.</p>
+        <ul>
+          <li>Click <strong>More info</strong></li>
+          <li>Click <strong>Run anyway</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq">
+  <div class="container center">
+    <h2>Common questions</h2>
+    <p class="sub">Still stuck? These should help.</p>
+    <div class="faq">
+      <details>
+        <summary>Why isn't Doorstep on the Play Store / App Store?</summary>
+        <p>Doorstep is brand new and free. Getting into app stores takes time and costs money, so for now you download it directly from this website. Once it's approved for the stores, we'll link them here.</p>
+      </details>
+      <details>
+        <summary>Do I need the internet or a mobile data plan?</summary>
+        <p>No. Doorstep works entirely over your local Wi-Fi network. Your files never leave your home, and it even works when the internet is completely down (as long as both devices are on the same Wi-Fi).</p>
+      </details>
+      <details>
+        <summary>Is there an iPhone (iOS) version?</summary>
+        <p>Not yet. The iPhone version is coming in a future update. For now, Doorstep works on Android phones and Windows computers.</p>
+      </details>
+      <details>
+        <summary>Do I need to create an account?</summary>
+        <p>No. There are no accounts, no sign-ups, and no passwords. You pair your devices with a QR code and that's it.</p>
+      </details>
+      <details>
+        <summary>Will it work if my phone and computer are on different Wi-Fi networks?</summary>
+        <p>No — both devices must be on the same network. If your home has two routers or a guest network, make sure both devices are on the same one. You can also turn on a Wi-Fi hotspot on your phone and connect the computer to it.</p>
+      </details>
+      <details>
+        <summary>Why does the app look like "LocalSend"?</summary>
+        <p>Doorstep is built on top of the free, open-source LocalSend project (Apache-2.0 license). It adds easy pairing, automatic reconnection, and "drop zones" so files just appear on your phone.</p>
+      </details>
+      <details>
+        <summary>How do I get support or report a problem?</summary>
+        <p>Open an issue on our GitHub page: <a href="https://github.com/javex-12/Doorstep/issues">github.com/javex-12/Doorstep/issues</a>. You can also see the full source code there.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="container">
+    <p><strong>Doorstep</strong> — free, private, offline file sharing.</p>
+    <p class="small">
+      Made by <a href="https://cydercoder.vercel.app">cydercoder</a> · Based on <a href="https://github.com/localsend/localsend">LocalSend</a> (Apache-2.0) · <a href="https://github.com/javex-12/Doorstep">Source code</a> · <a href="https://github.com/javex-12/Doorstep/releases">All releases</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
