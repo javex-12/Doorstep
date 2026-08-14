@@ -56,7 +56,7 @@
     "name": "cydercoder",
     "url": "https://cydercoder.vercel.app"
   },
-  "downloadUrl": "https://github.com/javex-12/Doorstep/releases"
+  "downloadUrl": "https://javex-12.github.io/Doorstep/downloads/"
 }
 </script>
 
@@ -673,6 +673,106 @@
     .contribute { padding: 36px 24px; }
   }
 
+  /* ---------- "Not sure?" version helper ---------- */
+  .not-sure-link {
+    display: none;
+    margin-top: 14px;
+    color: var(--primary-blue);
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .not-sure-link:hover { color: #93C5FF; }
+
+  .arch-help {
+    display: none;
+    margin: 18px auto 0;
+    max-width: 520px;
+    text-align: left;
+    background: var(--bg-card-subtle);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: 18px 22px;
+  }
+
+  .arch-option {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--surface-border);
+    font-size: 14.5px;
+  }
+  .arch-option:first-of-type { border-top: none; }
+  .arch-option strong { color: var(--text-main); white-space: nowrap; }
+  .arch-option span { color: var(--text-muted); text-align: right; }
+
+  .arch-tip {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--accent-amber);
+  }
+
+  /* ---------- Download notice modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 13, 30, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    max-width: 480px;
+    width: 100%;
+    padding: 36px 32px 28px;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+    animation: modalIn 0.35s var(--transition-bounce);
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.92) translateY(16px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .modal-close:hover { color: var(--text-main); }
+  .modal-sub {
+    color: var(--accent-mint);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+  .modal-box h3 { font-size: 22px; font-weight: 800; margin-bottom: 14px; }
+  .modal-box p { font-size: 15.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+  .modal-box ul { padding-left: 20px; margin: 4px 0 12px; }
+  .modal-box li { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 6px; }
+  .modal-box strong { color: var(--text-main); }
+  .modal-ok { margin-top: 18px; width: 100%; border: none; cursor: pointer; }
+
   /* ---------- Footer ---------- */
   footer {
     background: #070D1E;
@@ -750,18 +850,25 @@
 <section class="detector-section" id="download">
   <div class="container center">
     <h2>Download Doorstep</h2>
-    <p class="sub">Free forever. We automatically test your system below so you get the exact version for your device.</p>
+    <p class="sub">Free forever. We automatically detect your device and pick the exact version — and if we're ever unsure, we'll help you choose.</p>
 
     <!-- Dynamic Smart System Detector Card -->
     <div class="smart-card" id="smart-detector">
       <div class="smart-badge-pill">Auto-Detected Device</div>
       <h3 id="detected-title">Checking your device...</h3>
       <p class="detected-desc" id="detected-desc">Detecting operating system & architecture for one-click setup.</p>
-      <a class="smart-btn" id="smart-btn" href="https://github.com/javex-12/Doorstep/releases">
+      <a class="smart-btn dl-link" id="smart-btn" href="https://github.com/javex-12/Doorstep/releases">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         <span id="smart-btn-text">Download Doorstep</span>
       </a>
       <div class="smart-note" id="smart-note">No sign up needed • Direct file download</div>
+      <a class="not-sure-link" id="not-sure-link">Not sure which one is right? See all versions</a>
+      <div class="arch-help" id="arch-help">
+        <div class="arch-option"><strong>ARM64 (64-bit)</strong><span>Most phones from ~2017 onward. Start here.</span></div>
+        <div class="arch-option"><strong>ARMv7 (32-bit)</strong><span>Older or budget phones — also installs on newer phones if the ARM64 file won't work.</span></div>
+        <div class="arch-option"><strong>x86_64</strong><span>Only for Android emulators and Intel/AMD tablets.</span></div>
+        <p class="arch-tip">Tip: if the download finishes but the app won't install, you have the wrong version — try the next one.</p>
+      </div>
     </div>
 
     <!-- Manual Download Grid -->
@@ -771,7 +878,7 @@
         <div class="os">Android OS</div>
         <h3>Android Phone or Tablet</h3>
         <p>Compatible with Android 5.0 through Android 15+. Works on phones, tablets, and mobile devices.</p>
-        <a class="btn" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-arm64.apk">
+        <a class="btn dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">
           Download for Android (ARM64)
         </a>
         <div class="variant-box">
@@ -781,21 +888,21 @@
               <div class="v-name">Modern Phones (ARM64)</div>
               <div class="v-desc">For 95% of Android phones made after 2017. Recommended.</div>
             </div>
-            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-arm64.apk">Download</a>
+            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">Download</a>
           </div>
           <div class="variant">
             <div class="v-info">
               <div class="v-name">Older Phones (ARMv7 32-bit)</div>
               <div class="v-desc">Use only if ARM64 fails to install on older budget phones.</div>
             </div>
-            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-armv7.apk">Download</a>
+            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-armv7.apk">Download</a>
           </div>
           <div class="variant">
             <div class="v-info">
               <div class="v-name">Intel Devices (x86_64)</div>
               <div class="v-desc">For Android emulators & Intel/AMD Android tablets.</div>
             </div>
-            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-x86_64.apk">Download</a>
+            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-x86_64.apk">Download</a>
           </div>
         </div>
       </div>
@@ -805,7 +912,7 @@
         <div class="os">Windows OS</div>
         <h3>Windows Desktop / Laptop</h3>
         <p>Supports Windows 10 and Windows 11 (64-bit). Setup installer (.exe) or portable (.zip) format.</p>
-        <a class="btn" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Setup.exe">
+        <a class="btn dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">
           Download Windows Installer (.exe)
         </a>
         <div class="variant-box">
@@ -815,14 +922,14 @@
               <div class="v-name">Windows Installer (.exe)</div>
               <div class="v-desc">Automated wizard setup. Recommended for most PC users.</div>
             </div>
-            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Setup.exe">Download .exe</a>
+            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">Download .exe</a>
           </div>
           <div class="variant">
             <div class="v-info">
               <div class="v-name">Portable Version (.zip)</div>
               <div class="v-desc">No installation required — extract and run directly.</div>
             </div>
-            <a class="btn small secondary" href="https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Windows-x64.zip">Download .zip</a>
+            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Windows-x64.zip">Download .zip</a>
           </div>
         </div>
       </div>
@@ -942,6 +1049,35 @@
   </div>
 </section>
 
+<!-- Download Notice Modal (Play Protect / SmartScreen explained at click time) -->
+<div class="modal-overlay" id="dl-modal" role="dialog" aria-modal="true" aria-labelledby="dl-modal-title">
+  <div class="modal-box">
+    <button class="modal-close" id="dl-modal-close" aria-label="Close">&times;</button>
+    <div class="modal-sub">Your download has started</div>
+    <h3 id="dl-modal-title">Installing on Android</h3>
+    <div id="dl-modal-android">
+      <p>Google may warn you: <strong>&quot;Google Play Protect doesn't recognize this app.&quot;</strong></p>
+      <p>That's <strong>normal</strong> — Doorstep isn't on the Play Store yet, so Google hasn't reviewed it. The app is 100% open source and safe.</p>
+      <ul>
+        <li>Tap <strong>More details</strong> on the warning</li>
+        <li>Tap <strong>Install anyway</strong></li>
+        <li>If asked, allow <strong>&quot;Install from unknown sources&quot;</strong> for this file</li>
+      </ul>
+      <p>No login, no account — this is a direct download from our site.</p>
+    </div>
+    <div id="dl-modal-windows" style="display:none">
+      <p>Windows may warn you: <strong>&quot;Windows protected your PC&quot; (SmartScreen).</strong></p>
+      <p>That's <strong>normal</strong> — Doorstep doesn't pay for a commercial code-signing certificate, so Windows hasn't seen it before. The app is 100% open source and safe.</p>
+      <ul>
+        <li>Click <strong>More info</strong></li>
+        <li>Click <strong>Run anyway</strong></li>
+      </ul>
+      <p>No login, no account — this is a direct download from our site.</p>
+    </div>
+    <button class="btn modal-ok" id="dl-modal-gotit">Got it</button>
+  </div>
+</div>
+
 <!-- ================= FOOTER ================= -->
 <footer>
   <div class="container">
@@ -960,70 +1096,135 @@
     const btnEl = document.getElementById('smart-btn');
     const btnTextEl = document.getElementById('smart-btn-text');
     const noteEl = document.getElementById('smart-note');
+    const unsureLink = document.getElementById('not-sure-link');
+
+    const DOWNLOAD_BASE = 'https://javex-12.github.io/Doorstep/downloads/';
+    const FILES = {
+      arm64: DOWNLOAD_BASE + 'Doorstep-1.0.0-arm64.apk',
+      armv7: DOWNLOAD_BASE + 'Doorstep-1.0.0-armv7.apk',
+      x86_64: DOWNLOAD_BASE + 'Doorstep-1.0.0-x86_64.apk',
+      windows: DOWNLOAD_BASE + 'Doorstep-1.0.0-Setup.exe',
+      zip: DOWNLOAD_BASE + 'Doorstep-1.0.0-Windows-x64.zip'
+    };
 
     const ua = navigator.userAgent || '';
     const platform = navigator.platform || '';
 
-    let os = 'Unknown';
-    let arch = '64-bit';
-    let downloadUrl = 'https://github.com/javex-12/Doorstep/releases';
-    let recommendationText = '';
-
-    // Detect Windows
-    if (/Win/i.test(platform) || /Windows/i.test(ua)) {
-      os = 'Windows';
-      downloadUrl = 'https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-Setup.exe';
-      recommendationText = 'We detected you are on Windows. Click below to download the setup installer.';
-      btnTextEl.textContent = 'Download Doorstep for Windows (.exe Installer)';
-      noteEl.textContent = 'Run Doorstep-1.0.0-Setup.exe for quick guided setup';
-    } 
-    // Detect Android
-    else if (/Android/i.test(ua)) {
-      os = 'Android';
-      
-      // Attempt architecture detection
-      if (/armv7|armv7l|32-bit/i.test(ua)) {
-        arch = 'ARMv7 (32-bit)';
-        downloadUrl = 'https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-armv7.apk';
-      } else if (/x86_64|i686/i.test(ua)) {
-        arch = 'x86_64';
-        downloadUrl = 'https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-x86_64.apk';
-      } else {
-        // Standard modern 64-bit phone
-        arch = 'ARM64';
-        downloadUrl = 'https://github.com/javex-12/Doorstep/releases/download/v1.0.0/Doorstep-1.0.0-arm64.apk';
-      }
-
-      recommendationText = 'We detected your Android device. Tap below to download the APK installer.';
-      btnTextEl.textContent = `Download Doorstep for Android (${arch})`;
-      noteEl.textContent = '📱 Direct APK download for your phone or tablet';
+    // Fallback only — Android user agents rarely reveal the chip. Modern
+    // Chrome/Edge/Samsung report it precisely via getHighEntropyValues().
+    function guessArchFromUA() {
+      if (/x86_64|i686|amd64|x86;/i.test(ua)) return 'x86_64';
+      if (/armv7|armv7l/i.test(ua)) return 'armv7';
+      return null; // cannot tell from the user agent
     }
-    // Detect Mac / iPhone / iPad
-    else if (/Mac|iPhone|iPad|iPod/i.test(platform) || /Macintosh|iPhone|iPad/i.test(ua)) {
-      os = 'Apple (iOS / macOS)';
+
+    function setupAndroid(arch, certain) {
+      let url = FILES.arm64;
+      let archName = 'ARM64 (64-bit)';
+      if (arch === 'armv7') { url = FILES.armv7; archName = 'ARMv7 (32-bit)'; }
+      else if (arch === 'x86_64') { url = FILES.x86_64; archName = 'x86_64 (Intel/AMD)'; }
+
+      titleEl.textContent = 'Doorstep for Android';
+      descEl.textContent = certain
+        ? 'We detected your phone\u2019s chip type: ' + archName + '. Tap below to download the exact version for it.'
+        : 'We detected Android, but your browser hides the chip details. Best guess: ' + archName + '. If unsure, tap "Not sure?" below to pick manually.';
+      btnTextEl.textContent = 'Download for Android (' + archName + ')';
+      btnEl.href = url;
+      noteEl.textContent = 'Direct APK download \u2014 no login, no account needed';
+      if (unsureLink) unsureLink.style.display = 'inline-block';
+    }
+
+    function setupWindows() {
+      titleEl.textContent = 'Doorstep for Windows';
+      descEl.textContent = 'We detected Windows (64-bit). Tap below to download the setup installer.';
+      btnTextEl.textContent = 'Download Doorstep for Windows (.exe)';
+      btnEl.href = FILES.windows;
+      noteEl.textContent = 'Direct download \u2014 no login, no account needed';
+    }
+
+    function detectAndroid() {
+      const guess = guessArchFromUA();
+      // Precise chip detection: Chrome/Edge/Samsung report architecture + bitness.
+      const uch = navigator.userAgentData;
+      if (uch && typeof uch.getHighEntropyValues === 'function') {
+        uch.getHighEntropyValues(['architecture', 'bitness'])
+          .then(function (v) {
+            let arch = 'arm64';
+            if (v.architecture === 'x86') arch = 'x86_64';
+            else if (v.architecture === 'arm' && v.bitness === '32') arch = 'armv7';
+            setupAndroid(arch, true);
+          })
+          .catch(function () { setupAndroid(guess || 'arm64', false); });
+      } else {
+        setupAndroid(guess || 'arm64', false);
+      }
+    }
+
+    if (/Win/i.test(platform) || /Windows/i.test(ua)) {
+      setupWindows();
+    } else if (/Android/i.test(ua)) {
+      detectAndroid();
+    } else if (/Mac|iPhone|iPad|iPod/i.test(platform) || /Macintosh|iPhone|iPad/i.test(ua)) {
       titleEl.textContent = 'iOS / macOS Version Coming Soon';
       descEl.textContent = 'Doorstep is currently available for Android & Windows. Apple platform releases are in active development!';
       btnTextEl.textContent = 'View All Releases on GitHub';
       btnEl.href = 'https://github.com/javex-12/Doorstep/releases';
-      noteEl.textContent = '⭐ Star the repository on GitHub for iOS release updates';
-      return;
-    }
-    // Detect Linux
-    else if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
-      os = 'Linux';
+      noteEl.textContent = 'Star the repository for iOS release updates';
+    } else if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
       titleEl.textContent = 'Doorstep for Linux';
       descEl.textContent = 'Doorstep can be built from source for Linux desktop operating systems.';
       btnTextEl.textContent = 'View Source & Releases on GitHub';
       btnEl.href = 'https://github.com/javex-12/Doorstep';
-      noteEl.textContent = '🐧 Open source build instructions available on GitHub';
-      return;
+      noteEl.textContent = 'Open source build instructions available on GitHub';
     }
+  })();
 
-    if (os === 'Windows' || os === 'Android') {
-      titleEl.textContent = `Doorstep for ${os}`;
-      descEl.textContent = recommendationText;
-      btnEl.href = downloadUrl;
-    }
+  // "Not sure?" toggle — plain-language version picker
+  (function setupArchHelp() {
+    const link = document.getElementById('not-sure-link');
+    const help = document.getElementById('arch-help');
+    if (!link || !help) return;
+    link.addEventListener('click', function () {
+      const open = help.style.display !== 'none';
+      help.style.display = open ? 'none' : 'block';
+      link.textContent = open ? 'Not sure which one is right? See all versions' : 'Hide versions';
+    });
+  })();
+
+  // Download notice modal — explains Play Protect / SmartScreen the moment
+  // someone clicks a download, so nobody hits the warning confused.
+  (function setupDownloadModal() {
+    const overlay = document.getElementById('dl-modal');
+    if (!overlay) return;
+    const androidPane = document.getElementById('dl-modal-android');
+    const windowsPane = document.getElementById('dl-modal-windows');
+
+    function close() { overlay.classList.remove('show'); }
+    document.getElementById('dl-modal-close').addEventListener('click', close);
+    document.getElementById('dl-modal-gotit').addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+    document.querySelectorAll('a.dl-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        const href = a.href || '';
+        if (!/\.(apk|exe|zip)(\?|$)/i.test(href)) return; // not a binary — navigate normally
+        e.preventDefault();
+        // Start the download immediately — files are served from this site, no login wall.
+        const tmp = document.createElement('a');
+        tmp.href = href;
+        tmp.download = '';
+        tmp.rel = 'noopener';
+        document.body.appendChild(tmp);
+        tmp.click();
+        document.body.removeChild(tmp);
+        // Then show the install warning for the right platform.
+        const isAndroid = /\.apk$/i.test(href);
+        androidPane.style.display = isAndroid ? 'block' : 'none';
+        windowsPane.style.display = isAndroid ? 'none' : 'block';
+        overlay.classList.add('show');
+      });
+    });
   })();
 
   // Live GitHub star count
