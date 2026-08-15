@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Doorstep — Instant Offline File Sharing Phone ↔ Computer</title>
+<title>Doorstep — Offline File Sharing Between Phone and Computer</title>
 
 <!-- Primary Meta Tags -->
-<meta name="title" content="Doorstep — Instant Offline File Sharing Phone ↔ Computer">
-<meta name="description" content="Free, open-source, private file sharing between your phone and computer. Pair once with a QR code, drop files into a folder, and receive them automatically with no cloud, no internet, and no accounts required.">
+<meta name="title" content="Doorstep — Offline File Sharing Between Phone and Computer">
+<meta name="description" content="Free, open-source, private file sharing between your phone and computer. Pair once with a QR code, drop files into a folder, and receive them automatically. No cloud, no internet, no accounts.">
 <meta name="keywords" content="Doorstep, LocalSend, file transfer, offline file sharing, peer-to-peer, Android to Windows, private file share, Wi-Fi file transfer, open source file transfer">
 <meta name="author" content="cydercoder">
-<meta name="theme-color" content="#0B132B">
+<meta name="theme-color" content="#070B14">
 
 <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://javex-12.github.io/Doorstep/">
-<meta property="og:title" content="Doorstep — Share files between phone and computer instantly, offline">
+<meta property="og:title" content="Doorstep — Share files between phone and computer, offline">
 <meta property="og:description" content="Free & private file sharing. Pair once with a QR code and files arrive automatically. No cloud, no internet needed.">
 <meta property="og:image" content="https://javex-12.github.io/Doorstep/logo.png">
 <meta property="og:site_name" content="Doorstep">
@@ -31,10 +31,10 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 
-<!-- Google Fonts -->
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <!-- Structured Data (JSON-LD) for Search Engines -->
 <script type="application/ld+json">
@@ -62,567 +62,908 @@
 
 <style>
   :root {
-    /* Android 12-16 Material You Tonal Palette */
-    --bg-dark: #0B132B;
-    --bg-card: #1C2541;
-    --bg-card-subtle: #151D36;
-    --surface-border: rgba(255, 255, 255, 0.12);
-    --surface-hover: rgba(255, 255, 255, 0.05);
+    --bg: #070B14;
+    --bg-elev: #0C1322;
+    --bg-elev-2: #101A2E;
+    --border: rgba(148, 163, 184, 0.14);
+    --border-strong: rgba(148, 163, 184, 0.26);
 
-    --primary-blue: #7CB7FF;
-    --primary-blue-bg: rgba(124, 183, 255, 0.12);
-    --accent-mint: #98E6D9;
-    --accent-mint-bg: rgba(152, 230, 217, 0.14);
-    --accent-green: #86EFAC;
-    --accent-amber: #FCD34D;
-    
-    --text-main: #F1F5F9;
-    --text-muted: #94A3B8;
-    --text-dim: #64748B;
-    
-    --radius-pill: 9999px;
-    --radius-lg: 28px;
-    --radius-md: 20px;
-    --radius-sm: 14px;
-    
-    --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --text: #E8ECF4;
+    --text-soft: #A8B0C0;
+    --text-dim: #6E7890;
+
+    --accent: #7CB7FF;
+    --accent-strong: #4A8EF7;
+    --accent-ink: #06121F;
+    --mint: #8FE3D0;
+    --amber: #E8B45A;
+    --green: #7FD89A;
+    --red: #F07C7C;
+
+    --radius: 14px;
+    --radius-lg: 20px;
+
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
   html { scroll-behavior: smooth; }
-  
+
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-main);
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
     line-height: 1.6;
-    font-size: 17px;
-    overflow-x: hidden;
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  /* Decorative Ambient Lights */
-  .ambient-glow {
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(124, 183, 255, 0.15) 0%, rgba(152, 230, 217, 0.05) 50%, rgba(0, 0, 0, 0) 70%);
-    top: -150px;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  ::selection { background: rgba(124, 183, 255, 0.28); color: #fff; }
 
-  .container {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 0 24px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* ---------- Header ---------- */
-  header {
-    padding: 72px 0 64px;
-    text-align: center;
-  }
-
-  .logo-wrap {
-    margin-bottom: 24px;
-    display: inline-block;
-    position: relative;
-  }
-
-  .logo-wrap img {
-    width: 120px;
-    height: 120px;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--surface-border);
-    transition: transform 0.4s var(--transition-bounce);
-  }
-
-  .logo-wrap:hover img {
-    transform: scale(1.06) rotate(-2deg);
-  }
-
-  header h1 {
-    font-size: 56px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    margin-bottom: 12px;
-    background: linear-gradient(135deg, #FFFFFF 30%, var(--primary-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  header .tagline {
-    font-size: 22px;
-    color: var(--text-muted);
-    max-width: 680px;
-    margin: 0 auto 36px;
-    font-weight: 500;
-  }
-
-  .badges {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--surface-border);
-    padding: 8px 18px;
-    border-radius: var(--radius-pill);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: all 0.2s ease;
-  }
-
-  .badge:hover {
-    border-color: var(--primary-blue);
-    transform: translateY(-2px);
-  }
-
-  .badge .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-mint);
-    margin-right: 10px;
-    box-shadow: 0 0 8px var(--accent-mint);
-  }
-
-  /* ---------- Sections ---------- */
-  section { padding: 64px 0; }
-  
-  section h2 {
-    font-size: 36px;
-    font-weight: 800;
-    margin-bottom: 12px;
-    letter-spacing: -0.8px;
-  }
-
-  section .sub {
-    color: var(--text-muted);
-    font-size: 19px;
-    max-width: 720px;
-    margin-bottom: 40px;
-  }
-
-  .center { text-align: center; }
-  .center .sub { margin-left: auto; margin-right: auto; }
-
-  /* ---------- How it works ---------- */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-
-  .step {
-    background: var(--bg-card);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-lg);
-    padding: 36px 28px;
-    text-align: left;
-    position: relative;
-    transition: all 0.3s var(--transition-bounce);
-  }
-
-  .step:hover {
-    transform: translateY(-6px);
-    border-color: var(--primary-blue);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .step .num {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    background: var(--primary-blue-bg);
-    color: var(--primary-blue);
-    font-size: 20px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-    border: 1px solid rgba(124, 183, 255, 0.2);
-  }
-
-  .step h3 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--text-main);
-  }
-
-  .step p {
-    color: var(--text-muted);
-    font-size: 15.5px;
-    line-height: 1.55;
-  }
-
-  /* ---------- Smart Auto Detector Banner ---------- */
-  .detector-section {
-    background: linear-gradient(180deg, rgba(28, 37, 65, 0.4) 0%, rgba(11, 19, 43, 0.8) 100%);
-    border-top: 1px solid var(--surface-border);
-    border-bottom: 1px solid var(--surface-border);
-  }
-
-  .smart-card {
-    background: linear-gradient(135deg, rgba(124, 183, 255, 0.1) 0%, rgba(152, 230, 217, 0.08) 100%);
-    border: 2px solid var(--primary-blue);
-    border-radius: var(--radius-lg);
-    padding: 40px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(124, 183, 255, 0.15);
-    margin-bottom: 48px;
-    overflow: hidden;
-  }
-
-  .smart-badge-pill {
-    display: inline-flex;
-    align-items: center;
-    background: var(--accent-mint-bg);
-    color: var(--accent-mint);
-    border: 1px solid rgba(152, 230, 217, 0.3);
-    padding: 6px 16px;
-    border-radius: var(--radius-pill);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
-
-  .smart-card h3 {
-    font-size: 32px;
-    font-weight: 800;
-    margin-bottom: 8px;
-  }
-
-  .smart-card p.detected-desc {
-    font-size: 18px;
-    color: var(--text-muted);
-    margin-bottom: 28px;
-  }
-
-  .smart-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    background: linear-gradient(135deg, var(--primary-blue) 0%, #5390E0 100%);
-    color: #0B132B;
-    text-decoration: none;
-    padding: 18px 40px;
-    border-radius: var(--radius-pill);
-    font-size: 20px;
-    font-weight: 800;
-    box-shadow: 0 10px 25px rgba(124, 183, 255, 0.35);
-    transition: all 0.3s var(--transition-bounce);
-  }
-
-  .smart-btn:hover {
-    transform: scale(1.04);
-    box-shadow: 0 15px 35px rgba(124, 183, 255, 0.5);
-    background: linear-gradient(135deg, #93C5FF 0%, var(--primary-blue) 100%);
-  }
-
-  .smart-btn svg { width: 24px; height: 24px; fill: currentColor; }
-
-  .smart-note {
-    margin-top: 16px;
-    font-size: 14px;
-    color: var(--text-dim);
-  }
-
-  /* ---------- Downloads Cards Grid ---------- */
-  .dl-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .dl-card {
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-lg);
-    padding: 32px;
-    background: var(--bg-card);
+  /* ---------- Loading screen ---------- */
+  #loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: var(--bg);
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    transition: opacity 0.55s var(--ease), visibility 0.55s;
   }
+  #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 
-  .dl-card:hover {
-    border-color: var(--primary-blue);
-    transform: translateY(-4px);
+  .loader-mark {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(150deg, var(--accent) 0%, var(--accent-strong) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 18px 40px rgba(74, 142, 247, 0.35);
+    animation: loaderPop 0.7s var(--ease) both;
   }
+  .loader-mark svg { width: 32px; height: 32px; fill: var(--accent-ink); }
 
-  .dl-card .os {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--accent-mint);
-    margin-bottom: 8px;
-  }
-
-  .dl-card h3 {
-    font-size: 26px;
+  .loader-name {
+    font-size: 17px;
     font-weight: 700;
-    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+    animation: loaderFade 0.7s var(--ease) 0.15s both;
+  }
+  .loader-bar {
+    width: 180px;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(148, 163, 184, 0.16);
+    overflow: hidden;
+  }
+  .loader-bar span {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: 3px;
+    background: var(--accent);
+    animation: loaderSlide 1.1s var(--ease) infinite;
   }
 
-  .dl-card p {
-    color: var(--text-muted);
-    font-size: 15.5px;
-    margin-bottom: 24px;
+  @keyframes loaderPop {
+    from { transform: scale(0.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
+  @keyframes loaderFade {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes loaderSlide {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(320%); }
+  }
+
+  body.loading { overflow: hidden; }
+
+  /* ---------- Background texture ---------- */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, black 30%, transparent 75%);
+  }
+  .bg-glow {
+    position: fixed;
+    top: -260px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 600px;
+    z-index: -1;
+    background: radial-gradient(ellipse at center, rgba(74, 142, 247, 0.13) 0%, transparent 62%);
+    pointer-events: none;
+  }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(7, 11, 20, 0.72);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 28px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16.5px;
+    letter-spacing: -0.01em;
+  }
+  .nav-brand svg { width: 26px; height: 26px; fill: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 6px; }
+  .nav-links a {
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 14.5px;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 9px;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .nav-links a:hover { color: var(--text); background: rgba(148, 163, 184, 0.08); }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 9px 18px;
+    border-radius: 10px;
+    transition: background 0.15s ease, transform 0.15s ease;
+    white-space: nowrap;
+  }
+  .nav-cta:hover { background: #93C9FF; transform: translateY(-1px); }
+
+  /* ---------- Layout helpers ---------- */
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+  section { padding: 96px 0; scroll-margin-top: 70px; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+  h2 {
+    font-size: clamp(30px, 4.2vw, 40px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .sec-sub {
+    color: var(--text-soft);
+    font-size: 17.5px;
+    max-width: 640px;
+  }
+  .center { text-align: center; }
+  .center .sec-sub { margin-left: auto; margin-right: auto; }
+
+  /* ---------- Hero ---------- */
+  header.hero { padding: 170px 0 90px; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mint);
+    background: rgba(143, 227, 208, 0.08);
+    border: 1px solid rgba(143, 227, 208, 0.2);
+    padding: 7px 14px;
+    border-radius: 999px;
+    margin-bottom: 26px;
+  }
+  .hero-kicker .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 0 0 3px rgba(143, 227, 208, 0.18);
+  }
+
+  .hero h1 {
+    font-size: clamp(38px, 5.6vw, 62px);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.06;
+    margin-bottom: 22px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 18.5px;
+    color: var(--text-soft);
+    max-width: 520px;
+    margin-bottom: 36px;
+  }
+
+  .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: var(--primary-blue);
-    color: #0B132B;
-    text-decoration: none;
-    padding: 14px 24px;
-    border-radius: var(--radius-pill);
-    font-size: 17px;
+    border-radius: 12px;
     font-weight: 700;
+    font-size: 16px;
+    padding: 15px 28px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.15s var(--ease), box-shadow 0.15s ease, background 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .btn-primary {
+    background: linear-gradient(180deg, #8FC4FF 0%, var(--accent-strong) 100%);
+    color: var(--accent-ink);
+    box-shadow: 0 10px 28px rgba(74, 142, 247, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(74, 142, 247, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+  .hero-trust {
+    display: flex;
+    gap: 22px;
+    margin-top: 40px;
+    color: var(--text-dim);
+    font-size: 13.5px;
+    font-weight: 500;
+    flex-wrap: wrap;
+  }
+  .hero-trust span { display: inline-flex; align-items: center; gap: 7px; }
+  .hero-trust svg { width: 15px; height: 15px; fill: var(--mint); opacity: 0.9; }
+
+  /* ---------- Phone mockup ---------- */
+  .hero-visual { position: relative; display: flex; justify-content: center; }
+
+  .phone {
+    width: 300px;
+    border-radius: 44px;
+    background: linear-gradient(160deg, #101827 0%, #0A101D 100%);
+    border: 1px solid var(--border-strong);
+    box-shadow:
+      0 40px 90px rgba(0, 0, 0, 0.55),
+      0 0 0 10px #0A0F1C,
+      0 0 0 11px var(--border);
+    padding: 12px;
+    position: relative;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92px;
+    height: 22px;
+    background: #060A12;
+    border-radius: 12px;
+    z-index: 3;
+  }
+  .phone-screen {
+    background: #0C1322;
+    border-radius: 34px;
+    overflow: hidden;
+    padding: 40px 16px 14px;
+    position: relative;
+  }
+
+  .app-statusbar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-soft);
+    padding: 0 2px 14px;
+  }
+
+  .app-header { display: flex; align-items: center; gap: 10px; padding: 4px 2px 16px; }
+  .app-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: linear-gradient(150deg, var(--accent), var(--accent-strong));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .app-logo svg { width: 18px; height: 18px; fill: var(--accent-ink); }
+  .app-title { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; }
+  .app-sub { font-size: 10.5px; color: var(--mint); font-weight: 500; }
+  .app-avatar {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(143, 227, 208, 0.14);
+    color: var(--mint);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-qr {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(150deg, rgba(124, 183, 255, 0.1), rgba(74, 142, 247, 0.05));
+    border: 1px solid rgba(124, 183, 255, 0.22);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .app-qr svg {
+    width: 58px;
+    height: 58px;
+    border-radius: 8px;
+    background: #fff;
+    padding: 5px;
+    flex-shrink: 0;
+  }
+  .app-qr-text strong { display: block; font-size: 12.5px; font-weight: 700; }
+  .app-qr-text span { font-size: 10.5px; color: var(--text-dim); }
+
+  .app-card {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .app-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .app-card-head .t { font-size: 11px; font-weight: 700; color: var(--text-soft); }
+  .pill {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mint);
+    background: rgba(143, 227, 208, 0.1);
+    border: 1px solid rgba(143, 227, 208, 0.24);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .file-row { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
+  .file-ic {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(124, 183, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .file-name { font-size: 11px; font-weight: 600; line-height: 1.2; }
+  .file-size { font-size: 9.5px; color: var(--text-dim); }
+  .file-state { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--mint); }
+
+  .app-progress { margin-bottom: 14px; }
+  .app-progress-bar {
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(148, 163, 184, 0.14);
+    overflow: hidden;
+  }
+  .app-progress-bar span {
+    display: block;
+    height: 100%;
+    width: 78%;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+    animation: barPulse 2.4s ease-in-out infinite;
+  }
+  .app-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9.5px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  @keyframes barPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+  }
+
+  .app-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(7, 11, 20, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .app-tab {
+    flex: 1;
     text-align: center;
-    transition: all 0.2s ease;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    padding: 7px 0;
+    border-radius: 9px;
+  }
+  .app-tab.on { background: var(--bg-elev-2); color: var(--text); }
+
+  .hero-toast {
+    position: absolute;
+    right: -8px;
+    bottom: 26px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+    animation: toastFloat 5.5s ease-in-out infinite;
+  }
+  .hero-toast .check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(127, 216, 154, 0.14);
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  @keyframes toastFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-9px); }
   }
 
-  .btn:hover {
-    background: #93C5FF;
-    transform: translateY(-2px);
+  /* ---------- Trust strip ---------- */
+  .trust-strip {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(12, 19, 34, 0.5);
+    padding: 26px 0;
+  }
+  .trust-strip .container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-soft);
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+  .trust-item svg { width: 20px; height: 20px; fill: var(--accent); flex-shrink: 0; opacity: 0.9; }
+
+  /* ---------- Steps ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 52px; }
+  .step {
+    position: relative;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 34px 28px;
+    transition: transform 0.25s var(--ease), border-color 0.25s ease;
+  }
+  .step:hover { transform: translateY(-4px); border-color: var(--border-strong); }
+  .step .num {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .step .num::after { content: ''; width: 34px; height: 1px; background: var(--border-strong); }
+  .step h3 { font-size: 18.5px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .step p { color: var(--text-soft); font-size: 15px; line-height: 1.6; }
+
+  /* ---------- Features ---------- */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 52px; }
+  .feature {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 26px;
+    transition: border-color 0.2s ease;
+  }
+  .feature:hover { border-color: var(--border-strong); }
+  .feature-ic {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(124, 183, 255, 0.1);
+    border: 1px solid rgba(124, 183, 255, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .feature-ic svg { width: 20px; height: 20px; fill: var(--accent); }
+  .feature h3 { font-size: 16.5px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .feature p { color: var(--text-soft); font-size: 14.5px; line-height: 1.6; }
+
+  /* ---------- Download ---------- */
+  .dl-section {
+    background: linear-gradient(180deg, transparent 0%, rgba(12, 19, 34, 0.65) 30%, rgba(12, 19, 34, 0.65) 70%, transparent 100%);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
 
-  .btn.secondary {
-    background: var(--bg-card-subtle);
-    color: var(--text-main);
-    border: 1px solid var(--surface-border);
+  .smart-card {
+    position: relative;
+    margin-top: 52px;
+    padding: 44px 40px;
+    text-align: center;
+    background: var(--bg-elev);
+    border: 1px solid rgba(124, 183, 255, 0.3);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
   }
-
-  .btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--text-muted);
+  .smart-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 90% at 50% -10%, rgba(74, 142, 247, 0.14) 0%, transparent 60%);
+    pointer-events: none;
   }
+  .smart-card > * { position: relative; }
 
-  .btn.small {
-    padding: 8px 16px;
+  .smart-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(124, 183, 255, 0.1);
+    border: 1px solid rgba(124, 183, 255, 0.24);
+    padding: 7px 16px;
+    border-radius: 999px;
+    margin-bottom: 20px;
+  }
+  .smart-badge-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 183, 255, 0.2);
+  }
+  .smart-card h3 { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .smart-card .detected-desc { color: var(--text-soft); font-size: 16.5px; margin-bottom: 28px; }
+
+  .smart-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(180deg, #8FC4FF 0%, var(--accent-strong) 100%);
+    color: var(--accent-ink);
+    font-weight: 800;
+    font-size: 17.5px;
+    padding: 17px 36px;
+    border-radius: 13px;
+    text-decoration: none;
+    box-shadow: 0 12px 30px rgba(74, 142, 247, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 0.15s var(--ease), box-shadow 0.15s ease;
+  }
+  .smart-btn svg { width: 20px; height: 20px; fill: currentColor; }
+  .smart-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 38px rgba(74, 142, 247, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+
+  .smart-note { margin-top: 16px; font-size: 13.5px; color: var(--text-dim); font-weight: 500; }
+
+  .not-sure-link {
+    display: none;
+    margin-top: 14px;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    font-family: inherit;
+  }
+  .not-sure-link:hover { color: #93C9FF; }
+
+  .arch-help {
+    display: none;
+    margin: 20px auto 0;
+    max-width: 540px;
+    text-align: left;
+    background: rgba(7, 11, 20, 0.7);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+  }
+  .arch-option {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-top: 1px dashed var(--border);
     font-size: 14px;
   }
+  .arch-option:first-of-type { border-top: none; }
+  .arch-option strong { color: var(--text); white-space: nowrap; }
+  .arch-option span { color: var(--text-dim); text-align: right; }
+  .arch-tip { margin-top: 12px; font-size: 13px; color: var(--amber); }
 
-  .variant-box {
-    background: var(--bg-card-subtle);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    margin-top: 20px;
+  /* Platform cards */
+  .dl-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 24px; text-align: left; }
+  .dl-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px 30px;
+    display: flex;
+    flex-direction: column;
   }
+  .dl-card .os {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .dl-card h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .dl-card > p { color: var(--text-soft); font-size: 14.5px; margin-bottom: 22px; }
 
-  .variant-box h4 {
-    font-size: 15px;
-    margin-bottom: 12px;
-    color: var(--text-main);
+  .btn.primary-sm {
+    background: linear-gradient(180deg, #8FC4FF 0%, var(--accent-strong) 100%);
+    color: var(--accent-ink);
     font-weight: 700;
+    font-size: 15px;
+    padding: 13px 22px;
+    border-radius: 11px;
+    box-shadow: 0 8px 22px rgba(74, 142, 247, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    align-self: flex-start;
   }
+  .btn.primary-sm:hover { transform: translateY(-1px); }
 
+  .variant-box { margin-top: 22px; border-top: 1px solid var(--border); padding-top: 18px; }
+  .variant-box h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
   .variant {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 14px;
     padding: 12px 0;
-    border-top: 1px dashed var(--surface-border);
+    border-top: 1px dashed var(--border);
   }
-
   .variant:first-of-type { border-top: none; }
-  .variant .v-info { flex: 1; text-align: left; }
-  .variant .v-name { font-weight: 700; font-size: 15px; color: var(--text-main); }
-  .variant .v-desc { color: var(--text-muted); font-size: 13.5px; }
-
-  /* ---------- Install Warning Notes ---------- */
-  .notes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+  .v-info { flex: 1; text-align: left; }
+  .v-name { font-weight: 600; font-size: 14px; color: var(--text); }
+  .v-desc { color: var(--text-dim); font-size: 12.5px; }
+  .btn.small {
+    padding: 8px 15px;
+    font-size: 13px;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-soft);
+    border: 1px solid var(--border-strong);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    white-space: nowrap;
   }
+  .btn.small:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* ---------- Install notes ---------- */
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 52px; text-align: left; }
   .note {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 30px;
-    text-align: left;
+    padding: 30px 28px;
   }
-
-  .note.warn {
-    background: rgba(252, 211, 77, 0.06);
-    border: 1px solid rgba(252, 211, 77, 0.25);
+  .note.warn { border-color: rgba(232, 180, 90, 0.3); background: linear-gradient(150deg, rgba(232, 180, 90, 0.05), var(--bg-elev) 55%); }
+  .note.ok { border-color: rgba(127, 216, 154, 0.28); background: linear-gradient(150deg, rgba(127, 216, 154, 0.05), var(--bg-elev) 55%); }
+  .note .note-eyebrow {
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
   }
+  .note.warn .note-eyebrow { color: var(--amber); }
+  .note.ok .note-eyebrow { color: var(--green); }
+  .note h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 12px; }
+  .note p, .note li { font-size: 14.5px; color: var(--text-soft); line-height: 1.65; }
+  .note ul { padding-left: 18px; margin-top: 10px; }
+  .note li { margin-bottom: 7px; }
+  .note strong { color: var(--text); font-weight: 600; }
 
-  .note.ok {
-    background: rgba(134, 239, 172, 0.06);
-    border: 1px solid rgba(134, 239, 172, 0.25);
-  }
-
-  .note h3 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .note.warn h3 { color: var(--accent-amber); }
-  .note.ok h3 { color: var(--accent-green); }
-
-  .note p, .note li {
-    font-size: 15.5px;
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-
-  .note ul {
-    padding-left: 20px;
-    margin-top: 10px;
-  }
-
-  .note li { margin-bottom: 8px; }
-  .note strong { color: var(--text-main); }
-
-  /* ---------- FAQ Accordion ---------- */
-  .faq {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
+  /* ---------- FAQ ---------- */
+  .faq { max-width: 760px; margin: 52px auto 0; text-align: left; }
   details {
-    background: var(--bg-card);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-md);
-    padding: 22px 28px;
-    margin-bottom: 16px;
-    text-align: left;
-    transition: all 0.2s ease;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
   }
-
-  details[open] {
-    border-color: var(--primary-blue);
-    background: var(--bg-card);
-  }
-
+  details[open] { border-color: var(--border-strong); }
   summary {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    color: var(--text-main);
+    color: var(--text);
     user-select: none;
     list-style: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
   }
-
   summary::-webkit-details-marker { display: none; }
-
   summary::after {
     content: '+';
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 400;
-    color: var(--primary-blue);
-    transition: transform 0.2s ease;
+    color: var(--text-dim);
+    transition: transform 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
   }
+  details[open] summary::after { transform: rotate(45deg); color: var(--accent); }
+  details p { margin-top: 12px; color: var(--text-soft); font-size: 14.5px; line-height: 1.65; }
 
-  details[open] summary::after {
-    transform: rotate(45deg);
-  }
-
-  details p {
-    margin-top: 14px;
-    color: var(--text-muted);
-    font-size: 16px;
-    line-height: 1.6;
-  }
-
-  /* ---------- Contribute / GitHub CTA ---------- */
+  /* ---------- Contribute ---------- */
   .contribute {
-    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-subtle) 100%);
-    border: 1px solid var(--surface-border);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 48px 40px;
+    padding: 56px 44px;
     text-align: center;
     position: relative;
     overflow: hidden;
   }
-
-  .contribute h2 { margin-bottom: 12px; }
-  .contribute .sub { margin-bottom: 32px; }
+  .contribute::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(74, 142, 247, 0.1) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .contribute > * { position: relative; }
+  .contribute .sec-sub { margin-left: auto; margin-right: auto; }
 
   .contribute-actions {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     justify-content: center;
     flex-wrap: wrap;
-    margin-bottom: 36px;
+    margin: 32px 0;
   }
-
   .gh-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    background: var(--primary-blue);
-    color: #0B132B;
+    gap: 9px;
+    border-radius: 11px;
+    padding: 13px 24px;
+    font-size: 15px;
+    font-weight: 700;
     text-decoration: none;
-    padding: 15px 30px;
-    border-radius: var(--radius-pill);
-    font-size: 17px;
-    font-weight: 800;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
+    transition: transform 0.15s var(--ease), border-color 0.15s ease, background 0.15s ease;
   }
-
-  .gh-btn:hover {
-    background: #93C5FF;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(124, 183, 255, 0.3);
+  .gh-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .gh-btn.primary {
+    background: linear-gradient(180deg, #8FC4FF 0%, var(--accent-strong) 100%);
+    color: var(--accent-ink);
+    box-shadow: 0 8px 22px rgba(74, 142, 247, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   }
-
+  .gh-btn.primary:hover { transform: translateY(-2px); }
   .gh-btn.secondary {
     background: transparent;
-    color: var(--text-main);
-    border: 1px solid var(--surface-border);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
   }
-
-  .gh-btn.secondary:hover {
-    background: var(--surface-hover);
-    border-color: var(--text-muted);
-    box-shadow: none;
-  }
-
-  .gh-btn svg { width: 20px; height: 20px; fill: currentColor; }
-
+  .gh-btn.secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
   .gh-star-count {
     display: inline-flex;
     align-items: center;
-    background: rgba(11, 19, 43, 0.15);
-    border-radius: var(--radius-pill);
-    padding: 2px 10px;
-    font-size: 14px;
+    background: rgba(6, 18, 31, 0.28);
+    border-radius: 8px;
+    padding: 1px 9px;
+    font-size: 13.5px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
@@ -630,306 +971,462 @@
   .contribute-links {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 14px;
     text-align: left;
+    max-width: 860px;
+    margin: 0 auto;
   }
-
   .contribute-links a {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    background: var(--bg-card-subtle);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-md);
+    background: rgba(7, 11, 20, 0.55);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     padding: 18px;
-    color: var(--text-main);
+    color: var(--text);
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s ease;
   }
-
-  .contribute-links a:hover {
-    border-color: var(--primary-blue);
-    transform: translateY(-2px);
-  }
-
-  .contribute-links .cl-icon {
-    width: 38px;
-    height: 38px;
+  .contribute-links a:hover { border-color: var(--border-strong); }
+  .cl-icon {
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
-    border-radius: 10px;
-    background: var(--primary-blue-bg);
+    border-radius: 9px;
+    background: rgba(124, 183, 255, 0.1);
+    border: 1px solid rgba(124, 183, 255, 0.18);
     display: flex;
     align-items: center;
     justify-content: center;
   }
+  .cl-icon svg { width: 17px; height: 17px; fill: var(--accent); }
+  .cl-title { font-weight: 700; font-size: 14.5px; margin-bottom: 2px; }
+  .cl-desc { color: var(--text-dim); font-size: 12.5px; line-height: 1.5; }
 
-  .contribute-links .cl-icon svg { width: 20px; height: 20px; fill: var(--primary-blue); }
-
-  .contribute-links .cl-title { font-weight: 700; font-size: 15.5px; margin-bottom: 3px; }
-  .contribute-links .cl-desc { color: var(--text-muted); font-size: 13.5px; line-height: 1.5; }
-
-  @media (max-width: 840px) {
-    .contribute-links { grid-template-columns: 1fr; }
-    .contribute { padding: 36px 24px; }
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    background: rgba(5, 8, 15, 0.8);
+    padding: 44px 0 40px;
   }
-
-  /* ---------- "Not sure?" version helper ---------- */
-  .not-sure-link {
-    display: none;
-    margin-top: 14px;
-    color: var(--primary-blue);
-    font-size: 14.5px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+    flex-wrap: wrap;
   }
-  .not-sure-link:hover { color: #93C5FF; }
-
-  .arch-help {
-    display: none;
-    margin: 18px auto 0;
-    max-width: 520px;
-    text-align: left;
-    background: var(--bg-card-subtle);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-md);
-    padding: 18px 22px;
+  .footer-brand { max-width: 300px; }
+  .footer-brand .nav-brand { margin-bottom: 10px; }
+  .footer-brand p { color: var(--text-dim); font-size: 13.5px; line-height: 1.6; }
+  .footer-col h5 {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
   }
-
-  .arch-option {
+  .footer-col a {
+    display: block;
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+  }
+  .footer-col a:hover { color: var(--accent); }
+  .footer-bottom {
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     gap: 16px;
-    padding: 10px 0;
-    border-top: 1px dashed var(--surface-border);
-    font-size: 14.5px;
+    flex-wrap: wrap;
+    color: var(--text-dim);
+    font-size: 13px;
   }
-  .arch-option:first-of-type { border-top: none; }
-  .arch-option strong { color: var(--text-main); white-space: nowrap; }
-  .arch-option span { color: var(--text-muted); text-align: right; }
+  .footer-bottom a { color: var(--text-soft); text-decoration: none; }
+  .footer-bottom a:hover { color: var(--accent); }
 
-  .arch-tip {
-    margin-top: 12px;
-    font-size: 13.5px;
-    color: var(--accent-amber);
-  }
-
-  /* ---------- Download notice modal ---------- */
+  /* ---------- Download modal ---------- */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(7, 13, 30, 0.82);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: rgba(4, 7, 13, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1200;
     padding: 24px;
   }
   .modal-overlay.show { display: flex; }
-
   .modal-box {
-    background: var(--bg-card);
-    border: 1px solid var(--surface-border);
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-lg);
-    max-width: 480px;
+    max-width: 460px;
     width: 100%;
-    padding: 36px 32px 28px;
+    padding: 34px 32px 28px;
     text-align: left;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
-    animation: modalIn 0.35s var(--transition-bounce);
+    box-shadow: 0 34px 80px rgba(0, 0, 0, 0.6);
+    animation: modalIn 0.32s var(--ease);
   }
   @keyframes modalIn {
-    from { transform: scale(0.92) translateY(16px); opacity: 0; }
+    from { transform: scale(0.95) translateY(14px); opacity: 0; }
     to { transform: scale(1) translateY(0); opacity: 1; }
   }
   .modal-close {
     position: absolute;
     top: 14px;
-    right: 16px;
+    right: 18px;
     background: none;
     border: none;
-    color: var(--text-muted);
-    font-size: 26px;
+    color: var(--text-dim);
+    font-size: 24px;
     line-height: 1;
     cursor: pointer;
+    font-family: inherit;
   }
-  .modal-close:hover { color: var(--text-main); }
+  .modal-close:hover { color: var(--text); }
   .modal-sub {
-    color: var(--accent-mint);
+    color: var(--accent);
     font-weight: 800;
-    font-size: 13px;
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.1em;
     margin-bottom: 10px;
   }
-  .modal-box h3 { font-size: 22px; font-weight: 800; margin-bottom: 14px; }
-  .modal-box p { font-size: 15.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
-  .modal-box ul { padding-left: 20px; margin: 4px 0 12px; }
-  .modal-box li { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 6px; }
-  .modal-box strong { color: var(--text-main); }
-  .modal-ok { margin-top: 18px; width: 100%; border: none; cursor: pointer; }
-
-  /* ---------- Footer ---------- */
-  footer {
-    background: #070D1E;
-    border-top: 1px solid var(--surface-border);
-    color: var(--text-muted);
-    padding: 48px 0;
-    font-size: 15px;
-    text-align: center;
+  .modal-box h3 { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 14px; }
+  .modal-box p { font-size: 14.5px; color: var(--text-soft); line-height: 1.65; margin-bottom: 10px; }
+  .modal-box ul { padding-left: 18px; margin: 4px 0 12px; }
+  .modal-box li { font-size: 14px; color: var(--text-soft); line-height: 1.65; margin-bottom: 6px; }
+  .modal-box strong { color: var(--text); font-weight: 600; }
+  .modal-ok {
+    margin-top: 18px;
+    width: 100%;
+    cursor: pointer;
+    background: linear-gradient(180deg, #8FC4FF 0%, var(--accent-strong) 100%);
+    color: var(--accent-ink);
   }
 
-  footer a { color: var(--primary-blue); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-  footer .small { opacity: 0.7; margin-top: 10px; font-size: 14px; }
+  /* ---------- Scroll reveal ---------- */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
 
   /* ---------- Responsive ---------- */
-  @media (max-width: 840px) {
-    header { padding: 48px 0 44px; }
-    header h1 { font-size: 42px; }
-    header .tagline { font-size: 19px; }
-    .steps, .dl-cards, .notes { grid-template-columns: 1fr; }
-    section { padding: 48px 0; }
-    section h2 { font-size: 30px; }
-    .smart-card { padding: 28px 20px; }
-    .smart-card h3 { font-size: 24px; }
+  @media (max-width: 920px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 64px; }
+    header.hero { padding: 140px 0 70px; }
+    .hero-visual { order: -1; }
+    .hero-toast { right: 6%; }
+    .steps, .features, .dl-cards, .notes { grid-template-columns: 1fr; }
+    .contribute-links { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 560px) {
+    section { padding: 72px 0; }
+    .container { padding: 0 20px; }
+    .smart-card { padding: 34px 22px; }
+    .contribute { padding: 44px 22px; }
+    .phone { width: 270px; }
+    .hero-toast { right: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
-<body>
+<body class="loading">
 
-<div class="ambient-glow"></div>
+<!-- Loading screen -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-mark">
+    <svg viewBox="0 0 24 24"><path d="M3 12h2v2H3zM7 8h2v8H7zM11 5h2v14h-2zM15 8h2v8h-2zM19 10h2v4h-2z"/></svg>
+  </div>
+  <div class="loader-name">Doorstep</div>
+  <div class="loader-bar"><span></span></div>
+</div>
 
-<!-- ================= HEADER ================= -->
-<header>
-  <div class="container">
-    <div class="logo-wrap">
-      <img src="logo.png" alt="Doorstep App Logo">
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top">
+      <svg viewBox="0 0 24 24"><path d="M3 12h2v2H3zM7 8h2v8H7zM11 5h2v14h-2zM15 8h2v8h-2zM19 10h2v4h-2z"/></svg>
+      Doorstep
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="#faq">FAQ</a>
+      <a href="#open-source">Open source</a>
     </div>
-    <h1>Doorstep</h1>
-    <p class="tagline">Send files between your phone and computer instantly — zero cloud, zero internet, zero accounts.</p>
-    <div class="badges">
-      <span class="badge"><span class="dot"></span>100% Free & Open Source</span>
-      <span class="badge"><span class="dot"></span>No Account Required</span>
-      <span class="badge"><span class="dot"></span>Works 100% Offline</span>
-      <span class="badge"><span class="dot"></span>Encrypted Peer-to-Peer</span>
+    <a class="nav-cta" href="#download">Download</a>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-kicker"><span class="dot"></span>v1.0.0 — now available for Android &amp; Windows</div>
+        <h1>Files between your phone and computer,<br><span class="accent">without the internet.</span></h1>
+        <p class="hero-sub">Pair your devices once with a QR code. Drop a file into a folder on your PC and it lands on your phone — instantly, privately, and fully offline.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#download">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Get Doorstep — it's free
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+        <div class="hero-trust">
+          <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>No cloud</span>
+          <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>No accounts</span>
+          <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>No internet needed</span>
+          <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>100% open source</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="app-statusbar"><span>09:41</span><span>•••</span></div>
+            <div class="app-header">
+              <div class="app-logo"><svg viewBox="0 0 24 24"><path d="M3 12h2v2H3zM7 8h2v8H7zM11 5h2v14h-2zM15 8h2v8h-2zM19 10h2v4h-2z"/></svg></div>
+              <div>
+                <div class="app-title">Doorstep</div>
+                <div class="app-sub">● Connected · Personal network</div>
+              </div>
+              <div class="app-avatar">C</div>
+            </div>
+            <div class="app-qr">
+              <svg viewBox="0 0 21 21">
+                <rect x="0" y="0" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
+                <rect x="12" y="0" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
+                <rect x="0" y="12" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
+                <rect x="2" y="2" width="5" height="5" fill="#000"/>
+                <rect x="14" y="2" width="5" height="5" fill="#000"/>
+                <rect x="2" y="14" width="5" height="5" fill="#000"/>
+                <rect x="5" y="5" width="2" height="2" fill="#fff"/>
+                <rect x="17" y="5" width="2" height="2" fill="#fff"/>
+                <rect x="5" y="17" width="2" height="2" fill="#fff"/>
+                <rect x="11" y="3" width="1" height="2" fill="#000"/>
+                <rect x="11" y="7" width="1" height="1" fill="#000"/>
+                <rect x="14" y="11" width="1" height="1" fill="#000"/>
+                <rect x="16" y="13" width="1" height="2" fill="#000"/>
+                <rect x="11" y="12" width="2" height="1" fill="#000"/>
+                <rect x="18" y="18" width="3" height="3" fill="#000"/>
+              </svg>
+              <div class="app-qr-text">
+                <strong>Scan to pair with PC</strong>
+                <span>192.168.1.42 · Port 53317</span>
+              </div>
+            </div>
+            <div class="app-card">
+              <div class="app-card-head">
+                <span class="t">Drop Zone — Photos</span>
+                <span class="pill">Trusted</span>
+              </div>
+              <div class="file-row">
+                <div class="file-ic">🖼</div>
+                <div><div class="file-name">vacation.jpg</div><div class="file-size">4.2 MB</div></div>
+                <div class="file-state">✓</div>
+              </div>
+              <div class="file-row">
+                <div class="file-ic">🎥</div>
+                <div><div class="file-name">clips.mp4</div><div class="file-size">128 MB</div></div>
+                <div class="file-state">✓</div>
+              </div>
+            </div>
+            <div class="app-progress">
+              <div class="app-progress-bar"><span></span></div>
+              <div class="app-progress-meta"><span>Sending documents.zip</span><span>78%</span></div>
+            </div>
+            <div class="app-tabs">
+              <div class="app-tab on">Home</div>
+              <div class="app-tab">Files</div>
+              <div class="app-tab">Drop</div>
+              <div class="app-tab">Settings</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-toast"><span class="check">✓</span> vacation.jpg just arrived on your phone</div>
+      </div>
     </div>
   </div>
 </header>
 
+<!-- ================= TRUST STRIP ================= -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+      End-to-end encrypted
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Files never leave your Wi-Fi
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Works with the internet off
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      No account, no sign-up
+    </div>
+  </div>
+</div>
+
 <!-- ================= HOW IT WORKS ================= -->
 <section id="how">
   <div class="container center">
-    <h2>How it works</h2>
-    <p class="sub">Pair your phone and computer <strong>once</strong> with a QR code — after that, files dropped on your PC land on your phone automatically.</p>
+    <span class="eyebrow">How it works</span>
+    <h2>Set up once. Transfer forever.</h2>
+    <p class="sec-sub">Three steps, two minutes, and you'll never email a file to yourself again.</p>
     <div class="steps">
-      <div class="step">
-        <div class="num">1</div>
-        <h3>Connect to same Wi-Fi</h3>
-        <p>Ensure both your phone and computer are on the same Wi-Fi router, local network, or phone hotspot.</p>
+      <div class="step reveal">
+        <div class="num">01</div>
+        <h3>Put both devices on the same network</h3>
+        <p>Your phone and computer just need to share a Wi-Fi router, a wired network, or a phone hotspot. No router configuration needed.</p>
       </div>
-      <div class="step">
-        <div class="num">2</div>
-        <h3>Scan QR Code Once</h3>
-        <p>Open Doorstep on your computer and scan the QR code using your phone camera. Choose <em>Personal device</em> to pair permanently.</p>
+      <div class="step reveal">
+        <div class="num">02</div>
+        <h3>Scan the QR code once</h3>
+        <p>Open Doorstep on your computer and scan the pairing QR with your phone camera. Choose <em>Personal device</em> to stay paired and reconnect automatically.</p>
       </div>
-      <div class="step">
-        <div class="num">3</div>
-        <h3>Drop Files & Done</h3>
-        <p>Drag files into your Doorstep folder on your computer — they instantly stream directly to your phone.</p>
+      <div class="step reveal">
+        <div class="num">03</div>
+        <h3>Drop files — they arrive on their own</h3>
+        <p>Drag anything into a Doorstep folder on your PC. It streams straight to your phone, or to whichever device that drop zone is assigned to.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================= DOWNLOADS ================= -->
-<section class="detector-section" id="download">
+<!-- ================= FEATURES ================= -->
+<section id="features" style="padding-top: 0;">
   <div class="container center">
-    <h2>Download Doorstep</h2>
-    <p class="sub">Free forever. We automatically detect your device and pick the exact version — and if we're ever unsure, we'll help you choose.</p>
+    <span class="eyebrow">Features</span>
+    <h2>Built for people, not for clouds</h2>
+    <p class="sec-sub">Every feature exists to remove a step between you and your files.</p>
+    <div class="features">
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm8-2v8h8V3h-8zm6 6h-4V5h4v4zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg></div>
+        <h3>QR code pairing</h3>
+        <p>Scan once and your devices remember each other. No IP addresses to type, no setup screens to fight.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+        <h3>Trust levels</h3>
+        <p>Mark a device <em>Personal</em> to keep it connected and auto-reconnecting, or <em>Session-only</em> for a one-time guest handoff.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></div>
+        <h3>Drop zones with routing</h3>
+        <p>Point each watched folder at a specific device, so photos go to your phone and work files go to your laptop — not everything, everywhere.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h12v2H6v-2zm0 4h8v2H6v-2z"/></svg></div>
+        <h3>Live folder browser</h3>
+        <p>Browse your computer's folders from your phone and pull any file over — no searching through chat history.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4v3z"/></svg></div>
+        <h3>Two-way transfers</h3>
+        <p>Phone → computer and computer → phone, in both directions, with progress and automatic resume.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-ic"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg></div>
+        <h3>Private by design</h3>
+        <p>Transfers are encrypted end-to-end and travel only across your own local network. No server in between, ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- Dynamic Smart System Detector Card -->
+<!-- ================= DOWNLOAD ================= -->
+<section class="dl-section" id="download">
+  <div class="container center">
+    <span class="eyebrow">Download</span>
+    <h2>Get Doorstep</h2>
+    <p class="sec-sub">Free forever. We detect your device and pick the exact file — no login, no account, direct download from this site.</p>
+
     <div class="smart-card" id="smart-detector">
-      <div class="smart-badge-pill">Auto-Detected Device</div>
-      <h3 id="detected-title">Checking your device...</h3>
-      <p class="detected-desc" id="detected-desc">Detecting operating system & architecture for one-click setup.</p>
+      <div class="smart-badge-pill">Auto-detected device</div>
+      <h3 id="detected-title">Checking your device…</h3>
+      <p class="detected-desc" id="detected-desc">Detecting your operating system and chip type for a one-click setup.</p>
       <a class="smart-btn dl-link" id="smart-btn" href="https://github.com/javex-12/Doorstep/releases">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         <span id="smart-btn-text">Download Doorstep</span>
       </a>
-      <div class="smart-note" id="smart-note">No sign up needed • Direct file download</div>
-      <a class="not-sure-link" id="not-sure-link">Not sure which one is right? See all versions</a>
+      <div class="smart-note" id="smart-note">Direct download • no sign-up</div>
+      <button class="not-sure-link" id="not-sure-link" type="button">Not sure which one is right? See all versions</button>
       <div class="arch-help" id="arch-help">
         <div class="arch-option"><strong>ARM64 (64-bit)</strong><span>Most phones from ~2017 onward. Start here.</span></div>
-        <div class="arch-option"><strong>ARMv7 (32-bit)</strong><span>Older or budget phones — also installs on newer phones if the ARM64 file won't work.</span></div>
+        <div class="arch-option"><strong>ARMv7 (32-bit)</strong><span>Older or budget phones — also works on newer phones if ARM64 won't install.</span></div>
         <div class="arch-option"><strong>x86_64</strong><span>Only for Android emulators and Intel/AMD tablets.</span></div>
-        <p class="arch-tip">Tip: if the download finishes but the app won't install, you have the wrong version — try the next one.</p>
+        <p class="arch-tip">Tip: if the download finishes but the app won't install, you have the wrong version — try the next one down.</p>
       </div>
     </div>
 
-    <!-- Manual Download Grid -->
     <div class="dl-cards">
-      <!-- Android Card -->
       <div class="dl-card">
-        <div class="os">Android OS</div>
-        <h3>Android Phone or Tablet</h3>
-        <p>Compatible with Android 5.0 through Android 15+. Works on phones, tablets, and mobile devices.</p>
-        <a class="btn dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">
+        <div class="os">Android</div>
+        <h3>Phone or tablet</h3>
+        <p>Android 5.0 through 15+. Pick the file for your phone's chip type below.</p>
+        <a class="btn primary-sm dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">
           Download for Android (ARM64)
         </a>
         <div class="variant-box">
-          <h4>Alternate Android Architectures:</h4>
+          <h4>All versions</h4>
           <div class="variant">
-            <div class="v-info">
-              <div class="v-name">Modern Phones (ARM64)</div>
-              <div class="v-desc">For 95% of Android phones made after 2017. Recommended.</div>
-            </div>
-            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">Download</a>
+            <div class="v-info"><div class="v-name">ARM64 (64-bit)</div><div class="v-desc">For 95% of phones made after 2017.</div></div>
+            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">Download</a>
           </div>
           <div class="variant">
-            <div class="v-info">
-              <div class="v-name">Older Phones (ARMv7 32-bit)</div>
-              <div class="v-desc">Use only if ARM64 fails to install on older budget phones.</div>
-            </div>
-            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-armv7.apk">Download</a>
+            <div class="v-info"><div class="v-name">ARMv7 (32-bit)</div><div class="v-desc">Older &amp; budget phones — fallback if ARM64 fails.</div></div>
+            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-armv7.apk">Download</a>
           </div>
           <div class="variant">
-            <div class="v-info">
-              <div class="v-name">Intel Devices (x86_64)</div>
-              <div class="v-desc">For Android emulators & Intel/AMD Android tablets.</div>
-            </div>
-            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-x86_64.apk">Download</a>
+            <div class="v-info"><div class="v-name">x86_64</div><div class="v-desc">Emulators and Intel/AMD tablets.</div></div>
+            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-x86_64.apk">Download</a>
           </div>
         </div>
       </div>
 
-      <!-- Windows Card -->
       <div class="dl-card">
-        <div class="os">Windows OS</div>
-        <h3>Windows Desktop / Laptop</h3>
-        <p>Supports Windows 10 and Windows 11 (64-bit). Setup installer (.exe) or portable (.zip) format.</p>
-        <a class="btn dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">
-          Download Windows Installer (.exe)
+        <div class="os">Windows</div>
+        <h3>Desktop or laptop</h3>
+        <p>Windows 10 and 11 (64-bit). Use the installer for a normal setup, or the portable zip to run without installing.</p>
+        <a class="btn primary-sm dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">
+          Download for Windows (.exe)
         </a>
         <div class="variant-box">
-          <h4>Windows Download Formats:</h4>
+          <h4>Formats</h4>
           <div class="variant">
-            <div class="v-info">
-              <div class="v-name">Windows Installer (.exe)</div>
-              <div class="v-desc">Automated wizard setup. Recommended for most PC users.</div>
-            </div>
-            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">Download .exe</a>
+            <div class="v-info"><div class="v-name">Installer (.exe)</div><div class="v-desc">Guided setup. Recommended.</div></div>
+            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">Download</a>
           </div>
           <div class="variant">
-            <div class="v-info">
-              <div class="v-name">Portable Version (.zip)</div>
-              <div class="v-desc">No installation required — extract and run directly.</div>
-            </div>
-            <a class="btn small secondary dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Windows-x64.zip">Download .zip</a>
+            <div class="v-info"><div class="v-name">Portable (.zip)</div><div class="v-desc">No install — extract and run.</div></div>
+            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Windows-x64.zip">Download</a>
           </div>
         </div>
       </div>
@@ -937,40 +1434,41 @@
   </div>
 </section>
 
-<!-- ================= INSTALL NOTES ================= -->
+<!-- ================= INSTALL GUIDE ================= -->
 <section id="install">
   <div class="container center">
-    <h2>⚠️ Installation Guide & Safety</h2>
-    <p class="sub">Doorstep is distributed directly via GitHub open-source releases. Your device OS may present a standard security popup for third-party APKs/EXEs.</p>
+    <span class="eyebrow">Installation guide</span>
+    <h2>What your device will say — and what to tap</h2>
+    <p class="sec-sub">Doorstep is distributed directly as open-source files, so your operating system shows a standard security prompt. Here's exactly what to do — the same steps appear in a popup when you click download.</p>
     <div class="notes">
       <div class="note warn">
-        <h3>📱 Android Play Protect Notice</h3>
-        <p>If Android displays <em>"Google Play Protect doesn't recognize this app"</em>:</p>
+        <div class="note-eyebrow">Android · Play Protect</div>
+        <h3>“Google Play Protect doesn't recognize this app”</h3>
         <ul>
           <li>Tap <strong>More details</strong></li>
           <li>Tap <strong>Install anyway</strong></li>
-          <li>Doorstep is 100% open source — this warning only shows because it is downloaded directly from GitHub rather than sold on Google Play.</li>
+          <li>If asked, allow <strong>“Install from unknown sources”</strong> for this file</li>
         </ul>
+        <p>This appears because the app is downloaded directly rather than sold on Google Play — the app itself is 100% open source and safe.</p>
       </div>
-
       <div class="note warn">
-        <h3>🖥️ Windows SmartScreen Notice</h3>
-        <p>If Windows SmartScreen shows <em>"Windows protected your PC"</em>:</p>
+        <div class="note-eyebrow">Windows · SmartScreen</div>
+        <h3>“Windows protected your PC”</h3>
         <ul>
-          <li>Click <strong>More info</strong> link</li>
-          <li>Click <strong>Run anyway</strong> button</li>
-          <li>This notice appears for any new portable executable file that isn't signed with an expensive commercial certificate.</li>
+          <li>Click <strong>More info</strong></li>
+          <li>Click <strong>Run anyway</strong></li>
         </ul>
+        <p>This shows for any new executable without a paid commercial certificate. It's a standard caution, not a detection.</p>
       </div>
-
       <div class="note ok">
-        <h3>✅ 100% Private & Open Source</h3>
-        <p>Your privacy is guaranteed by mathematics and open code. Doorstep sends data strictly across your own local Wi-Fi router. No remote servers receive your payload.</p>
+        <div class="note-eyebrow">Privacy</div>
+        <h3>Your files never leave your network</h3>
+        <p>Doorstep sends data strictly across your own local Wi-Fi router — encrypted, end to end. No remote servers receive your payload, ever.</p>
       </div>
-
       <div class="note ok">
-        <h3>🔄 Zero Configuration Needed</h3>
-        <p>No port forwarding, static IP setups, or router tweaks required. Doorstep automatically discovers paired local devices using UDP multicast.</p>
+        <div class="note-eyebrow">Setup</div>
+        <h3>Zero configuration</h3>
+        <p>No port forwarding, no static IPs, no router tweaks. Paired devices find each other automatically over your local network.</p>
       </div>
     </div>
   </div>
@@ -979,43 +1477,49 @@
 <!-- ================= FAQ ================= -->
 <section id="faq">
   <div class="container center">
-    <h2>Frequently Asked Questions</h2>
-    <p class="sub">Got questions? We've got answers.</p>
+    <span class="eyebrow">FAQ</span>
+    <h2>Questions, answered</h2>
+    <p class="sec-sub">The short version of everything people ask before trying Doorstep.</p>
     <div class="faq">
       <details>
-        <summary>Why isn't Doorstep on Google Play or Microsoft Store yet?</summary>
-        <p>Doorstep is open-source and free software. Store listings require developer subscription fees and review queues, so releases are hosted on GitHub first. Direct store packages are planned for upcoming releases.</p>
+        <summary>Why isn't Doorstep on Google Play or the Microsoft Store?</summary>
+        <p>Doorstep is free and open source. Store listings require developer fees and review queues, so releases are hosted on GitHub and this site first. Store packages are planned for future releases.</p>
       </details>
       <details>
         <summary>Does it work when the internet is completely down?</summary>
-        <p>Yes! Doorstep operates locally over Wi-Fi, Ethernet cables, or mobile phone hotspots. It does not touch the internet at all.</p>
+        <p>Yes. Doorstep operates entirely over your local Wi-Fi, a wired network, or a phone hotspot. It never touches the internet.</p>
       </details>
       <details>
-        <summary>Is there an iOS / macOS version coming?</summary>
-        <p>Yes, Apple platform support (iOS / macOS) is currently in development. Currently, Doorstep natively supports Android and Windows.</p>
+        <summary>Is there an iOS or macOS version coming?</summary>
+        <p>Yes — Apple platform support is in active development. Doorstep currently supports Android and Windows.</p>
       </details>
       <details>
-        <summary>How does Doorstep compare to LocalSend?</summary>
-        <p>Doorstep is built on top of the LocalSend protocol core (Apache-2.0). It adds QR code persistent device pairing, background drop zones, auto-reconnection, and automatic folder synchronization.</p>
+        <summary>How does Doorstep relate to LocalSend?</summary>
+        <p>Doorstep is built on the LocalSend protocol core (Apache-2.0) and adds QR persistent pairing, trust levels, drop zones with per-device routing, auto-reconnection, and a live folder browser.</p>
+      </details>
+      <details>
+        <summary>Do I need an account?</summary>
+        <p>No. There are no accounts, no sign-ups, no telemetry. Install it, pair your devices, and it works.</p>
       </details>
     </div>
   </div>
 </section>
 
-<!-- ================= CONTRIBUTE / GITHUB ================= -->
-<section id="contribute">
+<!-- ================= OPEN SOURCE ================= -->
+<section id="open-source">
   <div class="container center">
-    <div class="contribute">
-      <h2>Doorstep is open source</h2>
-      <p class="sub">Built in public on GitHub. Star the repo, report a bug, or help shape the next release.</p>
+    <div class="contribute reveal">
+      <span class="eyebrow" style="justify-content: center;">Open source</span>
+      <h2>Built in public. Yours to inspect.</h2>
+      <p class="sec-sub">Every line of Doorstep is on GitHub — read it, audit it, or help shape the next release.</p>
       <div class="contribute-actions">
-        <a class="gh-btn" href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
+        <a class="gh-btn primary" href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
           <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
           Star on GitHub <span class="gh-star-count" id="star-count"></span>
         </a>
         <a class="gh-btn secondary" href="https://github.com/javex-12/Doorstep/issues" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          Report a Problem
+          Report a problem
         </a>
         <a class="gh-btn secondary" href="https://github.com/javex-12/Doorstep/fork" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24"><path d="M14 2h-4v2h4V2zm2 4v2h4v2h-2v2h-2V8h-2V6h2zm-8 2v2H6v2h2v2h2v2H8v-2H6v-2H4V6h2v2h2zm6 4v-2h2v2h-2zm0 0v2h-2v-2h2zm-2 6v-2h4v2h-4z"/></svg>
@@ -1025,48 +1529,39 @@
       <div class="contribute-links">
         <a href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">
           <span class="cl-icon"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></span>
-          <span>
-            <div class="cl-title">Browse the source</div>
-            <div class="cl-desc">100% open code — read it, audit it, trust it.</div>
-          </span>
+          <span><div class="cl-title">Browse the source</div><div class="cl-desc">100% open code — read it, audit it, trust it.</div></span>
         </a>
         <a href="https://github.com/javex-12/Doorstep/issues/new" target="_blank" rel="noopener">
           <span class="cl-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></span>
-          <span>
-            <div class="cl-title">Request a feature</div>
-            <div class="cl-desc">Tell us what you want — every idea is welcome.</div>
-          </span>
+          <span><div class="cl-title">Request a feature</div><div class="cl-desc">Tell us what you want — every idea is welcome.</div></span>
         </a>
         <a href="https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">
           <span class="cl-icon"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span>
-          <span>
-            <div class="cl-title">Contribute code</div>
-            <div class="cl-desc">Flutter & Rust devs welcome — see the contributing guide.</div>
-          </span>
+          <span><div class="cl-title">Contribute code</div><div class="cl-desc">Flutter &amp; Rust devs welcome — see the contributing guide.</div></span>
         </a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Download Notice Modal (Play Protect / SmartScreen explained at click time) -->
+<!-- Download notice modal (Play Protect / SmartScreen explained at click time) -->
 <div class="modal-overlay" id="dl-modal" role="dialog" aria-modal="true" aria-labelledby="dl-modal-title">
   <div class="modal-box">
     <button class="modal-close" id="dl-modal-close" aria-label="Close">&times;</button>
     <div class="modal-sub">Your download has started</div>
     <h3 id="dl-modal-title">Installing on Android</h3>
     <div id="dl-modal-android">
-      <p>Google may warn you: <strong>&quot;Google Play Protect doesn't recognize this app.&quot;</strong></p>
+      <p>Google may warn you: <strong>“Google Play Protect doesn't recognize this app.”</strong></p>
       <p>That's <strong>normal</strong> — Doorstep isn't on the Play Store yet, so Google hasn't reviewed it. The app is 100% open source and safe.</p>
       <ul>
         <li>Tap <strong>More details</strong> on the warning</li>
         <li>Tap <strong>Install anyway</strong></li>
-        <li>If asked, allow <strong>&quot;Install from unknown sources&quot;</strong> for this file</li>
+        <li>If asked, allow <strong>“Install from unknown sources”</strong> for this file</li>
       </ul>
       <p>No login, no account — this is a direct download from our site.</p>
     </div>
     <div id="dl-modal-windows" style="display:none">
-      <p>Windows may warn you: <strong>&quot;Windows protected your PC&quot; (SmartScreen).</strong></p>
+      <p>Windows may warn you: <strong>“Windows protected your PC” (SmartScreen).</strong></p>
       <p>That's <strong>normal</strong> — Doorstep doesn't pay for a commercial code-signing certificate, so Windows hasn't seen it before. The app is 100% open source and safe.</p>
       <ul>
         <li>Click <strong>More info</strong></li>
@@ -1081,15 +1576,81 @@
 <!-- ================= FOOTER ================= -->
 <footer>
   <div class="container">
-    <p><strong>Doorstep</strong> — Free, Private, Offline File Sharing</p>
-    <p class="small">
-      Created by <a href="https://cydercoder.vercel.app" target="_blank" rel="noopener">cydercoder</a> · Based on <a href="https://github.com/localsend/localsend" target="_blank" rel="noopener">LocalSend Core</a> · <a href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">GitHub Repository</a> · <a href="https://github.com/javex-12/Doorstep/releases" target="_blank" rel="noopener">All Downloads</a>
-    </p>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="nav-brand" href="#top">
+          <svg viewBox="0 0 24 24"><path d="M3 12h2v2H3zM7 8h2v8H7zM11 5h2v14h-2zM15 8h2v8h-2zM19 10h2v4h-2z"/></svg>
+          Doorstep
+        </a>
+        <p>Private, offline file sharing between your phone and computer. Free forever, open source, no account required.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="#install">Installation guide</a>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/javex-12/Doorstep/releases" target="_blank" rel="noopener">All releases</a>
+        <a href="https://github.com/javex-12/Doorstep/issues" target="_blank" rel="noopener">Report a bug</a>
+        <a href="https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+      </div>
+      <div class="footer-col">
+        <h5>Community</h5>
+        <a href="https://github.com/javex-12/Doorstep" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/javex-12/Doorstep/fork" target="_blank" rel="noopener">Fork the repo</a>
+        <a href="https://cydercoder.vercel.app" target="_blank" rel="noopener">Made by cydercoder</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Doorstep · Released under the Apache-2.0 license</span>
+      <span>Based on <a href="https://github.com/localsend/localsend" target="_blank" rel="noopener">LocalSend Core</a></span>
+    </div>
   </div>
 </footer>
 
-<!-- Automatic OS & System Architecture Detection Script -->
+<!-- ================= SCRIPTS ================= -->
 <script>
+  // Loading screen — show for a minimum moment, then reveal the page.
+  (function () {
+    var loader = document.getElementById('loader');
+    var minTime = 1000; // ms
+    var started = Date.now();
+    function hide() {
+      var elapsed = Date.now() - started;
+      setTimeout(function () {
+        loader.classList.add('done');
+        document.body.classList.remove('loading');
+      }, Math.max(0, minTime - elapsed));
+    }
+    if (document.readyState === 'complete') { hide(); }
+    else { window.addEventListener('load', hide); }
+    // Safety net — never leave the page stuck behind the loader.
+    setTimeout(function () { loader.classList.add('done'); document.body.classList.remove('loading'); }, 4000);
+  })();
+
+  // Scroll reveal
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
+  // Automatic OS & chip detection
   (function detectDeviceAndSetup() {
     const titleEl = document.getElementById('detected-title');
     const descEl = document.getElementById('detected-desc');
@@ -1165,15 +1726,15 @@
     } else if (/Android/i.test(ua)) {
       detectAndroid();
     } else if (/Mac|iPhone|iPad|iPod/i.test(platform) || /Macintosh|iPhone|iPad/i.test(ua)) {
-      titleEl.textContent = 'iOS / macOS Version Coming Soon';
-      descEl.textContent = 'Doorstep is currently available for Android & Windows. Apple platform releases are in active development!';
-      btnTextEl.textContent = 'View All Releases on GitHub';
+      titleEl.textContent = 'iOS / macOS — coming soon';
+      descEl.textContent = 'Doorstep is currently available for Android and Windows. Apple platform releases are in active development.';
+      btnTextEl.textContent = 'View all releases on GitHub';
       btnEl.href = 'https://github.com/javex-12/Doorstep/releases';
-      noteEl.textContent = 'Star the repository for iOS release updates';
+      noteEl.textContent = 'Star the repository to follow iOS development';
     } else if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
       titleEl.textContent = 'Doorstep for Linux';
-      descEl.textContent = 'Doorstep can be built from source for Linux desktop operating systems.';
-      btnTextEl.textContent = 'View Source & Releases on GitHub';
+      descEl.textContent = 'Doorstep can be built from source for Linux desktops. See the repo for build instructions.';
+      btnTextEl.textContent = 'View source & releases on GitHub';
       btnEl.href = 'https://github.com/javex-12/Doorstep';
       noteEl.textContent = 'Open source build instructions available on GitHub';
     }
