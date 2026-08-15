@@ -31,10 +31,46 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 
-<!-- Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Fonts (self-hosted — no external requests, works even when Google Fonts is blocked/slow) -->
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(fonts/inter-latin.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url(fonts/inter-latin.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url(fonts/inter-latin.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(fonts/inter-latin.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url(fonts/inter-latin.woff2) format('woff2');
+  }
+</style>
+<!-- No-JS fallback: hide the loading screen so the page is never stuck behind it -->
+<noscript><style>#loader{display:none!important}body.loading{overflow:auto!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
 
 <!-- Structured Data (JSON-LD) for Search Engines -->
 <script type="application/ld+json">
@@ -117,8 +153,11 @@
     justify-content: center;
     gap: 22px;
     transition: opacity 0.55s var(--ease), visibility 0.55s;
+    /* CSS-only safety net: even if all JS fails, the loader fades out on its own */
+    animation: loaderAutoHide 0.6s ease 4.5s forwards;
   }
   #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+  @keyframes loaderAutoHide { to { opacity: 0; visibility: hidden; } }
 
   .loader-mark {
     width: 64px;
