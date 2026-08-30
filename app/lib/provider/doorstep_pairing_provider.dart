@@ -21,9 +21,13 @@ final doorstepPairingProvider = NotifierProvider<DoorstepPairingNotifier, List<P
   return DoorstepPairingNotifier();
 });
 
+const _pairingWindow = Duration(seconds: 90);
+
 class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
   static final _logger = Logger('DoorstepPairingNotifier');
   late final PersistenceService _persistence;
+  String? _pendingPairingToken;
+  DateTime? _pendingPairingUntil;
 
   @override
   List<PairedDevice> init() {
