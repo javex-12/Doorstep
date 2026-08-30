@@ -24,25 +24,6 @@ jobs:
           mkdir -p "$BUILD_DIR"
           cp -r . "$BUILD_DIR"
 
-      - name: Decode key.properties
-        working-directory: ${{ env.BUILD_DIR }}
-        env:
-          ENCODED_STRING: ${{ secrets.ANDROID_KEY_PROPERTIES }}
-        run: echo "$ENCODED_STRING" | base64 -di > app/android/key.properties
-
-      - name: Decode Android keystore
-        working-directory: ${{ env.BUILD_DIR }}
-        env:
-          ENCODED_STRING: ${{ secrets.ANDROID_KEY_STORE }}
-        run: |
-          mkdir -p app/android/secrets
-          echo "$ENCODED_STRING" | base64 -di > app/android/secrets/android-keystore.jks
-          if grep -q '^storeFile=' app/android/key.properties; then
-            sed -i 's|^storeFile=.*|storeFile=../secrets/android-keystore.jks|' app/android/key.properties
-          else
-            echo 'storeFile=../secrets/android-keystore.jks' >> app/android/key.properties
-          fi
-
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -65,7 +46,7 @@ jobs:
         working-directory: ${{ env.BUILD_DIR }}/app
         run: flutter pub get
 
-      - name: Build universal APK
+      - name: Build universal APK with CI signing fallback
         working-directory: ${{ env.BUILD_DIR }}/app
         run: flutter build apk
 
