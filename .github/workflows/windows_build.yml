@@ -28,6 +28,10 @@ jobs:
         working-directory: app
         run: flutter pub get
 
+      - name: Suppress deprecated MSVC coroutine diagnostic
+        shell: pwsh
+        run: Add-Content -Path $env:GITHUB_ENV -Value 'CXXFLAGS=/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS'
+
       - name: Build Windows application
         working-directory: app
         run: flutter build windows
