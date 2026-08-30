@@ -41,6 +41,14 @@ class DoorstepTheme {
   static Color borderOf(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? surfaceBorder : const Color(0xFFE2E8F0);
 
+  /// Primary text color matching the current brightness.
+  static Color textMainOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textMain : lightTextMain;
+
+  /// Muted / subtitle text color matching the current brightness.
+  static Color textMutedOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? textMuted : const Color(0xFF64748B);
+
   /// The brand accent as resolved from the active theme (follows the user's
   /// chosen color mode / dynamic color).
   static Color primaryOf(BuildContext context) => Theme.of(context).colorScheme.primary;

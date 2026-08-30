@@ -18,12 +18,28 @@ Future<void> openFile(
   }
 
   if (filePath.startsWith('content://')) {
-    await android_channel.openContentUri(uri: filePath);
-    return;
+    try {
+      await android_channel.openContentUri(uri: filePath);
+      return;
+    } catch (_) {}
   }
 
-  final fileOpenResult = await OpenFilex.open(filePath);
-  if (fileOpenResult.type != ResultType.done && context.mounted) {
+  try {
+    final fileOpenResult = await OpenFilex.open(filePath);
+    if (fileOpenResult.type == ResultType.done) {
+      return;
+    }
+  } catch (_) {}
+
+  // On Android, try platform channel fallback
+  if (checkPlatform([TargetPlatform.android])) {
+    try {
+      await android_channel.openContentUri(uri: filePath);
+      return;
+    } catch (_) {}
+  }
+
+  if (context.mounted) {
     await CannotOpenFileDialog.open(context, filePath, onDeleteTap);
   }
 }

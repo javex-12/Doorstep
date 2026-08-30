@@ -65,28 +65,28 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
                 const SizedBox(height: 16),
               ],
 
-              // ── Received files ──────────────────────────────────────────
-              const _SectionLabel(label: 'RECEIVED FILES'),
+              // ── Transfer History (Sent & Received) ─────────────────────
+              const _SectionLabel(label: 'TRANSFER HISTORY'),
               const SizedBox(height: 12),
               if (received.isEmpty)
-                const DoorstepCard(
+                DoorstepCard(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.mark_email_read_outlined, size: 40, color: DoorstepTheme.textMuted),
-                          SizedBox(height: 12),
+                          Icon(Icons.history_rounded, size: 40, color: DoorstepTheme.textMutedOf(context)),
+                          const SizedBox(height: 12),
                           Text(
-                            'Nothing received yet',
-                            style: TextStyle(color: DoorstepTheme.textMain, fontSize: 16, fontWeight: FontWeight.bold),
+                            'No transfer history yet',
+                            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
-                            'Files sent to this device will land here — watch the door.',
+                            'Files sent and received on this device will appear here.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 12.5),
+                            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12.5),
                           ),
                         ],
                       ),
@@ -95,7 +95,7 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
                 )
               else
                 ...received
-                    .take(8)
+                    .take(12)
                     .map(
                       (entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -105,28 +105,28 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
 
               const SizedBox(height: 28),
 
-              // ── Transfers ───────────────────────────────────────────────
+              // ── Transfers in flight ──────────────────────────────────────
               const _SectionLabel(label: 'TRANSFERS IN FLIGHT'),
               const SizedBox(height: 12),
               if (transfers.isEmpty)
-                const DoorstepCard(
+                DoorstepCard(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.swap_horizontal_circle_outlined, size: 40, color: DoorstepTheme.textMuted),
-                          SizedBox(height: 12),
+                          Icon(Icons.swap_horizontal_circle_outlined, size: 40, color: DoorstepTheme.textMutedOf(context)),
+                          const SizedBox(height: 12),
                           Text(
                             'No active transfers',
-                            style: TextStyle(color: DoorstepTheme.textMain, fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
                             'Files dropped into watched folders will appear here automatically.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: DoorstepTheme.textMuted, fontSize: 12.5),
+                            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12.5),
                           ),
                         ],
                       ),
@@ -153,12 +153,12 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
                                       item.fileName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(color: DoorstepTheme.textMain, fontSize: 15, fontWeight: FontWeight.bold),
+                                      style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 15, fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       '${item.sourceDevice} → ${item.targetDevice}',
-                                      style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 12),
+                                      style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -174,8 +174,8 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
                               child: LinearProgressIndicator(
                                 value: item.progress,
                                 minHeight: 6,
-                                backgroundColor: DoorstepTheme.surfaceBorder,
-                                color: DoorstepTheme.primary,
+                                backgroundColor: DoorstepTheme.borderOf(context),
+                                color: DoorstepTheme.primaryOf(context),
                               ),
                             ),
                           ],
@@ -196,10 +196,10 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
       case DoorstepTransferStatus.completed:
         return const Icon(Icons.check_circle_rounded, color: DoorstepTheme.success, size: 24);
       case DoorstepTransferStatus.transferring:
-        return const SizedBox(
+        return SizedBox(
           width: 20,
           height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2.5, color: DoorstepTheme.primary),
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: DoorstepTheme.primaryOf(context)),
         );
       case DoorstepTransferStatus.failed:
         return const Icon(Icons.error_rounded, color: DoorstepTheme.danger, size: 24);
@@ -221,8 +221,8 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
         label = 'Completed';
         break;
       case DoorstepTransferStatus.transferring:
-        bg = DoorstepTheme.primary.withValues(alpha: 0.15);
-        text = DoorstepTheme.primary;
+        bg = DoorstepTheme.primaryOf(context).withValues(alpha: 0.15);
+        text = DoorstepTheme.primaryOf(context);
         label = 'Transferring';
         break;
       case DoorstepTransferStatus.failed:
@@ -261,8 +261,8 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
-        color: DoorstepTheme.textMuted,
+      style: TextStyle(
+        color: DoorstepTheme.textMutedOf(context),
         fontSize: 11,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
@@ -271,7 +271,7 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-// ── One received file ────────────────────────────────────────────────────────
+// ── One transfer file entry ──────────────────────────────────────────────────
 
 class _ReceivedFileCard extends StatelessWidget {
   final ReceiveHistoryEntry entry;
@@ -279,6 +279,8 @@ class _ReceivedFileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSent = entry.senderAlias.startsWith('Sent to');
+
     return DoorstepCard(
       onTap: entry.path != null ? () => openFile(context, entry.fileType, entry.path!) : null,
       child: Row(
@@ -292,24 +294,50 @@ class _ReceivedFileCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  entry.fileName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: DoorstepTheme.textMain, fontSize: 14.5, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.fileName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSent
+                            ? DoorstepTheme.primaryOf(context).withValues(alpha: 0.12)
+                            : DoorstepTheme.success.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        isSent ? 'SENT' : 'RECEIVED',
+                        style: TextStyle(
+                          color: isSent ? DoorstepTheme.primaryOf(context) : const Color(0xFF16A34A),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${entry.fileSize.asReadableFileSize}  ·  ${entry.senderAlias}  ·  ${entry.timestampString}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: DoorstepTheme.textMuted, fontSize: 11.5),
+                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Icon(Icons.open_in_new_rounded, color: DoorstepTheme.textMuted.withValues(alpha: 0.5), size: 18),
+          if (entry.path != null)
+            Icon(Icons.open_in_new_rounded, color: DoorstepTheme.textMutedOf(context).withValues(alpha: 0.6), size: 18),
         ],
       ),
     );

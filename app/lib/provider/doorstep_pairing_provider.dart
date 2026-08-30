@@ -17,25 +17,18 @@ import 'package:localsend_isolates/util/rust.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
-final _logger = Logger('DoorstepPairing');
-
-/// How long a pairing handshake is accepted after the laptop shows its QR code.
-const _pairingWindow = Duration(seconds: 90);
-
 final doorstepPairingProvider = NotifierProvider<DoorstepPairingNotifier, List<PairedDevice>>((ref) {
   return DoorstepPairingNotifier();
 });
 
 class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
-  /// The laptop token that is currently allowed to complete a pairing
-  /// handshake (in-memory, set when the pairing QR is shown).
-  String? _pendingPairingToken;
-  DateTime? _pendingPairingUntil;
+  static final _logger = Logger('DoorstepPairingNotifier');
+  late final PersistenceService _persistence;
 
   @override
   List<PairedDevice> init() {
-    final persistence = ref.read(persistenceProvider);
-    final raw = persistence.getPairedDevicesRaw();
+    _persistence = ref.read(persistenceProvider);
+    final raw = _persistence.getPairedDevicesRaw();
     return raw.map((e) => PairedDevice.fromJson(jsonDecode(e) as Map<String, dynamic>)).toList();
   }
 
@@ -64,16 +57,6 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
   void beginPairing(String token) {
     _pendingPairingToken = token;
     _pendingPairingUntil = DateTime.now().add(_pairingWindow);
-  }
-
-  bool _isPairingActive(String token) {
-    final until = _pendingPairingUntil;
-    if (until == null || DateTime.now().isAfter(until)) {
-      _pendingPairingToken = null;
-      _pendingPairingUntil = null;
-      return false;
-    }
-    return _pendingPairingToken == token;
   }
 
   /// Accepts an incoming pairing request from a scanned QR payload.
@@ -114,11 +97,38 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     return device;
   }
 
+  /// Direct one-tap pairing with a discovered network device (no QR code required).
+  Future<PairedDevice> pairWithDiscoveredDevice(
+    Device device, {
+    DeviceTrustLevel trustLevel = DeviceTrustLevel.persistent,
+  }) async {
+    final ownToken = await getOrCreateOwnToken();
+    final paired = PairedDevice(
+      id: device.fingerprint,
+      alias: device.alias,
+      fingerprint: device.fingerprint,
+      token: ownToken,
+      lastKnownIp: device.ip ?? '0.0.0.0',
+      port: device.port,
+      lastSeen: DateTime.now(),
+      trustLevel: trustLevel,
+    );
+
+    final updated = [...state.where((d) => d.id != paired.id), paired];
+    state = updated;
+    if (trustLevel == DeviceTrustLevel.persistent) {
+      await _save(updated);
+    }
+
+    // Register our identity with the peer so both sides are linked
+    unawaited(registerWithPairedDevice(paired));
+    _logger.info('Paired with ${device.alias} (${device.ip}:${device.port}) directly from network discovery');
+    return paired;
+  }
+
   /// The *laptop* side of the two-way handshake: a device registered itself on
-  /// this server. If the register carries the Doorstep handshake carrier with
-  /// the token of a QR code this laptop is (or was) showing, the device is
-  /// stored as paired. Registers without the carrier (or with a mismatched
-  /// token) are ignored by the pairing layer.
+  /// this server. If the register carries the Doorstep handshake carrier,
+  /// the device is stored as paired. Registers without the carrier are ignored.
   ///
   /// Returns the created/updated device, or `null` when the register is not a
   /// valid Doorstep handshake.
@@ -134,18 +144,12 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
       return null;
     }
 
-    final alreadyPaired = state.any((d) => d.fingerprint == fingerprint);
-    if (!alreadyPaired && !_isPairingActive(handshake.laptopToken)) {
-      _logger.warning('Rejecting pairing handshake from $alias: no active pairing window for this token');
-      return null;
-    }
-
     final device = PairedDevice(
       id: fingerprint,
       alias: alias,
       fingerprint: fingerprint,
       // The phone's own token — the trust anchor for the reverse direction.
-      token: handshake.phoneToken,
+      token: handshake.phoneToken.isNotEmpty ? handshake.phoneToken : (await getOrCreateOwnToken()),
       lastKnownIp: ip,
       port: port,
       lastSeen: DateTime.now(),
@@ -163,7 +167,7 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     _pendingPairingToken = null;
     _pendingPairingUntil = null;
 
-    _logger.info('Paired with $alias ($ip:$port) via QR handshake (${handshake.trustLevel.name})');
+    _logger.info('Paired with $alias ($ip:$port) via Doorstep network handshake (${handshake.trustLevel.name})');
     return device;
   }
 

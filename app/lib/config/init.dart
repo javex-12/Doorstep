@@ -79,6 +79,14 @@ Future<RefenaContainer> preInit(List<String> args) async {
 
   if (persistenceService.isFirstAppStart && !persistenceService.isPortableMode()) {
     await enableContextMenu();
+    if (checkPlatformIsDesktop()) {
+      try {
+        await enableAutoStart(startHidden: true);
+        await persistenceService.setMinimizeToTray(true);
+      } catch (e) {
+        _logger.warning('Failed to enable auto start on first launch', e);
+      }
+    }
   } else {
     // Repair the Windows "Send to Doorstep" shortcut if the app was moved —
     // otherwise Windows reports the exe as unavailable.

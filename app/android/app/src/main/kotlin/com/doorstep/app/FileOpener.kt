@@ -4,18 +4,28 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
+import java.io.File
 import java.util.Locale
 
 fun openUri(context: Context, uriStr: String) {
-    val uri = Uri.parse(uriStr)
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    val type = getFileType(uriStr)
+    try {
+        val uri = if (uriStr.startsWith("content://")) {
+            Uri.parse(uriStr)
+        } else {
+            Uri.fromFile(File(uriStr))
+        }
+        val intent = Intent(Intent.ACTION_VIEW)
+        val type = getFileType(uriStr)
 
-    println("Inferred type: $type")
+        println("Inferred type: $type for $uriStr")
 
-    intent.setDataAndType(uri, type)
-    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(intent)
+        intent.setDataAndType(uri, type)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        println("Error opening URI: $e")
+    }
 }
 
 private fun getFileType(filePath: String): String {

@@ -11,6 +11,7 @@ import 'package:doorstep_app/pages/send_page.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
 import 'package:doorstep_app/provider/http_provider.dart';
 import 'package:doorstep_app/provider/progress_provider.dart';
+import 'package:doorstep_app/provider/receive_history_provider.dart';
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/widget/dialogs/pin_dialog.dart';
@@ -599,6 +600,27 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
               sessionId: sessionId,
               state: (s) => s?.withFileStatus(event.fileId, FileStatus.finished, null),
             );
+
+            // Record into transfer history so sent files appear in Activity
+            final finishedFile = state[sessionId]?.files[event.fileId];
+            if (finishedFile != null) {
+              final targetAlias = state[sessionId]?.target.alias ?? 'Device';
+              unawaited(
+                ref.redux(receiveHistoryProvider).dispatchAsync(
+                  AddHistoryEntryAction(
+                    entryId: event.fileId,
+                    fileName: finishedFile.file.fileName,
+                    fileType: finishedFile.file.fileType,
+                    path: finishedFile.path,
+                    savedToGallery: false,
+                    isMessage: false,
+                    fileSize: finishedFile.file.size,
+                    senderAlias: 'Sent to $targetAlias',
+                    timestamp: DateTime.now().toUtc(),
+                  ),
+                ),
+              );
+            }
           case HttpUploadFileFailedEvent():
             _logger.warning('Error while sending file ${state[sessionId]?.files[event.fileId]?.file.fileName}: ${event.error}');
             state = state.updateSession(

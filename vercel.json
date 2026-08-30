@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "doorstep",
+  "builds": [
+    {
+      "src": "packages/core/assets/web/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/packages/core/assets/web/$1"
+    }
+  ]
+}

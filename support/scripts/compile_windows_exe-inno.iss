@@ -5,7 +5,7 @@
 
 #define MyAppName "Doorstep"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Tien Do Nam"
+#define MyAppPublisher "cydercoder"
 #define MyAppURL "https://github.com/javex-12/Doorstep"
 #define MyAppExeName "doorstep.exe"
 #define MyAppMsixHelper "doorstep_msix_helper.msix"

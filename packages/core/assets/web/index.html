@@ -1,98 +1,865 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doorstep</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Doorstep — Ultra-Fast Local File Transfer</title>
+    <meta name="description" content="Doorstep connects your devices over your own high-speed, local encrypted network. No clouds, no setup, no friction.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: sans-serif, system-ui;
+        :root {
+            --bg-color: #090D16;
+            --surface-color: rgba(18, 24, 38, 0.75);
+            --surface-hover: rgba(28, 38, 60, 0.9);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --surface-border-hover: rgba(6, 182, 212, 0.4);
+            --primary: #06B6D4;
+            --primary-glow: rgba(6, 182, 212, 0.25);
+            --primary-gradient: linear-gradient(135deg, #06B6D4 0%, #10B981 100%);
+            --accent-green: #10B981;
+            --text-main: #F1F5F9;
+            --text-muted: #94A3B8;
+            --danger: #EF4444;
+            --card-radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 750px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(16, 185, 129, 0.06) 50%, transparent 80%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Loading Screen Splash */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-ring {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            margin-bottom: 24px;
+        }
+
+        .loader-ring svg {
+            width: 100%;
+            height: 100%;
+            animation: rotate-loader 1.8s linear infinite;
+        }
+
+        .loader-ring circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .loader-ring .bg-circle {
+            stroke: var(--surface-border);
+        }
+
+        .loader-ring .glow-circle {
+            stroke: url(#loaderGradient);
+            stroke-dasharray: 200;
+            stroke-dashoffset: 140;
+            animation: dash 1.4s ease-in-out infinite;
+        }
+
+        .loader-logo-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+        }
+
+        @keyframes rotate-loader {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes dash {
+            0% { stroke-dashoffset: 200; }
+            50% { stroke-dashoffset: 40; }
+            100% { stroke-dashoffset: 200; }
+        }
+
+        .splash-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .splash-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Container Layout */
+        .page-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 880px;
+            padding: 36px 20px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            width: 100%;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .brand-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            width: 46px;
+            height: 46px;
+            filter: drop-shadow(0 4px 12px var(--primary-glow));
+        }
+
+        h1 {
+            font-size: 2.35rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            max-width: 540px;
+            margin: 0 auto;
             line-height: 1.5;
+        }
+
+        /* Status & Transfer Cards */
+        .status-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+
+        .status-pill {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .download-all-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-gradient);
+            color: #051622;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 16px var(--primary-glow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .download-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        /* File List Grid */
+        #file-list, #single-file {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 14px;
+        }
+
+        .file-card {
+            background: var(--surface-color);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--card-radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--surface-border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .file-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .file-card:hover::after {
+            opacity: 1;
+        }
+
+        .file-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(6, 182, 212, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--primary);
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .file-ext-badge {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .download-action-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .file-card:hover .download-action-icon {
+            background: var(--primary);
+            color: #051622;
+            transform: scale(1.05);
+        }
+
+        /* Landing Portal & Smart Device Downloader */
+        .landing-portal {
+            width: 100%;
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 28px;
+            padding: 40px 28px;
+            text-align: center;
+            backdrop-filter: blur(16px);
+        }
+
+        /* Smart Detected Downloader Hero Box */
+        .detected-download-box {
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
+            border: 1px solid var(--surface-border-hover);
+            border-radius: 22px;
+            padding: 28px 24px;
+            margin-bottom: 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .detected-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+        }
+
+        .detected-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .detected-sub {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .primary-download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: var(--primary-gradient);
+            color: #051622;
+            padding: 16px 36px;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 8px 28px var(--primary-glow);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .primary-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px var(--primary-glow);
+        }
+
+        .auto-arch-tag {
+            background: rgba(5, 22, 34, 0.25);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        /* Expandable All Architectures & Platforms Panel */
+        .all-platforms-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-top: 16px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .all-platforms-toggle:hover {
+            color: var(--primary);
+        }
+
+        .platforms-accordion {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+            text-align: left;
+        }
+
+        .platforms-accordion.open {
+            display: grid;
+        }
+
+        .arch-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .arch-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--surface-border-hover);
+            transform: translateY(-2px);
+        }
+
+        .arch-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .arch-card-desc {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+
+        /* Portal Features Grid */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin: 36px 0 24px;
+            text-align: left;
+        }
+
+        .portal-feature {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .portal-feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(6, 182, 212, 0.12);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .portal-feature h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .portal-feature p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* PIN Modal */
+        #pin-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(9, 13, 22, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #pin-modal.active {
+            display: flex;
+        }
+
+        .pin-box {
+            background: #111726;
+            border: 1px solid var(--surface-border-hover);
+            border-radius: 24px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            animation: modal-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modal-pop {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .pin-box h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .pin-box p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .pin-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--surface-border);
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            text-align: center;
+            letter-spacing: 0.3em;
+            outline: none;
+            margin-bottom: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .pin-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 16px var(--primary-glow);
+        }
+
+        .pin-submit-btn {
+            width: 100%;
+            background: var(--primary-gradient);
+            color: #051622;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .pin-submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 48px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
             text-align: center;
         }
 
-        a {
+        footer a {
+            color: var(--primary);
             text-decoration: none;
-            color: #FFFFFF;
         }
 
-        #file-list {
-            box-sizing: border-box;
-            width: 100%;
-            max-width: 1000px;
-            padding: 0 1em;
-            margin: 0 auto;
-            text-align: left;
-        }
-
-        .file-item {
-            display: table;
-            width: 100%;
-            padding: 0.5em 1em;
-            background-color: #00796B;
-            border-radius: 0.5em;
-            margin-bottom: 1em;
-            float: left;
-            box-sizing: border-box;
-        }
-
-        .file-item:hover {
-            background-color: #009688;
-        }
-
-        .file-name-cell, .file-size-cell, .file-index-cell {
-            display: table-cell;
-            vertical-align: middle;
-        }
-
-        .file-name-cell {
-            width: 100%;
-            padding: 0 0.5em;
-        }
-
-        .file-size-cell, .file-index-cell {
-            font-size: 0.8em;
-            white-space: nowrap;
-            color: #E0E0E0;
-        }
-
-        /* Two columns layout */
-        .file-item {
-            width: 100%;
-        }
-
-        @media screen and (min-width: 768px) {
-            #file-list.file-item {
-                width: 48%;
-                margin-right: 2%;
-            }
-            #file-list.file-item:nth-child(2n) {
-                margin-right: 0;
-            }
-        }
-
-        /* Single file mode */
-
-        #single-file {
-            box-sizing: border-box;
-            width: 100%;
-            text-align: left;
-            max-width: 400px;
-            padding: 0 1em;
-            margin: 0 auto;
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
     <script src="main.js" defer></script>
 </head>
 <body>
-<noscript>
-    Doorstep requires JavaScript, which is currently disabled. Please enable it and try again.
-</noscript>
+    <div class="ambient-glow"></div>
 
-<h1 style="padding: 0.5em">Doorstep</h1>
-<p id="status-text"></p>
-<div id="file-list"></div>
-<div id="single-file"></div>
+    <!-- Animated Loading Splash Screen -->
+    <div id="splash-screen">
+        <div class="loader-ring">
+            <svg viewBox="0 0 84 84">
+                <defs>
+                    <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#06B6D4" />
+                        <stop offset="100%" stop-color="#10B981" />
+                    </linearGradient>
+                </defs>
+                <circle class="bg-circle" cx="42" cy="42" r="34" />
+                <circle class="glow-circle" cx="42" cy="42" r="34" />
+            </svg>
+            <svg class="loader-logo-center" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="14" fill="#06B6D4" fill-opacity="0.15"/>
+                <path d="M14 16C14 14.8954 14.8954 14 16 14H32C33.1046 14 34 14.8954 34 16V34H14V16Z" stroke="#06B6D4" stroke-width="2.5" stroke-linejoin="round"/>
+                <path d="M28 24V26" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+                <path d="M10 34H38" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="splash-title">Connecting to Doorstep…</div>
+        <div class="splash-sub" id="splash-status">Establishing encrypted direct link</div>
+    </div>
+
+    <!-- PIN Prompt Modal -->
+    <div id="pin-modal">
+        <div class="pin-box">
+            <h2>Enter PIN</h2>
+            <p>This Doorstep transfer is PIN-protected. Enter the PIN shown on the sending device to download.</p>
+            <form id="pin-form" onsubmit="handlePinSubmit(event)">
+                <input type="text" id="pin-input" class="pin-input" placeholder="••••" maxlength="8" autofocus autocomplete="off">
+                <button type="submit" class="pin-submit-btn">Unlock Files</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="page-wrapper">
+        <header>
+            <div class="brand-badge">Doorstep Local Network</div>
+            <div class="logo-container">
+                <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="48" height="48" rx="14" fill="#06B6D4" fill-opacity="0.15"/>
+                    <path d="M14 16C14 14.8954 14.8954 14 16 14H32C33.1046 14 34 14.8954 34 16V34H14V16Z" stroke="#06B6D4" stroke-width="2.5" stroke-linejoin="round"/>
+                    <path d="M28 24V26" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M10 34H38" stroke="#06B6D4" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <h1>Doorstep</h1>
+            </div>
+            <p class="hero-desc" id="hero-desc">Your phone is now another folder on your computer. Transfer files directly and privately over your own local network.</p>
+        </header>
+
+        <!-- Live Transfer Files View -->
+        <div id="transfer-section" style="width: 100%; display: none;">
+            <div class="status-container">
+                <span class="status-pill" id="status-text">AVAILABLE FILES</span>
+                <a href="#" id="download-all-btn" class="download-all-btn" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download All
+                </a>
+            </div>
+
+            <div id="file-list"></div>
+            <div id="single-file"></div>
+        </div>
+
+        <!-- Standalone Landing Portal & Smart Device Downloader -->
+        <div id="landing-section" class="landing-portal" style="display: none;">
+
+            <!-- Smart Auto-Detected Device Download Section -->
+            <div class="detected-download-box">
+                <div class="detected-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                    <span id="detected-device-label">Auto-Detected Device</span>
+                </div>
+                <div class="detected-title" id="detected-download-title">Get Doorstep for Your Device</div>
+                <p class="detected-sub" id="detected-download-sub">Compatible with your phone/computer architecture</p>
+
+                <a href="https://github.com/javex-12/Doorstep/releases/latest" id="primary-download-btn" class="primary-download-btn" target="_blank">
+                    <svg id="primary-btn-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span id="primary-btn-text">Download Doorstep</span>
+                    <span id="primary-btn-arch" class="auto-arch-tag">Universal</span>
+                </a>
+
+                <div>
+                    <button type="button" class="all-platforms-toggle" onclick="togglePlatformsAccordion()">
+                        <span>View all architectures & platforms (Android, Windows, Mac, Linux, iOS)</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                </div>
+
+                <!-- Complete Architecture & Platform Directory -->
+                <div id="platforms-accordion" class="platforms-accordion">
+                    <!-- Android Universal -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Android (Universal APK)</span>
+                            <span style="color: var(--accent-green); font-size: 0.72rem;">Recommended</span>
+                        </div>
+                        <div class="arch-card-desc">Works on all Android phones (32-bit & 64-bit)</div>
+                    </a>
+
+                    <!-- Android ARM64 -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Android (arm64-v8a)</span>
+                        </div>
+                        <div class="arch-card-desc">Modern 64-bit phones & tablets</div>
+                    </a>
+
+                    <!-- Android ARMv7 -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Android (armeabi-v7a)</span>
+                        </div>
+                        <div class="arch-card-desc">Older 32-bit phones & legacy devices</div>
+                    </a>
+
+                    <!-- Windows x64 -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Windows (x64 Installer)</span>
+                        </div>
+                        <div class="arch-card-desc">Standard 64-bit Windows PC (.exe)</div>
+                    </a>
+
+                    <!-- Windows MSIX / ARM64 -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Windows (MSIX / ARM64)</span>
+                        </div>
+                        <div class="arch-card-desc">Surface Pro & Snapdragon Windows laptops</div>
+                    </a>
+
+                    <!-- macOS Apple Silicon -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>macOS (Apple Silicon)</span>
+                        </div>
+                        <div class="arch-card-desc">Apple M1, M2, M3, M4 Macs (.dmg)</div>
+                    </a>
+
+                    <!-- macOS Intel -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>macOS (Intel)</span>
+                        </div>
+                        <div class="arch-card-desc">Intel-based Mac computers (.dmg)</div>
+                    </a>
+
+                    <!-- Linux -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>Linux (AppImage / .deb / .tar)</span>
+                        </div>
+                        <div class="arch-card-desc">Ubuntu, Debian, Fedora, Arch Linux</div>
+                    </a>
+
+                    <!-- iOS / iPhone -->
+                    <a href="https://github.com/javex-12/Doorstep/releases/latest" class="arch-card" target="_blank">
+                        <div class="arch-card-header">
+                            <span>iOS (iPhone & iPad)</span>
+                        </div>
+                        <div class="arch-card-desc">Apple App Store / IPA package</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Feature Highlights -->
+            <div class="portal-grid">
+                <div class="portal-feature">
+                    <div class="portal-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3>100% Private & LAN</h3>
+                    <p>Files never touch the cloud or external servers. Transfers move at full Wi-Fi speeds.</p>
+                </div>
+                <div class="portal-feature">
+                    <div class="portal-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <h3>Autonomous Discovery</h3>
+                    <p>Devices discover each other on the Doorstep network automatically without scanning QR codes.</p>
+                </div>
+                <div class="portal-feature">
+                    <div class="portal-feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <h3>Always-On Network</h3>
+                    <p>Stays active in system tray and Android Quick Settings tile across device reboots.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Doorstep &copy; <span id="year"></span> <a href="https://github.com/javex-12/Doorstep" target="_blank">cydercoder</a>. Open-source under Apache-2.0.
+        </footer>
+    </div>
 </body>
 </html>

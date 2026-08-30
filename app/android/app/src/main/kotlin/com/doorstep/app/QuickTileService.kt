@@ -39,7 +39,11 @@ class QuickTileService : TileService() {
 
         qsTile.icon =
             Icon.createWithResource(this, R.mipmap.ic_launcher_quicktile_foreground)
-        qsTile.label = packageManager.getApplicationLabel(application.applicationInfo)
+        qsTile.label = "Doorstep"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            qsTile.subtitle = "Always On"
+        }
+        qsTile.state = android.service.quicksettings.Tile.STATE_ACTIVE
         qsTile.updateTile()
     }
 

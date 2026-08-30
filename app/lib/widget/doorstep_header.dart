@@ -25,8 +25,8 @@ class DoorstepHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: DoorstepTheme.textMain,
+                style: TextStyle(
+                  color: DoorstepTheme.textMainOf(context),
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -1.0,
@@ -37,8 +37,8 @@ class DoorstepHeader extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  color: DoorstepTheme.textMuted,
+                style: TextStyle(
+                  color: DoorstepTheme.textMutedOf(context),
                   fontSize: 13.5,
                   height: 1.4,
                 ),
