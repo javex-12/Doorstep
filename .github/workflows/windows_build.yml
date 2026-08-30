@@ -1,0 +1,52 @@
+name: Windows Desktop Build
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.41.9"
+
+jobs:
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Enable long file paths
+        shell: pwsh
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build Windows application
+        working-directory: app
+        run: flutter build windows
+
+      - name: Add runtime DLLs
+        working-directory: app
+        shell: pwsh
+        run: |
+          Copy-Item ../support/build/windows/x64/msvcp140.dll build/windows/x64/runner/Release/
+          Copy-Item ../support/build/windows/x64/vcruntime140.dll build/windows/x64/runner/Release/
+          Copy-Item ../support/build/windows/x64/vcruntime140_1.dll build/windows/x64/runner/Release/
+
+      - name: Create Windows archive
+        working-directory: app
+        shell: pwsh
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath Doorstep-windows-x64.zip
+
+      - name: Upload Windows archive
+        uses: actions/upload-artifact@v6
+        with:
+          name: doorstep-windows-x64
+          path: app/Doorstep-windows-x64.zip
