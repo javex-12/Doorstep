@@ -37,11 +37,12 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      # --universal produces a single app containing both arm64 (Apple
-      # Silicon) and x86_64 (Intel) slices.
+      # Flutter 3.41 removed the --universal flag: release macOS builds now
+      # default to a universal binary containing both arm64 (Apple Silicon)
+      # and x86_64 (Intel) slices.
       - name: Build macOS app (universal)
         working-directory: app
-        run: flutter build macos --release --universal
+        run: flutter build macos --release
 
       # The Xcode build already ad-hoc signs the app. Re-sign explicitly with
       # the release entitlements (network client/server are required) so the
