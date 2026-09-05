@@ -308,9 +308,7 @@ class _ReceivedFileCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: isSent
-                            ? DoorstepTheme.primaryOf(context).withValues(alpha: 0.12)
-                            : DoorstepTheme.success.withValues(alpha: 0.15),
+                        color: isSent ? DoorstepTheme.primaryOf(context).withValues(alpha: 0.12) : DoorstepTheme.success.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -336,8 +334,7 @@ class _ReceivedFileCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          if (entry.path != null)
-            Icon(Icons.open_in_new_rounded, color: DoorstepTheme.textMutedOf(context).withValues(alpha: 0.6), size: 18),
+          if (entry.path != null) Icon(Icons.open_in_new_rounded, color: DoorstepTheme.textMutedOf(context).withValues(alpha: 0.6), size: 18),
         ],
       ),
     );

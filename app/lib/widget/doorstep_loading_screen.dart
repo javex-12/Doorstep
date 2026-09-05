@@ -111,9 +111,7 @@ class _ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasDoorstep = doorstep.isNotEmpty;
-    final progress = hasDoorstep
-        ? (doorstep.map((t) => t.progress).reduce((a, b) => a + b) / doorstep.length).clamp(0.0, 1.0)
-        : 0.5;
+    final progress = hasDoorstep ? (doorstep.map((t) => t.progress).reduce((a, b) => a + b) / doorstep.length).clamp(0.0, 1.0) : 0.5;
     final current = hasDoorstep ? doorstep.first : null;
     final percent = (progress * 100).toInt();
 
@@ -205,9 +203,7 @@ class _ProgressCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  hasDoorstep && doorstep.length > 1
-                      ? '${doorstep.length} items remaining'
-                      : 'High-speed local transfer',
+                  hasDoorstep && doorstep.length > 1 ? '${doorstep.length} items remaining' : 'High-speed local transfer',
                   style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
                 ),
                 Text(

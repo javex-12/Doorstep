@@ -606,19 +606,21 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
             if (finishedFile != null) {
               final targetAlias = state[sessionId]?.target.alias ?? 'Device';
               unawaited(
-                ref.redux(receiveHistoryProvider).dispatchAsync(
-                  AddHistoryEntryAction(
-                    entryId: event.fileId,
-                    fileName: finishedFile.file.fileName,
-                    fileType: finishedFile.file.fileType,
-                    path: finishedFile.path,
-                    savedToGallery: false,
-                    isMessage: false,
-                    fileSize: finishedFile.file.size,
-                    senderAlias: 'Sent to $targetAlias',
-                    timestamp: DateTime.now().toUtc(),
-                  ),
-                ),
+                ref
+                    .redux(receiveHistoryProvider)
+                    .dispatchAsync(
+                      AddHistoryEntryAction(
+                        entryId: event.fileId,
+                        fileName: finishedFile.file.fileName,
+                        fileType: finishedFile.file.fileType,
+                        path: finishedFile.path,
+                        savedToGallery: false,
+                        isMessage: false,
+                        fileSize: finishedFile.file.size,
+                        senderAlias: 'Sent to $targetAlias',
+                        timestamp: DateTime.now().toUtc(),
+                      ),
+                    ),
               );
             }
           case HttpUploadFileFailedEvent():

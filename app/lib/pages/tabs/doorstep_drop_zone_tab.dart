@@ -315,7 +315,9 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                     decoration: BoxDecoration(
-                      color: settings.sleepMode ? DoorstepTheme.warning.withValues(alpha: 0.15) : DoorstepTheme.borderOf(context).withValues(alpha: 0.4),
+                      color: settings.sleepMode
+                          ? DoorstepTheme.warning.withValues(alpha: 0.15)
+                          : DoorstepTheme.borderOf(context).withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: settings.sleepMode ? DoorstepTheme.warning.withValues(alpha: 0.25) : Colors.transparent,
@@ -716,9 +718,7 @@ class _DeviceCardState extends State<_DeviceCard> with SingleTickerProviderState
             style: TextStyle(color: DoorstepTheme.textMainOf(context), fontWeight: FontWeight.bold),
           ),
           content: Text(
-            isTemporary
-                ? 'This temporary connection will be closed.'
-                : '"${widget.device.alias}" will no longer be trusted.',
+            isTemporary ? 'This temporary connection will be closed.' : '"${widget.device.alias}" will no longer be trusted.',
             style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 14, height: 1.4),
           ),
           actions: [

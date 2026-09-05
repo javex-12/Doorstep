@@ -21,13 +21,9 @@ final doorstepPairingProvider = NotifierProvider<DoorstepPairingNotifier, List<P
   return DoorstepPairingNotifier();
 });
 
-const _pairingWindow = Duration(seconds: 90);
-
 class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
   static final _logger = Logger('DoorstepPairingNotifier');
   late final PersistenceService _persistence;
-  String? _pendingPairingToken;
-  DateTime? _pendingPairingUntil;
 
   @override
   List<PairedDevice> init() {
@@ -56,12 +52,12 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     return token;
   }
 
-  /// Opens the pairing window: for the next [_pairingWindow], a device that
+  /// Opens the pairing window: for the next 90 seconds, a device that
   /// registers back with [token] is trusted as the one that scanned the QR.
-  void beginPairing(String token) {
-    _pendingPairingToken = token;
-    _pendingPairingUntil = DateTime.now().add(_pairingWindow);
-  }
+  ///
+  /// Kept as a no-op for API compatibility — the window was never enforced;
+  /// trust comes from the Doorstep handshake carrier in the register payload.
+  void beginPairing(String token) {}
 
   /// Accepts an incoming pairing request from a scanned QR payload.
   /// This is the *phone* side: the laptop is stored as a paired device.
@@ -166,10 +162,6 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     if (handshake.trustLevel == DeviceTrustLevel.persistent) {
       await _save(updated);
     }
-
-    // The pairing window is consumed by the first accepted handshake.
-    _pendingPairingToken = null;
-    _pendingPairingUntil = null;
 
     _logger.info('Paired with $alias ($ip:$port) via Doorstep network handshake (${handshake.trustLevel.name})');
     return device;

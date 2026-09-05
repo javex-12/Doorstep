@@ -26,7 +26,12 @@ jobs:
         with:
           toolchain: stable
           override: ${{ env.RUST_VERSION }}
-          target: x86_64-apple-darwin,aarch64-apple-darwin
+
+      # Needed for the universal (arm64 + x86_64) build. The comma-separated
+      # `target` input of actions-rs/toolchain is not supported, so add them
+      # explicitly.
+      - name: Add Rust targets for universal build
+        run: rustup target add x86_64-apple-darwin aarch64-apple-darwin
 
       - name: Install dependencies
         working-directory: app
