@@ -10,6 +10,7 @@ import 'package:doorstep_app/pages/progress_page.dart';
 import 'package:doorstep_app/pages/receive_page.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
 import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
 import 'package:doorstep_app/provider/favorites_provider.dart';
 import 'package:doorstep_app/provider/http_provider.dart';
@@ -25,6 +26,7 @@ import 'package:doorstep_app/provider/selection/selected_receiving_files_provide
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
+import 'package:doorstep_app/util/native/cross_file_converters.dart';
 import 'package:doorstep_app/util/native/directories.dart';
 import 'package:doorstep_app/util/native/platform_check.dart';
 import 'package:doorstep_app/util/native/tray_helper.dart';
@@ -542,10 +544,18 @@ class ReceiveController {
       return;
     }
 
+    final before = server.ref.read(selectedSendingFilesProvider);
     // ignore: unawaited_futures, discarded_futures
     server.ref.redux(selectedSendingFilesProvider).dispatchAsyncTakeResult(LoadSelectionFromArgsAction(args)).then((filesAdded) {
       if (filesAdded) {
         server.ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
+        // Offer the handed-off files through the quick-send popup: auto-send
+        // when exactly one trusted device is online, otherwise show the picker.
+        final after = server.ref.read(selectedSendingFilesProvider);
+        final newFiles = after.where((f) => !before.any((e) => e.isSameFile(otherFile: f))).toList();
+        if (newFiles.isNotEmpty) {
+          server.ref.notifier(doorstepQuickSendProvider).requestQuickSend(newFiles);
+        }
       }
     });
   }

@@ -1,0 +1,58 @@
+name: macOS Build (unsigned, universal)
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.41.9"
+  RUST_VERSION: "1.93.1"
+
+jobs:
+  build_macos:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: ${{ env.RUST_VERSION }}
+          target: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
+
+      # --universal produces a single app containing both arm64 (Apple
+      # Silicon) and x86_64 (Intel) slices.
+      - name: Build macOS app (universal)
+        working-directory: app
+        run: flutter build macos --release --universal
+
+      # The Xcode build already ad-hoc signs the app. Re-sign explicitly with
+      # the release entitlements (network client/server are required) so the
+      # bundle stays runnable on Apple Silicon. No Developer ID is involved —
+      # this is an unsigned build, so users right-click → Open on first run.
+      - name: Ad-hoc re-sign with release entitlements
+        working-directory: app
+        run: |
+          codesign --force --sign - --entitlements macos/Runner/Release.entitlements build/macos/Build/Products/Release/Doorstep.app || echo "Ad-hoc re-signing failed — keeping the build-time signature"
+
+      - name: Package .app as zip
+        working-directory: app/build/macos/Build/Products/Release
+        run: ditto -c -k --keepParent Doorstep.app Doorstep-macos-universal.zip
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v6
+        with:
+          name: doorstep-macos-universal
+          path: app/build/macos/Build/Products/Release/Doorstep-macos-universal.zip

@@ -8,6 +8,7 @@ import 'package:doorstep_app/provider/local_ip_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/util/ui/dynamic_colors.dart';
 import 'package:doorstep_app/widget/doorstep_loading_screen.dart';
+import 'package:doorstep_app/widget/doorstep_quick_send_overlay.dart';
 import 'package:doorstep_app/widget/watcher/life_cycle_watcher.dart';
 import 'package:doorstep_app/widget/watcher/shortcut_watcher.dart';
 import 'package:doorstep_app/widget/watcher/tray_watcher.dart';
@@ -81,6 +82,7 @@ class DoorstepApp extends StatelessWidget {
               builder: (context, child) => Stack(
                 children: [
                   child ?? const SizedBox.shrink(),
+                  const DoorstepQuickSendOverlay(),
                   const DoorstepTransferOverlay(),
                 ],
               ),

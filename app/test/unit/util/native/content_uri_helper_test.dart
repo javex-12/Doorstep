@@ -129,7 +129,7 @@ void main() {
     test('should return the encoded tree uri with a folder in SD card', () {
       expect(
         ContentUriHelper.encodeTreeUri('content://com.android.externalstorage.documents/tree/1234-5678:Doorstep/subFolder'),
-        'content://com.android.externalstorage.documents/tree/1234-5678%3ALocalSend%2FsubFolder',
+        'content://com.android.externalstorage.documents/tree/1234-5678%3ADoorstep%2FsubFolder',
       );
     });
   });

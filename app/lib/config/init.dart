@@ -5,12 +5,14 @@ import 'dart:io';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:doorstep_app/config/refena.dart';
 import 'package:doorstep_app/config/theme.dart';
+import 'package:doorstep_app/model/cross_file.dart';
 import 'package:doorstep_app/pages/home_page.dart';
 import 'package:doorstep_app/pages/home_page_controller.dart';
 import 'package:doorstep_app/provider/animation_provider.dart';
 import 'package:doorstep_app/provider/app_arguments_provider.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
 import 'package:doorstep_app/provider/doorstep_browse_provider.dart';
+import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
 import 'package:doorstep_app/provider/network/server/server_provider.dart';
 import 'package:doorstep_app/provider/network/webrtc/signaling_provider.dart';
@@ -356,6 +358,7 @@ class _HandleShareIntentAction extends AsyncGlobalAction {
 
   @override
   Future<void> reduce() async {
+    final before = ref.read(selectedSendingFilesProvider);
     final message = payload.content;
     if (message != null && message.trim().isNotEmpty) {
       ref.redux(selectedSendingFilesProvider).dispatch(AddMessageAction(message: message));
@@ -370,6 +373,7 @@ class _HandleShareIntentAction extends AsyncGlobalAction {
         );
 
     ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
+    _quickSendNewFiles(ref, before);
   }
 }
 
@@ -382,9 +386,22 @@ class _HandleAppStartArgumentsAction extends AsyncGlobalAction {
 
   @override
   Future<void> reduce() async {
+    final before = ref.read(selectedSendingFilesProvider);
     final filesAdded = await ref.redux(selectedSendingFilesProvider).dispatchAsyncTakeResult(LoadSelectionFromArgsAction(args));
     if (filesAdded) {
       ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
+      _quickSendNewFiles(ref, before);
     }
+  }
+}
+
+/// After files were loaded from an external trigger (app-start arguments,
+/// share intent), offer them through the quick-send popup: auto-send when
+/// exactly one trusted device is online, otherwise show the picker.
+void _quickSendNewFiles(Ref ref, List<CrossFile> before) {
+  final after = ref.read(selectedSendingFilesProvider);
+  final newFiles = after.where((f) => !before.any((e) => e.isSameFile(otherFile: f))).toList();
+  if (newFiles.isNotEmpty) {
+    ref.notifier(doorstepQuickSendProvider).requestQuickSend(newFiles);
   }
 }

@@ -271,10 +271,32 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     }
   }
 
+  /// The `Device` entry for [paired] currently known from any discovery
+  /// source — LAN multicast, an HTTP register, or the favorite HTTP scan — or
+  /// `null` when the device has not been seen recently.
+  ///
+  /// Scans by fingerprint rather than relying on `allDevices[fingerprint]`:
+  /// LAN devices are stored keyed by IP, so a fingerprint lookup would miss
+  /// them (it only matches signaling devices).
+  Device? freshlyDiscovered(PairedDevice paired) {
+    final nearby = ref.read(nearbyDevicesProvider);
+    for (final device in nearby.devices.values) {
+      if (device.fingerprint == paired.fingerprint && device.ip != null && device.ip!.isNotEmpty && device.ip != '-') {
+        return device;
+      }
+    }
+    for (final device in nearby.signalingDevices[paired.fingerprint] ?? const <Device>{}) {
+      if (device.ip != null && device.ip!.isNotEmpty) {
+        return device;
+      }
+    }
+    return null;
+  }
+
   /// Prefers a freshly discovered address (from the ongoing discovery) over
   /// the stored last-known IP, so DHCP/IP changes do not break reachability.
   String? reachableIpOf(PairedDevice device) {
-    final nearby = ref.read(nearbyDevicesProvider).allDevices[device.fingerprint];
+    final nearby = freshlyDiscovered(device);
     if (nearby?.ip != null && nearby!.ip != '-' && nearby.ip!.isNotEmpty) {
       return nearby.ip;
     }
@@ -285,10 +307,10 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
   }
 
   /// Builds the send target for [paired], preferring a freshly discovered
-  /// address over the stored last-known IP. Shared by the folder watcher and
-  /// the live-browser pull flow.
+  /// address over the stored last-known IP. Shared by the folder watcher, the
+  /// live-browser pull flow, and quick-send.
   Device resolveTarget(PairedDevice paired) {
-    final nearby = ref.read(nearbyDevicesProvider).allDevices[paired.fingerprint];
+    final nearby = freshlyDiscovered(paired);
     return Device(
       signalingId: null,
       ip: (nearby?.ip != null && nearby!.ip != '-' && nearby.ip!.isNotEmpty) ? nearby.ip : paired.lastKnownIp,

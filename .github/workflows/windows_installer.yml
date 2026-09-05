@@ -1,0 +1,70 @@
+name: Windows Installer (single exe)
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.41.9"
+
+jobs:
+  build_windows_installer:
+    runs-on: windows-latest
+
+    steps:
+      - name: Enable long file paths
+        shell: pwsh
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Suppress deprecated MSVC coroutine diagnostic
+        shell: pwsh
+        run: Add-Content -Path $env:GITHUB_ENV -Value 'CXXFLAGS=/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS'
+
+      - name: Build Windows application
+        working-directory: app
+        run: flutter build windows
+
+      - name: Stage release files for Inno Setup
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path staging
+          Copy-Item -Path app/build/windows/x64/runner/Release/* -Destination staging -Recurse
+          Copy-Item -Path support/build/windows/x64/msvcp140.dll -Destination staging
+          Copy-Item -Path support/build/windows/x64/vcruntime140.dll -Destination staging
+          Copy-Item -Path support/build/windows/x64/vcruntime140_1.dll -Destination staging
+          Copy-Item -Path app/assets/packaging/logo.ico -Destination staging
+
+      - name: Get version from pubspec.yaml
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path app/pubspec.yaml -Pattern '^version: ').Line -replace '^version: ', '' -replace '\+.*$', ''
+          Write-Output "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DStagingDir=${{ github.workspace }}\staging" "/DOutputDir=${{ github.workspace }}\dist" "/DMyAppVersion=${{ steps.get_version.outputs.version }}" support\scripts\compile_windows_exe-inno.ci.iss
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: doorstep-windows-x64-setup
+          path: dist/*.exe
