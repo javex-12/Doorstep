@@ -9,7 +9,10 @@ env:
 
 jobs:
   build_macos:
-    runs-on: macos-14
+    # macos-15 ships a current Xcode; the older image's SDK lacks symbols
+    # (NWPath.isUltraConstrained, StoreKit win-back) that the resolved plugin
+    # versions reference.
+    runs-on: macos-15
 
     steps:
       - name: Checkout repository
