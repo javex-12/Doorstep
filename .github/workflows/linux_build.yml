@@ -89,6 +89,10 @@ jobs:
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           cp assets/img/logo-256.png AppDir/usr/share/icons/hicolor/256x256/apps/doorstep.png
 
+      - name: Copy AppImage recipe next to the AppDir it references
+        working-directory: app
+        run: cp ../support/build/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
+
       - name: Build AppImage
         uses: AppImageCrafters/build-appimage@57c3bc6963f870ce3be103117de5b5e33ffbaeb6
         with:
@@ -98,4 +102,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: appimage-result
-          path: ./app/*.AppImage
+          # appimage-builder may emit the file next to the recipe (app/) or in
+          # the action's working directory (root) — catch both.
+          path: |
+            ./app/*.AppImage
+            ./*.AppImage
