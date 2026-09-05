@@ -21,6 +21,12 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
+      # in_app_purchase (proprietary) does not compile against the macOS SDK
+      # on the GitHub runners, so build the FOSS variant like the Android
+      # workflow does.
+      - name: Remove proprietary dependencies
+        run: sh support/scripts/remove_proprietary_dependencies.sh
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
