@@ -73,37 +73,33 @@ jobs:
         working-directory: app
         run: flutter build linux
 
+      # appimage-builder resolves paths in the recipe (AppDir, output) from
+      # the workspace root, so AppDir and the recipe must live at the root —
+      # the same layout as the release workflow.
       - name: Copy compiled linux files
-        working-directory: app
         run: |
           mkdir AppDir
-          cp -r build/linux/x64/release/bundle/* AppDir/
+          cp -r app/build/linux/x64/release/bundle/* AppDir/
 
       - name: Copy logo to AppDir
-        working-directory: app
         run: |
           mkdir -p AppDir/usr/share/icons/hicolor/32x32/apps
-          cp assets/img/logo-32.png AppDir/usr/share/icons/hicolor/32x32/apps/doorstep.png
+          cp app/assets/img/logo-32.png AppDir/usr/share/icons/hicolor/32x32/apps/doorstep.png
           mkdir -p AppDir/usr/share/icons/hicolor/128x128/apps
-          cp assets/img/logo-128.png AppDir/usr/share/icons/hicolor/128x128/apps/doorstep.png
+          cp app/assets/img/logo-128.png AppDir/usr/share/icons/hicolor/128x128/apps/doorstep.png
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          cp assets/img/logo-256.png AppDir/usr/share/icons/hicolor/256x256/apps/doorstep.png
+          cp app/assets/img/logo-256.png AppDir/usr/share/icons/hicolor/256x256/apps/doorstep.png
 
-      - name: Copy AppImage recipe next to the AppDir it references
-        working-directory: app
-        run: cp ../support/build/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
+      - name: Copy AppImage recipe
+        run: cp support/build/appimage/AppImageBuilder_x86_64.yml AppImageBuilder.yml
 
       - name: Build AppImage
         uses: AppImageCrafters/build-appimage@57c3bc6963f870ce3be103117de5b5e33ffbaeb6
         with:
-          recipe: ./app/AppImageBuilder.yml
+          recipe: ./AppImageBuilder.yml
 
       - name: Upload AppImage file
         uses: actions/upload-artifact@v6
         with:
           name: appimage-result
-          # appimage-builder may emit the file next to the recipe (app/) or in
-          # the action's working directory (root) — catch both.
-          path: |
-            ./app/*.AppImage
-            ./*.AppImage
+          path: ./*.AppImage
