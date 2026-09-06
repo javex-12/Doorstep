@@ -14,18 +14,18 @@
 
 <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://javex-12.github.io/Doorstep/">
+<meta property="og:url" content="https://trydoorstep.vercel.app/">
 <meta property="og:title" content="Doorstep — Share files between phone and computer, offline">
 <meta property="og:description" content="Free & private file sharing. Pair once with a QR code and files arrive automatically. No cloud, no internet needed.">
-<meta property="og:image" content="https://javex-12.github.io/Doorstep/logo.png">
+<meta property="og:image" content="https://trydoorstep.vercel.app/logo.png">
 <meta property="og:site_name" content="Doorstep">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://javex-12.github.io/Doorstep/">
+<meta property="twitter:url" content="https://trydoorstep.vercel.app/">
 <meta property="twitter:title" content="Doorstep — Offline File Sharing Phone ↔ Computer">
 <meta property="twitter:description" content="Pair once with a QR code, drop files into a folder, and receive them automatically. 100% free & open source.">
-<meta property="twitter:image" content="https://javex-12.github.io/Doorstep/logo.png">
+<meta property="twitter:image" content="https://trydoorstep.vercel.app/logo.png">
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="logo.png">
@@ -78,7 +78,7 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Doorstep",
-  "operatingSystem": "Android, Windows",
+  "operatingSystem": "Android, Windows, macOS, Linux",
   "applicationCategory": "UtilitiesApplication",
   "offers": {
     "@type": "Offer",
@@ -92,7 +92,7 @@
     "name": "cydercoder",
     "url": "https://cydercoder.vercel.app"
   },
-  "downloadUrl": "https://javex-12.github.io/Doorstep/downloads/"
+  "downloadUrl": "https://trydoorstep.vercel.app/downloads/"
 }
 </script>
 
@@ -333,11 +333,15 @@
   /* ---------- Hero ---------- */
   header.hero { padding: 170px 0 90px; }
   .hero-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 56px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
+    gap: 0;
   }
+  .hero-grid h1 br { display: none; }
+  .hero-actions { justify-content: center; }
+  .hero-trust { justify-content: center; }
 
   .hero-kicker {
     display: inline-flex;
@@ -418,220 +422,6 @@
   }
   .hero-trust span { display: inline-flex; align-items: center; gap: 7px; }
   .hero-trust svg { width: 15px; height: 15px; fill: var(--mint); opacity: 0.9; }
-
-  /* ---------- Phone mockup ---------- */
-  .hero-visual { position: relative; display: flex; justify-content: center; }
-
-  .phone {
-    width: 300px;
-    border-radius: 44px;
-    background: linear-gradient(160deg, #101827 0%, #0A101D 100%);
-    border: 1px solid var(--border-strong);
-    box-shadow:
-      0 40px 90px rgba(0, 0, 0, 0.55),
-      0 0 0 10px #0A0F1C,
-      0 0 0 11px var(--border);
-    padding: 12px;
-    position: relative;
-  }
-  .phone-notch {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 92px;
-    height: 22px;
-    background: #060A12;
-    border-radius: 12px;
-    z-index: 3;
-  }
-  .phone-screen {
-    background: #0C1322;
-    border-radius: 34px;
-    overflow: hidden;
-    padding: 40px 16px 14px;
-    position: relative;
-  }
-
-  .app-statusbar {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-soft);
-    padding: 0 2px 14px;
-  }
-
-  .app-header { display: flex; align-items: center; gap: 10px; padding: 4px 2px 16px; }
-  .app-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
-    background: linear-gradient(150deg, var(--accent), var(--accent-strong));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .app-logo svg { width: 18px; height: 18px; fill: var(--accent-ink); }
-  .app-title { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; }
-  .app-sub { font-size: 10.5px; color: var(--mint); font-weight: 500; }
-  .app-avatar {
-    margin-left: auto;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(143, 227, 208, 0.14);
-    color: var(--mint);
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .app-qr {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: linear-gradient(150deg, rgba(124, 183, 255, 0.1), rgba(74, 142, 247, 0.05));
-    border: 1px solid rgba(124, 183, 255, 0.22);
-    border-radius: 16px;
-    padding: 14px;
-    margin-bottom: 14px;
-  }
-  .app-qr svg {
-    width: 58px;
-    height: 58px;
-    border-radius: 8px;
-    background: #fff;
-    padding: 5px;
-    flex-shrink: 0;
-  }
-  .app-qr-text strong { display: block; font-size: 12.5px; font-weight: 700; }
-  .app-qr-text span { font-size: 10.5px; color: var(--text-dim); }
-
-  .app-card {
-    background: var(--bg-elev-2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-  }
-  .app-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .app-card-head .t { font-size: 11px; font-weight: 700; color: var(--text-soft); }
-  .pill {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--mint);
-    background: rgba(143, 227, 208, 0.1);
-    border: 1px solid rgba(143, 227, 208, 0.24);
-    padding: 3px 8px;
-    border-radius: 999px;
-  }
-  .file-row { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
-  .file-ic {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    background: rgba(124, 183, 255, 0.12);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-  .file-name { font-size: 11px; font-weight: 600; line-height: 1.2; }
-  .file-size { font-size: 9.5px; color: var(--text-dim); }
-  .file-state { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--mint); }
-
-  .app-progress { margin-bottom: 14px; }
-  .app-progress-bar {
-    height: 5px;
-    border-radius: 5px;
-    background: rgba(148, 163, 184, 0.14);
-    overflow: hidden;
-  }
-  .app-progress-bar span {
-    display: block;
-    height: 100%;
-    width: 78%;
-    border-radius: 5px;
-    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
-    animation: barPulse 2.4s ease-in-out infinite;
-  }
-  .app-progress-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 9.5px;
-    color: var(--text-dim);
-    margin-top: 6px;
-    font-weight: 500;
-  }
-  @keyframes barPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.75; }
-  }
-
-  .app-tabs {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: rgba(7, 11, 20, 0.7);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-  }
-  .app-tab {
-    flex: 1;
-    text-align: center;
-    font-size: 9.5px;
-    font-weight: 600;
-    color: var(--text-dim);
-    padding: 7px 0;
-    border-radius: 9px;
-  }
-  .app-tab.on { background: var(--bg-elev-2); color: var(--text); }
-
-  .hero-toast {
-    position: absolute;
-    right: -8px;
-    bottom: 26px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    background: var(--bg-elev);
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    padding: 11px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
-    animation: toastFloat 5.5s ease-in-out infinite;
-  }
-  .hero-toast .check {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: rgba(127, 216, 154, 0.14);
-    color: var(--green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    flex-shrink: 0;
-  }
-  @keyframes toastFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-9px); }
-  }
 
   /* ---------- Trust strip ---------- */
   .trust-strip {
@@ -791,19 +581,9 @@
     background: none;
     border: none;
     font-family: inherit;
-  }
-  .not-sure-link:hover { color: #93C9FF; }
+  }  .not-sure-link:hover { color: #93C9FF; }
 
-  .arch-help {
-    display: none;
-    margin: 20px auto 0;
-    max-width: 540px;
-    text-align: left;
-    background: rgba(7, 11, 20, 0.7);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    padding: 18px 22px;
-  }
+
   .arch-option {
     display: flex;
     justify-content: space-between;
@@ -1162,8 +942,6 @@
   @media (max-width: 920px) {
     .hero-grid { grid-template-columns: 1fr; gap: 64px; }
     header.hero { padding: 140px 0 70px; }
-    .hero-visual { order: -1; }
-    .hero-toast { right: 6%; }
     .steps, .features, .dl-cards, .notes { grid-template-columns: 1fr; }
     .contribute-links { grid-template-columns: 1fr; }
     .nav-links { display: none; }
@@ -1173,8 +951,6 @@
     .container { padding: 0 20px; }
     .smart-card { padding: 34px 22px; }
     .contribute { padding: 44px 22px; }
-    .phone { width: 270px; }
-    .hero-toast { right: 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1220,7 +996,7 @@
   <div class="container">
     <div class="hero-grid">
       <div>
-        <div class="hero-kicker"><span class="dot"></span>v1.0.0 — now available for Android &amp; Windows</div>
+        <div class="hero-kicker"><span class="dot"></span>v1.0.0 — now available for Android, Windows, macOS &amp; Linux</div>
         <h1>Files between your phone and computer,<br><span class="accent">without the internet.</span></h1>
         <p class="hero-sub">Pair your devices once with a QR code. Drop a file into a folder on your PC and it lands on your phone — instantly, privately, and fully offline.</p>
         <div class="hero-actions">
@@ -1239,73 +1015,6 @@
           <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>No internet needed</span>
           <span><svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>100% open source</span>
         </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="phone">
-          <div class="phone-notch"></div>
-          <div class="phone-screen">
-            <div class="app-statusbar"><span>09:41</span><span>•••</span></div>
-            <div class="app-header">
-              <div class="app-logo"><svg viewBox="0 0 24 24"><path d="M3 12h2v2H3zM7 8h2v8H7zM11 5h2v14h-2zM15 8h2v8h-2zM19 10h2v4h-2z"/></svg></div>
-              <div>
-                <div class="app-title">Doorstep</div>
-                <div class="app-sub">● Connected · Personal network</div>
-              </div>
-              <div class="app-avatar">C</div>
-            </div>
-            <div class="app-qr">
-              <svg viewBox="0 0 21 21">
-                <rect x="0" y="0" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
-                <rect x="12" y="0" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
-                <rect x="0" y="12" width="9" height="9" fill="none" stroke="#000" stroke-width="1.2"/>
-                <rect x="2" y="2" width="5" height="5" fill="#000"/>
-                <rect x="14" y="2" width="5" height="5" fill="#000"/>
-                <rect x="2" y="14" width="5" height="5" fill="#000"/>
-                <rect x="5" y="5" width="2" height="2" fill="#fff"/>
-                <rect x="17" y="5" width="2" height="2" fill="#fff"/>
-                <rect x="5" y="17" width="2" height="2" fill="#fff"/>
-                <rect x="11" y="3" width="1" height="2" fill="#000"/>
-                <rect x="11" y="7" width="1" height="1" fill="#000"/>
-                <rect x="14" y="11" width="1" height="1" fill="#000"/>
-                <rect x="16" y="13" width="1" height="2" fill="#000"/>
-                <rect x="11" y="12" width="2" height="1" fill="#000"/>
-                <rect x="18" y="18" width="3" height="3" fill="#000"/>
-              </svg>
-              <div class="app-qr-text">
-                <strong>Scan to pair with PC</strong>
-                <span>192.168.1.42 · Port 53317</span>
-              </div>
-            </div>
-            <div class="app-card">
-              <div class="app-card-head">
-                <span class="t">Drop Zone — Photos</span>
-                <span class="pill">Trusted</span>
-              </div>
-              <div class="file-row">
-                <div class="file-ic">🖼</div>
-                <div><div class="file-name">vacation.jpg</div><div class="file-size">4.2 MB</div></div>
-                <div class="file-state">✓</div>
-              </div>
-              <div class="file-row">
-                <div class="file-ic">🎥</div>
-                <div><div class="file-name">clips.mp4</div><div class="file-size">128 MB</div></div>
-                <div class="file-state">✓</div>
-              </div>
-            </div>
-            <div class="app-progress">
-              <div class="app-progress-bar"><span></span></div>
-              <div class="app-progress-meta"><span>Sending documents.zip</span><span>78%</span></div>
-            </div>
-            <div class="app-tabs">
-              <div class="app-tab on">Home</div>
-              <div class="app-tab">Files</div>
-              <div class="app-tab">Drop</div>
-              <div class="app-tab">Settings</div>
-            </div>
-          </div>
-        </div>
-        <div class="hero-toast"><span class="check">✓</span> vacation.jpg just arrived on your phone</div>
       </div>
     </div>
   </div>
@@ -1417,35 +1126,21 @@
       </a>
       <div class="smart-note" id="smart-note">Direct download • no sign-up</div>
       <button class="not-sure-link" id="not-sure-link" type="button">Not sure which one is right? See all versions</button>
-      <div class="arch-help" id="arch-help">
-        <div class="arch-option"><strong>ARM64 (64-bit)</strong><span>Most phones from ~2017 onward. Start here.</span></div>
-        <div class="arch-option"><strong>ARMv7 (32-bit)</strong><span>Older or budget phones — also works on newer phones if ARM64 won't install.</span></div>
-        <div class="arch-option"><strong>x86_64</strong><span>Only for Android emulators and Intel/AMD tablets.</span></div>
-        <p class="arch-tip">Tip: if the download finishes but the app won't install, you have the wrong version — try the next one down.</p>
-      </div>
     </div>
 
     <div class="dl-cards">
       <div class="dl-card">
         <div class="os">Android</div>
         <h3>Phone or tablet</h3>
-        <p>Android 5.0 through 15+. Pick the file for your phone's chip type below.</p>
-        <a class="btn primary-sm dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">
-          Download for Android (ARM64)
+        <p>Android 5.0 through 15+. One universal APK that works on every phone — ARM64, ARMv7, and x86_64.</p>
+        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk">
+          Download for Android (universal APK)
         </a>
         <div class="variant-box">
-          <h4>All versions</h4>
+          <h4>One file, every phone</h4>
           <div class="variant">
-            <div class="v-info"><div class="v-name">ARM64 (64-bit)</div><div class="v-desc">For 95% of phones made after 2017.</div></div>
-            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-arm64.apk">Download</a>
-          </div>
-          <div class="variant">
-            <div class="v-info"><div class="v-name">ARMv7 (32-bit)</div><div class="v-desc">Older &amp; budget phones — fallback if ARM64 fails.</div></div>
-            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-armv7.apk">Download</a>
-          </div>
-          <div class="variant">
-            <div class="v-info"><div class="v-name">x86_64</div><div class="v-desc">Emulators and Intel/AMD tablets.</div></div>
-            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-x86_64.apk">Download</a>
+            <div class="v-info"><div class="v-name">Universal APK</div><div class="v-desc">Works on ARM64, ARMv7, and x86_64 devices — no need to know your chip.</div></div>
+            <a class="btn small dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk">Download</a>
           </div>
         </div>
       </div>
@@ -1454,18 +1149,48 @@
         <div class="os">Windows</div>
         <h3>Desktop or laptop</h3>
         <p>Windows 10 and 11 (64-bit). Use the installer for a normal setup, or the portable zip to run without installing.</p>
-        <a class="btn primary-sm dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">
+        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-windows-x86-64-setup.exe">
           Download for Windows (.exe)
         </a>
         <div class="variant-box">
           <h4>Formats</h4>
           <div class="variant">
             <div class="v-info"><div class="v-name">Installer (.exe)</div><div class="v-desc">Guided setup. Recommended.</div></div>
-            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Setup.exe">Download</a>
+            <a class="btn small dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-windows-x86-64-setup.exe">Download</a>
           </div>
           <div class="variant">
             <div class="v-info"><div class="v-name">Portable (.zip)</div><div class="v-desc">No install — extract and run.</div></div>
-            <a class="btn small dl-link" href="https://javex-12.github.io/Doorstep/downloads/Doorstep-1.0.0-Windows-x64.zip">Download</a>
+            <a class="btn small dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-Windows-x64.zip">Download</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="dl-card">
+        <div class="os">macOS</div>
+        <h3>Mac</h3>
+        <p>macOS 12 and later, Intel and Apple Silicon in one universal app. Unzip and drag Doorstep.app to Applications.</p>
+        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-macos-universal.zip">
+          Download for macOS (universal)
+        </a>
+        <div class="variant-box">
+          <h4>Note</h4>
+          <div class="variant">
+            <div class="v-info"><div class="v-name">Unsigned build</div><div class="v-desc">Right-click the app → Open the first time. See the install guide below.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dl-card">
+        <div class="os">Linux</div>
+        <h3>Linux desktop</h3>
+        <p>AppImage for x86_64 — no install required, just make it executable and run.</p>
+        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-linux-x86_64.AppImage">
+          Download for Linux (AppImage)
+        </a>
+        <div class="variant-box">
+          <h4>Run it</h4>
+          <div class="variant">
+            <div class="v-info"><div class="v-name">AppImage</div><div class="v-desc">chmod +x the file, then double-click to run. No installation needed.</div></div>
           </div>
         </div>
       </div>
@@ -1499,6 +1224,15 @@
         </ul>
         <p>This shows for any new executable without a paid commercial certificate. It's a standard caution, not a detection.</p>
       </div>
+      <div class="note warn">
+        <div class="note-eyebrow">macOS · Gatekeeper</div>
+        <h3>“Doorstep can't be opened because Apple cannot check it for malicious software”</h3>
+        <ul>
+          <li>Right-click <strong>Doorstep.app</strong> in Finder</li>
+          <li>Click <strong>Open</strong> → <strong>Open</strong> again in the dialog</li>
+        </ul>
+        <p>The build is unsigned (no paid Apple Developer certificate), so Gatekeeper shows this once. After that it launches normally.</p>
+      </div>
       <div class="note ok">
         <div class="note-eyebrow">Privacy</div>
         <h3>Your files never leave your network</h3>
@@ -1529,8 +1263,8 @@
         <p>Yes. Doorstep operates entirely over your local Wi-Fi, a wired network, or a phone hotspot. It never touches the internet.</p>
       </details>
       <details>
-        <summary>Is there an iOS or macOS version coming?</summary>
-        <p>Yes — Apple platform support is in active development. Doorstep currently supports Android and Windows.</p>
+        <summary>Is there a macOS or iOS version?</summary>
+        <p>macOS is available now — a universal build for Intel and Apple Silicon is on the download page. iOS is in active development; follow the repo for updates.</p>
       </details>
       <details>
         <summary>How does Doorstep relate to LocalSend?</summary>
@@ -1605,6 +1339,24 @@
       <ul>
         <li>Click <strong>More info</strong></li>
         <li>Click <strong>Run anyway</strong></li>
+      </ul>
+      <p>No login, no account — this is a direct download from our site.</p>
+    </div>
+    <div id="dl-modal-mac" style="display:none">
+      <p>macOS may warn you: <strong>“Doorstep can't be opened because Apple cannot check it for malicious software.”</strong></p>
+      <p>That's <strong>normal</strong> — this build is unsigned (no Apple Developer account). The app is 100% open source and safe.</p>
+      <ul>
+        <li>Unzip the download</li>
+        <li>Right-click <strong>Doorstep.app</strong> → <strong>Open</strong></li>
+        <li>Click <strong>Open</strong> in the dialog — once approved, it opens normally from now on</li>
+      </ul>
+      <p>No login, no account — this is a direct download from our site.</p>
+    </div>
+    <div id="dl-modal-linux" style="display:none">
+      <p>Your download has started. To run Doorstep on Linux:</p>
+      <ul>
+        <li>Make it executable: <strong>chmod +x Doorstep-1.0.0-linux-x86_64.AppImage</strong></li>
+        <li>Double-click the file to launch — no installation needed</li>
       </ul>
       <p>No login, no account — this is a direct download from our site.</p>
     </div>
@@ -1698,40 +1450,25 @@
     const noteEl = document.getElementById('smart-note');
     const unsureLink = document.getElementById('not-sure-link');
 
-    const DOWNLOAD_BASE = 'https://javex-12.github.io/Doorstep/downloads/';
+    const DOWNLOAD_BASE = 'https://trydoorstep.vercel.app/downloads/';
     const FILES = {
-      arm64: DOWNLOAD_BASE + 'Doorstep-1.0.0-arm64.apk',
-      armv7: DOWNLOAD_BASE + 'Doorstep-1.0.0-armv7.apk',
-      x86_64: DOWNLOAD_BASE + 'Doorstep-1.0.0-x86_64.apk',
-      windows: DOWNLOAD_BASE + 'Doorstep-1.0.0-Setup.exe',
-      zip: DOWNLOAD_BASE + 'Doorstep-1.0.0-Windows-x64.zip'
+      android: 'https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk',
+      windows: DOWNLOAD_BASE + 'Doorstep-1.0.0-windows-x86-64-setup.exe',
+      zip: DOWNLOAD_BASE + 'Doorstep-1.0.0-Windows-x64.zip',
+      mac: DOWNLOAD_BASE + 'Doorstep-1.0.0-macos-universal.zip',
+      linux: DOWNLOAD_BASE + 'Doorstep-1.0.0-linux-x86_64.AppImage'
     };
 
     const ua = navigator.userAgent || '';
     const platform = navigator.platform || '';
 
-    // Fallback only — Android user agents rarely reveal the chip. Modern
-    // Chrome/Edge/Samsung report it precisely via getHighEntropyValues().
-    function guessArchFromUA() {
-      if (/x86_64|i686|amd64|x86;/i.test(ua)) return 'x86_64';
-      if (/armv7|armv7l/i.test(ua)) return 'armv7';
-      return null; // cannot tell from the user agent
-    }
-
-    function setupAndroid(arch, certain) {
-      let url = FILES.arm64;
-      let archName = 'ARM64 (64-bit)';
-      if (arch === 'armv7') { url = FILES.armv7; archName = 'ARMv7 (32-bit)'; }
-      else if (arch === 'x86_64') { url = FILES.x86_64; archName = 'x86_64 (Intel/AMD)'; }
-
+    function setupAndroid() {
       titleEl.textContent = 'Doorstep for Android';
-      descEl.textContent = certain
-        ? 'We detected your phone\u2019s chip type: ' + archName + '. Tap below to download the exact version for it.'
-        : 'We detected Android, but your browser hides the chip details. Best guess: ' + archName + '. If unsure, tap "Not sure?" below to pick manually.';
-      btnTextEl.textContent = 'Download for Android (' + archName + ')';
-      btnEl.href = url;
+      descEl.textContent = 'One universal APK that works on every phone — ARM64, ARMv7, and x86_64. No need to know your chip.';
+      btnTextEl.textContent = 'Download for Android (universal APK)';
+      btnEl.href = FILES.android;
       noteEl.textContent = 'Direct APK download \u2014 no login, no account needed';
-      if (unsureLink) unsureLink.style.display = 'inline-block';
+      if (unsureLink) unsureLink.style.display = 'none';
     }
 
     function setupWindows() {
@@ -1743,21 +1480,8 @@
     }
 
     function detectAndroid() {
-      const guess = guessArchFromUA();
-      // Precise chip detection: Chrome/Edge/Samsung report architecture + bitness.
-      const uch = navigator.userAgentData;
-      if (uch && typeof uch.getHighEntropyValues === 'function') {
-        uch.getHighEntropyValues(['architecture', 'bitness'])
-          .then(function (v) {
-            let arch = 'arm64';
-            if (v.architecture === 'x86') arch = 'x86_64';
-            else if (v.architecture === 'arm' && v.bitness === '32') arch = 'armv7';
-            setupAndroid(arch, true);
-          })
-          .catch(function () { setupAndroid(guess || 'arm64', false); });
-      } else {
-        setupAndroid(guess || 'arm64', false);
-      }
+      // One universal APK for all chips — no architecture detection needed.
+      setupAndroid();
     }
 
     if (/Win/i.test(platform) || /Windows/i.test(ua)) {
@@ -1765,29 +1489,35 @@
     } else if (/Android/i.test(ua)) {
       detectAndroid();
     } else if (/Mac|iPhone|iPad|iPod/i.test(platform) || /Macintosh|iPhone|iPad/i.test(ua)) {
-      titleEl.textContent = 'iOS / macOS — coming soon';
-      descEl.textContent = 'Doorstep is currently available for Android and Windows. Apple platform releases are in active development.';
-      btnTextEl.textContent = 'View all releases on GitHub';
-      btnEl.href = 'https://github.com/javex-12/Doorstep/releases';
-      noteEl.textContent = 'Star the repository to follow iOS development';
+      if (/iPhone|iPad|iPod/i.test(ua)) {
+        titleEl.textContent = 'iOS — coming soon';
+        descEl.textContent = 'The iOS version is in active development. Meanwhile, the macOS build below works on any Mac.';
+        btnTextEl.textContent = 'Download for macOS';
+        btnEl.href = FILES.mac;
+        noteEl.textContent = 'Universal build — Intel and Apple Silicon';
+      } else {
+        titleEl.textContent = 'Doorstep for macOS';
+        descEl.textContent = 'Universal build for Intel and Apple Silicon Macs. Download, unzip, and drag to Applications.';
+        btnTextEl.textContent = 'Download for macOS (universal)';
+        btnEl.href = FILES.mac;
+        noteEl.textContent = 'Unsigned build — right-click → Open the first time';
+      }
     } else if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
       titleEl.textContent = 'Doorstep for Linux';
-      descEl.textContent = 'Doorstep can be built from source for Linux desktops. See the repo for build instructions.';
-      btnTextEl.textContent = 'View source & releases on GitHub';
-      btnEl.href = 'https://github.com/javex-12/Doorstep';
-      noteEl.textContent = 'Open source build instructions available on GitHub';
+      descEl.textContent = 'AppImage for x86_64 — make it executable and run. No installation needed.';
+      btnTextEl.textContent = 'Download for Linux (AppImage)';
+      btnEl.href = FILES.linux;
+      noteEl.textContent = 'chmod +x, then double-click to run';
     }
   })();
 
-  // "Not sure?" toggle — plain-language version picker
-  (function setupArchHelp() {
+  // "Not sure?" button — scrolls to the full download card list
+  (function setupNotSure() {
     const link = document.getElementById('not-sure-link');
-    const help = document.getElementById('arch-help');
-    if (!link || !help) return;
+    if (!link) return;
     link.addEventListener('click', function () {
-      const open = help.style.display !== 'none';
-      help.style.display = open ? 'none' : 'block';
-      link.textContent = open ? 'Not sure which one is right? See all versions' : 'Hide versions';
+      const cards = document.querySelector('.dl-cards');
+      if (cards) cards.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   })();
 
@@ -1796,8 +1526,12 @@
   (function setupDownloadModal() {
     const overlay = document.getElementById('dl-modal');
     if (!overlay) return;
-    const androidPane = document.getElementById('dl-modal-android');
-    const windowsPane = document.getElementById('dl-modal-windows');
+    const panes = {
+      android: document.getElementById('dl-modal-android'),
+      windows: document.getElementById('dl-modal-windows'),
+      mac: document.getElementById('dl-modal-mac'),
+      linux: document.getElementById('dl-modal-linux')
+    };
 
     function close() { overlay.classList.remove('show'); }
     document.getElementById('dl-modal-close').addEventListener('click', close);
@@ -1808,7 +1542,7 @@
     document.querySelectorAll('a.dl-link').forEach(function (a) {
       a.addEventListener('click', function (e) {
         const href = a.href || '';
-        if (!/\.(apk|exe|zip)(\?|$)/i.test(href)) return; // not a binary — navigate normally
+        if (!/\.(apk|exe|zip|AppImage)(\?|$)/i.test(href)) return; // not a binary — navigate normally
         e.preventDefault();
         // Start the download immediately — files are served from this site, no login wall.
         const tmp = document.createElement('a');
@@ -1819,9 +1553,11 @@
         tmp.click();
         document.body.removeChild(tmp);
         // Then show the install warning for the right platform.
-        const isAndroid = /\.apk$/i.test(href);
-        androidPane.style.display = isAndroid ? 'block' : 'none';
-        windowsPane.style.display = isAndroid ? 'none' : 'block';
+        let paneKey = 'windows';
+        if (/\.apk$/i.test(href)) paneKey = 'android';
+        else if (/macos/i.test(href)) paneKey = 'mac';
+        else if (/\.AppImage$/i.test(href)) paneKey = 'linux';
+        Object.keys(panes).forEach(function (k) { panes[k].style.display = k === paneKey ? 'block' : 'none'; });
         overlay.classList.add('show');
       });
     });

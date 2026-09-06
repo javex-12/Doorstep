@@ -1,0 +1,6 @@
+# Deploy only the marketing site (docs/) — the rest is app source code.
+*
+!docs
+!docs/**
+!vercel.json
+!.vercelignore

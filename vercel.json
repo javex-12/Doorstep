@@ -3,14 +3,15 @@
   "name": "doorstep",
   "builds": [
     {
-      "src": "packages/core/assets/web/*",
+      "src": "docs/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/packages/core/assets/web/$1"
+      "dest": "/docs/$1"
     }
-  ]
+  ],
+  "cleanUrls": true
 }
