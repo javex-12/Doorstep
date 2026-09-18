@@ -1,1 +1,1 @@
-Cross-Platform file sharing solution via WiFi.
+Local file sharing with no internet. Pair once, share forever.

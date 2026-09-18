@@ -11,7 +11,7 @@ import 'package:doorstep_isolates/rust/frb_generated.dart';
 /// Starts UDP multicast discovery: binds the multicast sockets on all usable
 /// network interfaces and listens for announcements of other devices.
 ///
-/// Announcements are sent to the IPv4 [group] and, as a LocalSend extension,
+/// Announcements are sent to the IPv4 [group] and, as a Doorstep extension,
 /// to the (currently hardcoded) IPv6 group `ff12::fd3a:e420`.
 ///
 /// [port] is used both to bind the multicast sockets and as the HTTP server
@@ -49,7 +49,7 @@ Future<RsMulticast> startMulticast({
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RsMulticast>>
 abstract class RsMulticast implements RustOpaqueInterface {
-  /// Announces this device to the network, which makes every other LocalSend
+  /// Announces this device to the network, which makes every other Doorstep
   /// device on it register with this device over HTTP.
   ///
   /// Returns once the whole announcement burst has been sent, which takes a

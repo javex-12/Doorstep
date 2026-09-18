@@ -1,6 +1,6 @@
 name: doorstep_app
 description: Doorstep - a LAN-only file bridge. Pair once, drop files into a folder, and they arrive on your phone automatically.
-homepage: https://localsend.org/
+homepage: https://github.com/javex-12/Doorstep
 publish_to: "none"
 
 version: 1.0.0+1

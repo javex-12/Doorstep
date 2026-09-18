@@ -190,7 +190,7 @@ class DoorstepPairingNotifier extends Notifier<List<PairedDevice>> {
     unawaited(ref.notifier(doorstepWatcherProvider).removeDeviceFromTargets(deviceId));
   }
 
-  /// Sends this device's identity to [device] over the standard LocalSend
+  /// Sends this device's identity to [device] over the standard Doorstep
   /// `register` endpoint, carrying the Doorstep handshake tokens.
   ///
   /// The laptop answers by storing this device in its own paired list (and by

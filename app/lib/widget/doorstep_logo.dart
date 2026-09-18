@@ -2,7 +2,7 @@ import 'package:doorstep_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 /// The Doorstep brand logo — the bundled `assets/doorstep/logo.png` instead of
-/// the upstream LocalSend mark, shown with its original colors.
+/// the upstream Doorstep mark, shown with its original colors.
 class DoorstepLogo extends StatelessWidget {
   final bool withText;
   final double? size;

@@ -19,12 +19,12 @@ This is a multi-language monorepo: a Flutter app on top of a Rust protocol imple
 | `packages/core/`               | Rust crate `localsend`: protocol, HTTP server/client, crypto, WebRTC. No Flutter dependency.                                                                |
 | `packages/typed_isolates/`     | Small standalone package wrapping Dart `Isolate` with typed send/receive channels.                                                                          |
 | `server/`                      | Axum WebSocket signaling server for WebRTC (`/v1/ws`). Deployed separately, see `server/Dockerfile`.                                                        |
-| `cli/`                         | Rust CLI crate (`localsend-cli`): interactive terminal client on top of `packages/core` (v2 HTTP + multicast).                                              |
+| `cli/`                         | Rust CLI crate (`doorstep-cli`): interactive terminal client on top of `packages/core` (v2 HTTP + multicast).                                              |
 | `support/scripts/`             | Release/packaging scripts (per-platform builds, MSIX, Inno Setup, FOSS stripping).                                                                          |
 
 There is no Cargo workspace; `packages/core`, `packages/doorstep_isolates/rust`, `server`, and `cli` are independent crates.
 
-Dependency direction: `app` → `doorstep_isolates` → (`typed_isolates`, `rust_lib_doorstep` → `localsend` core).
+Dependency direction: `app` → `doorstep_isolates` → (`typed_isolates`, `rust_lib_doorstep` → `doorstep_core`).
 The app depends on **only** `doorstep_isolates` — not on `flutter_rust_bridge`, `typed_isolates`, or the plugin crate directly.
 
 ## Flutter version

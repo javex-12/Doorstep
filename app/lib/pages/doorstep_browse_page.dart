@@ -49,7 +49,7 @@ class DoorstepBrowseException implements Exception {
 }
 
 /// Thin client for the laptop's `/doorstep/*` endpoints. File bytes are never
-/// exchanged here — [requestPull] only asks the laptop to start a LocalSend
+/// exchanged here — [requestPull] only asks the laptop to start a Doorstep
 /// transfer, which then flows through the normal (encrypted) pipeline.
 class DoorstepBrowseApi {
   static const _connectTimeout = Duration(seconds: 5);

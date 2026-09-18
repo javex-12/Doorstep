@@ -1,7 +1,13 @@
-Doorstep is an open source app to share files and messages between nearby devices using the local wifi network.
-The communication between devices is entirely end-to-end encrypted via HTTPS.
-No Internet required. No tracking*. No ads.
+Doorstep is a free, open-source app that shares files between your phone and your computer over your own Wi-Fi — with no internet, no cloud and no accounts.
 
-Currently, this app is available on Android, iOS, macOS, Windows and Linux. You can find all download options on the official homepage.
+Pair once, and you are done: Doorstep keeps your devices connected automatically. Drop a file into a drop zone on your computer and it arrives on your phone — even with the Doorstep app closed. Share from your phone and it lands on your computer just as easily.
 
-*The operating system may still gather usage data.
+Highlights:
+- Pair once — devices reconnect on their own, no QR codes to re-scan
+- Receive files with the app closed, via a quiet background service you control
+- Drop zones — folders on your computer that send themselves to your phone
+- Live folder browser — browse and pull files from your computer on your phone
+- Trust levels — mark a device as personal (permanent) or temporary (this session only)
+- Encrypted transfers over your local network. Nothing ever leaves your network.
+
+Doorstep works even when the internet is down. No ads, no tracking, no sign-ups.

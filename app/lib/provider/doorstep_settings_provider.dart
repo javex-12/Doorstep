@@ -2,7 +2,7 @@ import 'package:doorstep_app/provider/persistence_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// User-facing Doorstep behavior switches, persisted separately from the
-/// upstream LocalSend settings so the fork stays self-contained.
+/// upstream Doorstep settings so the fork stays self-contained.
 class DoorstepSettings {
   /// Whether transfers from paired devices are accepted silently (no prompt,
   /// no progress page). Defaults to true — that is the whole Doorstep promise.

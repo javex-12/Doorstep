@@ -17,7 +17,7 @@ import 'package:refena_flutter/refena_flutter.dart';
 final _logger = Logger('DoorstepBrowse');
 
 /// The live folder browser is served on `doorstepPort + 1`. The phone learns
-/// the laptop's LocalSend port from the pairing QR and derives the same port,
+/// the laptop's Doorstep port from the pairing QR and derives the same port,
 /// so both sides stay in sync even when the port is customized.
 int doorstepBrowsePort(int doorstepPort) => doorstepPort + 1;
 
@@ -39,7 +39,7 @@ final doorstepBrowseProvider = NotifierProvider<DoorstepBrowseNotifier, Doorstep
 /// The laptop side of the live folder browser.
 ///
 /// Serves three authenticated endpoints over plain HTTP (metadata only — the
-/// file bytes always travel through the LocalSend mTLS transfer protocol):
+/// file bytes always travel through the Doorstep mTLS transfer protocol):
 ///
 ///   GET  /doorstep/roots?token=…        → watched folders
 ///   GET  /doorstep/list?token=…&root=…&path=…  → one directory (lazy)

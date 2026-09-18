@@ -5736,7 +5736,7 @@ class RsMulticastImpl extends RustOpaque implements RsMulticast {
     rustArcDecrementStrongCountPtr: RustLib.instance.api.rust_arc_decrement_strong_count_RsMulticastPtr,
   );
 
-  /// Announces this device to the network, which makes every other LocalSend
+  /// Announces this device to the network, which makes every other Doorstep
   /// device on it register with this device over HTTP.
   ///
   /// Returns once the whole announcement burst has been sent, which takes a

@@ -5,226 +5,104 @@
 [ci-badge]: https://github.com/javex-12/Doorstep/actions/workflows/ci.yml/badge.svg
 [ci-workflow]: https://github.com/javex-12/Doorstep/actions/workflows/ci.yml
 
-[GitHub][github] • [Product Spec](DOORSTEP.md) • by [cydercoder](https://cydercoder.vercel.app)
+**Your phone is another folder on your computer.**
 
-[English (Default)](README.md) • [Español](/support/readme/README_ES.md) • [فارسی](/support/readme/README_FA.md) • [Filipino](/support/readme/README_PH.md) • [Français](/support/readme/README_FR.md) • [Indonesia](/support/readme/README_ID.md) • [Italiano](/support/readme/README_IT.md) • [日本語](/support/readme/README_JA.md) • [ភាសាខ្មែរ](/support/readme/README_KM.md) • [한국어](/support/readme/README_KO.md) • [Polski](/support/readme/README_PL.md) • [Português Brasil](/support/readme/README_PT_BR.md) • [Русский](/support/readme/README_RU.md) • [ภาษาไทย](/support/readme/README_TH.md) • [Türkçe](/support/readme/README_TR.md) • [Українська](/support/readme/README_UK.md) • [Tiếng Việt](/support/readme/README_VI.md) • [中文](/support/readme/README_ZH.md)
+Doorstep is a free, open-source app that shares files between your phone and your computer over your own Wi-Fi — no internet, no cloud, no accounts.
 
-[github]: https://github.com/javex-12/Doorstep
+Pair once. After that, Doorstep just works: drop a file into a folder on your computer and it arrives on your phone — even with the app closed. Share from your phone and it lands on your computer just as easily.
 
-Doorstep is a free, open-source app that allows you to securely share files and messages with nearby devices over your local network without needing an internet connection.
+[Download](https://github.com/javex-12/Doorstep/releases/latest) · [Download page](https://javex-12.github.io/Doorstep/) · [Product spec](DOORSTEP.md) · by [cydercoder](https://cydercoder.vercel.app)
 
-- [About](#about)
-- [Screenshots](#screenshots)
-- [Download](#download)
-- [How It Works](#how-it-works)
-- [Dependency Hierarchy](#dependency-hierarchy)
-- [Getting Started](#getting-started)
-- [Contributing](#contributing)
-  - [Translation](#translation)
-  - [Bug Fixes and Improvements](#bug-fixes-and-improvements)
-- [Troubleshooting](#troubleshooting)
-- [Building](#building)
-  - [Android](#android)
-  - [iOS](#ios)
-  - [macOS](#macos)
-  - [Windows](#windows)
-  - [Linux](#linux)
+---
 
-## About
+## Why Doorstep
 
-Doorstep is a cross-platform app that enables secure communication between devices using a REST API and HTTPS encryption. Unlike other messaging apps that rely on external servers, Doorstep doesn't require an internet connection or third-party servers, making it a fast and reliable solution for local communication.
+Other file-sharing apps make you do the same dance every time: open the app, wait for discovery, pick the device, pick the files, send. Doorstep throws that away:
 
-## Screenshots
+| | Others | Doorstep |
+|---|---|---|
+| Pairing | Scan, re-scan, re-discover | **Once.** Devices reconnect on their own |
+| Sending | Open app → wait → pick → send | Drop into a folder. Done |
+| Receiving | App must be open | **Arrives with the app closed** (quiet background service) |
+| Internet | Sometimes needed | **Never.** It all happens on your network |
+| Privacy | Varies | End-to-end encrypted, nothing leaves your LAN |
 
-<img src="https://raw.githubusercontent.com/javex-12/Doorstep/main/app/assets/doorstep/logo.png" alt="Doorstep logo" height="300"/>
+## Features
+
+- **Pair once** — connect to a device on your Doorstep network and choose *personal* (remembered forever, reconnects automatically) or *temporary* (this session only). No QR code hunting.
+- **Drop zones** — mark folders on your computer. Anything you drop in is delivered to your phone automatically.
+- **Receive with the app closed** — a quiet, battery-aware background service keeps your phone ready to receive, with a persistent notification you control.
+- **Trust levels** — personal devices reconnect and can push files any time; temporary devices are forgotten when the app closes.
+- **Live folder browser** — browse folders on your computer from your phone and pull files over.
+- **Per-device routing** — point each drop zone at specific devices, not "everyone".
+- **Encrypted** — transfers run over authenticated, encrypted connections. Only devices you approved can talk to you.
 
 ## Download
 
-Grab the latest build for your platform from the [Releases page][latest] — every release ships ready-to-run installers and packages. No account, no cloud, no auto-update needed: just download and go.
+Grab the latest build from [Releases](https://github.com/javex-12/Doorstep/releases/latest) or the [download page](https://javex-12.github.io/Doorstep/):
 
-| Windows                        | Android                | macOS            | Linux            | iOS             |
-|--------------------------------|------------------------|------------------|------------------|-----------------|
-| [EXE Installer][latest]        | [APK (64-bit)][latest] | [DMG Installer][latest] | [AppImage][latest] | (coming soon)   |
-| [Portable ZIP][latest]         | [APK (32-bit)][latest] |                  | [TAR][latest]    |                 |
-|                                |                        |                  | [DEB][latest]    |                 |
+- **Android** — APK (arm64 for most phones, armv7 for older 32-bit devices, x86_64 for emulators)
+- **Windows** — installer (`.exe`) or portable `.zip`
 
-> App stores (Play Store, App Store, Microsoft Store) and package managers are coming soon.
+iOS, macOS and Linux builds are planned.
 
-[latest]: https://github.com/javex-12/Doorstep/releases/latest
-[distribution channels]: https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md#distribution
-[latest]: https://github.com/javex-12/Doorstep/releases/latest
-[distribution channels]: https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md#distribution
+> **Note for Android:** because Doorstep is distributed directly (not through an app store), Android shows a one-time "unknown apps" warning and Google Play Protect may ask for confirmation. This is normal for open-source apps installed outside the Play Store — the APK is built straight from this repository's source.
 
-**Compatibility**
+## How it works
 
-| Platform | Minimum Version | Note                                                                                                                        |
-|----------|-----------------|-----------------------------------------------------------------------------------------------------------------------------|
-| Android  | 5.0             | -                                                                                                                           |
-| iOS      | 12.0            | -                                                                                                                           |
-| macOS    | 11 Big Sur      | Use OpenCore Legacy Patcher 2.0.2 |
-| Windows  | 10              | The last version to support Windows 7 is v1.15.4. There might be backports of newer versions for Windows 7 in the future.   |
-| Linux    | N.A.            | Deps: Gnome: `xdg-desktop-portal` and `xdg-desktop-portal-gtk`, KDE: `xdg-desktop-portal` and `xdg-desktop-portal-kde`      |
+1. Install Doorstep on both devices and connect them to the same Wi-Fi (or put your phone on your computer's hotspot).
+2. Doorstep finds the other device automatically — tap **Connect** and choose how much you trust it.
+3. That's it. Files now move by themselves: drop zones on the computer, the share sheet on the phone.
 
-## Setup
+Under the hood, Doorstep speaks the [LocalSend protocol](https://github.com/localsend/protocol) (v2.1) over HTTPS with mandatory certificate verification, plus UDP multicast + broadcast for discovery. It is built on a fork of [LocalSend](https://github.com/localsend/localsend)'s networking core (Apache-2.0) — huge credit to the LocalSend team; see [LICENCE](LICENSE) and in-app **Settings → About → Licence notices**.
 
-In most cases, Doorstep should work out of the box. However, if you are having trouble sending or receiving files, you may need to configure your firewall to allow Doorstep to communicate over your local network.
+## Getting started (development)
 
-| Traffic Type | Protocol | Port  | Action |
-|--------------|----------|-------|--------|
-| Incoming     | TCP, UDP | 53317 | Allow  |
-| Outgoing     | TCP, UDP | Any   | Allow  |
+The repo is a Flutter app on top of a Rust core:
 
-Also make sure to disable AP isolation on your router. It should be usually disabled by default but some routers may have it enabled (especially guest networks).
-See [troubleshooting](#troubleshooting) for more information.
+| Path | What it is |
+|---|---|
+| `app/` | Flutter app (`doorstep_app`) — UI, providers, persistence, platform channels |
+| `packages/doorstep_isolates/` | Dart isolate layer + Flutter-Rust-Bridge bindings (`rust_lib_doorstep`) |
+| `packages/core/` | Rust crate `doorstep_core` — protocol, HTTP server/client, crypto, WebRTC |
+| `packages/typed_isolates/` | Typed Dart isolate channels |
+| `server/` | WebSocket signalling server for WebRTC (deployed separately) |
+| `cli/` | `doorstep-cli` — terminal client on top of the core |
 
-**Portable Mode**
+### Prerequisites
 
-(Introduced in v1.13.0)
+- Flutter `3.41.9` (pinned in `.fvmrc`; use `fvm flutter` / `fvm dart`)
+- Rust toolchain (stable)
+- For Windows builds: Visual Studio with C++ desktop workload
 
-Create a file named `settings.json` located in the same directory as the executable.
-This file can be empty.
-The app will use this file to store settings instead of the default location.
+### Run
 
-**Start hidden**
+```bash
+cd app
+fvm flutter pub get
+fvm dart run build_runner build   # dart_mappable, freezed, flutter_gen, mockito
+fvm dart run slang                # i18n codegen
+fvm flutter run
+```
 
-(Updated in v1.15.0)
+The Rust plugin builds automatically through cargokit during `flutter run` / `flutter build`.
 
-To start the app hidden (only in tray), use the `--hidden` flag (example: `doorstep.exe --hidden`).
+### Checks (what CI runs)
 
-> **Note:** the release binaries are named `doorstep` for compatibility with the LocalSend protocol tooling the fork builds on; the app itself is **Doorstep**.
+```bash
+cd app
+fvm dart format --set-exit-if-changed lib test
+fvm flutter analyze
+fvm flutter test
 
-On v1.14.0 and earlier, the app starts hidden if `autostart` flag is set, and the hidden setting is enabled.
-
-## How It Works
-
-Doorstep uses a secure communication protocol that allows devices to communicate with each other using a REST API. All data is sent securely over HTTPS, and the TLS/SSL certificate is generated on the fly on each device, ensuring maximum security.
-
-For more information on the Doorstep Protocol, see the [documentation](https://github.com/localsend/protocol).
-
-## Dependency Hierarchy
-
-![Dependency hierarchy](support/docs/dependency-hierarchy.svg)
-
-## Getting Started
-
-To compile Doorstep from the source code, follow these steps:
-
-1. Install Flutter [directly](https://flutter.dev) or using [fvm](https://fvm.app) (see [version required](.fvmrc))
-2. Install [Rust](https://www.rust-lang.org/tools/install)
-3. Clone the `Doorstep` repository
-4. Run `cd app` to enter the app directory
-5. Run `flutter pub get` to download dependencies
-6. Run `flutter run` to start the app
-
-> [!NOTE]
-> Doorstep currently requires an older Flutter version (specified in [.fvmrc](.fvmrc))
-> and thus build issues may be caused by a mismatch between the required and the (system-wide) installed Flutter version.  
-> To make development more consistent, Doorstep uses [fvm](https://fvm.app) to manage the project Flutter version.
-> After installing `fvm`, run `fvm flutter` instead of `flutter`.
+cargo test --features full      # in packages/core
+cargo check                      # in packages/doorstep_isolates/rust, server, cli
+```
 
 ## Contributing
 
-We welcome contributions from anyone interested in helping improve Doorstep. If you'd like to contribute, there are a few ways to get involved:
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). If you find a security issue, please follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 
-### Translation
+## Licence
 
-You can help translate Doorstep into other languages.
-
-Alternatively, you can also contribute by forking this repository and adding translations manually.
-
-The translations are located in the [app/assets/i18n](https://github.com/javex-12/Doorstep/tree/main/app/assets/i18n) directory. Edit the `_missing_translations_<locale>.json` or `strings_<locale>.i18n.json` file to add or update translations.
-
-
-
-**_Take note:_ Fields decorated with `@` are not meant to be translated; they are not used in the app in any way, being merely informative text about the file or to give context to the translator.**
-
-### Bug Fixes and Improvements
-
-- **Bug Fixes:** If you find a bug, please create a pull request with a clear description of the issue and how to fix it.
-- **Improvements:** Have an idea for how to improve Doorstep? Please create an issue first to discuss why the improvement is needed.
-
-For more information, see the [contributing guide](https://github.com/javex-12/Doorstep/blob/main/CONTRIBUTING.md).
-
-## Troubleshooting
-
-| Issue              | Platform (Sending) | Platform (Receiving) | Solution                                                                                                                                |
-|--------------------|--------------------|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| Device not visible | Any                | Any                  | Make sure to disable AP-Isolation on your router. If it is enabled, connections between devices are forbidden.                          |
-| Device not visible | Any                | Windows              | Make sure to configure your network as a "private" network. Windows might be more restrictive when the network is configured as public. |
-| Device not visible | macOS, iOS         | Any                  | You can try to toggle the "Local Network" permission under "Privacy" in the OS settings.                                                |
-| Speed too slow     | Any                | Any                  | Use 5 Ghz; Disable encryption on both devices                                                                                           |
-| Speed too slow     | Any                | Android              | Known issue. https://github.com/flutter-cavalry/saf_stream/issues/4                                                                     |
-
-## Building
-
-These commands are intended for maintainers only. Make sure to run them from the `app` directory.
-
-### Android
-
-Traditional APK
-
-```bash
-flutter build apk
-```
-
-AppBundle for Google Play
-
-```bash
-flutter build appbundle
-```
-
-### iOS
-
-```bash
-flutter build ipa
-```
-
-### macOS
-
-```bash
-flutter build macos
-```
-
-### Windows
-
-**Traditional**
-
-```bash
-flutter build windows
-```
-
-**Local MSIX App**
-
-```bash
-flutter pub run msix:create
-```
-
-**Store ready**
-
-```bash
-flutter pub run msix:create --store
-```
-
-### Linux
-
-**Traditional**
-
-```bash
-flutter build linux
-```
-
-**AppImage**
-
-```bash
-appimage-builder --recipe AppImageBuilder.yml
-```
-
-**Snap**
-
-Snap packaging is not yet published for Doorstep — you can still build the binary locally (see below).
-
-## Contributors
-
-<a href="https://github.com/javex-12/Doorstep/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=javex-12/Doorstep"  alt="Doorstep Contributors"/>
-</a>
+[Apache-2.0](LICENSE). Doorstep is a fork of [LocalSend](https://github.com/localsend/localsend) — all credit and thanks to its authors for the excellent protocol and networking core.

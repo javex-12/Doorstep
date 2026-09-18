@@ -67,7 +67,7 @@ class DoorstepPairingPayload {
 
 /// The two-way pairing handshake.
 ///
-/// LocalSend's `register` endpoint has no field for a pairing token, so the
+/// Doorstep's `register` endpoint has no field for a pairing token, so the
 /// phone smuggles one in the `deviceModel` field using this carrier:
 ///
 /// ```

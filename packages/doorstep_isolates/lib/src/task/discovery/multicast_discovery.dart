@@ -104,7 +104,7 @@ class MulticastService {
     }
   }
 
-  /// Sends an announcement which triggers a response on every LocalSend member of the network.
+  /// Sends an announcement which triggers a response on every Doorstep member of the network.
   Future<void> sendAnnouncement() async {
     final multicast = _multicast;
     if (multicast == null) {
