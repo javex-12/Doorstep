@@ -2,8 +2,8 @@ import 'package:doorstep_app/util/device_type_ext.dart';
 import 'package:doorstep_app/widget/custom_progress_bar.dart';
 import 'package:doorstep_app/widget/device_bage.dart';
 import 'package:doorstep_app/widget/list_tile/custom_list_tile.dart';
+import 'package:doorstep_isolates/model/device.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/device.dart';
 
 class DeviceListTile extends StatelessWidget {
   final Device device;

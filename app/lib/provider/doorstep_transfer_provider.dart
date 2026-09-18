@@ -8,9 +8,9 @@ import 'package:doorstep_app/model/state/send/send_session_state.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
 import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/progress_provider.dart';
-import 'package:localsend_isolates/model/file_status.dart';
-import 'package:localsend_isolates/model/session_status.dart';
-import 'package:localsend_isolates/util/rust.dart';
+import 'package:doorstep_isolates/model/file_status.dart';
+import 'package:doorstep_isolates/model/session_status.dart';
+import 'package:doorstep_isolates/util/rust.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 

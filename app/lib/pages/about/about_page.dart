@@ -1,9 +1,12 @@
 import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_app/pages/changelog_page.dart';
 import 'package:doorstep_app/pages/debug/debug_page.dart';
+import 'package:doorstep_app/provider/version_provider.dart';
 import 'package:doorstep_app/widget/doorstep_logo.dart';
 import 'package:doorstep_app/widget/responsive_list_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,12 +25,39 @@ class AboutPage extends StatelessWidget {
         children: [
           const DoorstepLogo(withText: true, size: 48),
           const SizedBox(height: 8),
+          // Version and the changelog live here rather than in Settings, per the
+          // Android settings guidance (no app/version info in the settings list).
+          context
+              .watch(versionProvider)
+              .maybeWhen(
+                data: (version) => Text(
+                  'Version $version',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                orElse: () => const SizedBox.shrink(),
+              ),
+          const SizedBox(height: 4),
           Text(
             '© ${DateTime.now().year} cydercoder',
             textAlign: TextAlign.center,
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
+          Center(
+            child: TextButton.icon(
+              onPressed: () async {
+                await context.push(() => const ChangelogPage());
+              },
+              icon: const Icon(Icons.history_rounded, size: 18),
+              label: Text(t.changelogPage.title),
+            ),
+          ),
+          const SizedBox(height: 12),
           const Text(
             'Doorstep is an ultra-fast, local-first file transfer network. No clouds, no setup, no friction — your phone is now another folder on your computer.',
             textAlign: TextAlign.center,

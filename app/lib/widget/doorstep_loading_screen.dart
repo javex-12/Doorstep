@@ -7,8 +7,8 @@ import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/network/server/server_provider.dart';
 import 'package:doorstep_app/widget/doorstep_card.dart';
 import 'package:doorstep_app/widget/doorstep_logo.dart';
+import 'package:doorstep_isolates/model/session_status.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/session_status.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// Clean and sleek transfer progress screen/overlay shown during active transfers.

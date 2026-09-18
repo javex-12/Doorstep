@@ -18,9 +18,9 @@ import 'package:doorstep_app/widget/dialogs/favorite_delete_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/favorite_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/favorite_edit_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/no_files_dialog.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/model/session_status.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/model/session_status.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

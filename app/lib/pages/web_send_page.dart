@@ -10,9 +10,9 @@ import 'package:doorstep_app/widget/dialogs/pin_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/qr_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/zoom_dialog.dart';
 import 'package:doorstep_app/widget/responsive_list_view.dart';
+import 'package:doorstep_isolates/util/sleep.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_isolates/util/sleep.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

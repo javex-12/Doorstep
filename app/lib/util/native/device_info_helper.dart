@@ -1,7 +1,7 @@
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/model/device_info_result.dart';
 import 'package:flutter/foundation.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/model/device_info_result.dart';
 // ignore: implementation_imports
 import 'package:slang/src/builder/model/enums.dart';
 // ignore: implementation_imports

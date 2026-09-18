@@ -1,4 +1,4 @@
-use localsend::webrtc::signaling::{ClientInfoWithoutId, WsServerMessage};
+use doorstep_core::webrtc::signaling::{ClientInfoWithoutId, WsServerMessage};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{mpsc, Mutex};

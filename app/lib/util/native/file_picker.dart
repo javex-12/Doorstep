@@ -16,13 +16,13 @@ import 'package:doorstep_app/util/ui/asset_picker_translated_text_delegate.dart'
 import 'package:doorstep_app/widget/dialogs/loading_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/message_input_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/no_permission_dialog.dart';
+import 'package:doorstep_isolates/model/file_type.dart';
+import 'package:doorstep_isolates/util/file_path_helper.dart';
+import 'package:doorstep_isolates/util/sleep.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:localsend_isolates/model/file_type.dart';
-import 'package:localsend_isolates/util/file_path_helper.dart';
-import 'package:localsend_isolates/util/sleep.dart';
 import 'package:logging/logging.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:permission_handler/permission_handler.dart';

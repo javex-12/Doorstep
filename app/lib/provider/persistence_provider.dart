@@ -16,11 +16,11 @@ import 'package:doorstep_app/util/security_helper.dart';
 import 'package:doorstep_app/util/shared_preferences/shared_preferences_file.dart';
 import 'package:doorstep_app/util/shared_preferences/shared_preferences_portable.dart';
 import 'package:doorstep_app/util/ui/animations_status.dart';
+import 'package:doorstep_isolates/constants.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/model/stored_security_context.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/constants.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/model/stored_security_context.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +63,7 @@ const _watchedFolders = 'doorstep_watched_folders';
 const _doorstepOwnToken = 'doorstep_own_token';
 const _doorstepAutoAccept = 'doorstep_auto_accept';
 const _doorstepSleepMode = 'doorstep_sleep_mode';
+const _doorstepBackgroundService = 'doorstep_background_service';
 
 // App Window Offset and Size info
 const _windowOffsetX = 'ls_window_offset_x';
@@ -322,6 +323,17 @@ class PersistenceService {
 
   Future<void> setDoorstepSleepMode(bool value) async {
     await _prefs.setBool(_doorstepSleepMode, value);
+  }
+
+  /// Whether the phone keeps a background listener alive so transfers arrive
+  /// while Doorstep is closed (default true — that is the Doorstep promise).
+  /// Enforced with a foreground service + ongoing notification on Android.
+  bool getDoorstepBackgroundService() {
+    return _prefs.getBool(_doorstepBackgroundService) ?? true;
+  }
+
+  Future<void> setDoorstepBackgroundService(bool value) async {
+    await _prefs.setBool(_doorstepBackgroundService, value);
   }
 
   String getShowToken() {

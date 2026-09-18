@@ -9,11 +9,11 @@ import 'package:doorstep_app/provider/http_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
 import 'package:doorstep_app/provider/persistence_provider.dart';
 import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
+import 'package:doorstep_isolates/constants.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/rust/api/model.dart' as rust_model;
+import 'package:doorstep_isolates/util/rust.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
-import 'package:localsend_isolates/constants.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/rust/api/model.dart' as rust_model;
-import 'package:localsend_isolates/util/rust.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 

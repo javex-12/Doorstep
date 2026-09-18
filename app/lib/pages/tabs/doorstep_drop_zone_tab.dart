@@ -14,15 +14,27 @@ import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
 import 'package:doorstep_app/util/native/file_picker.dart';
+import 'package:doorstep_app/util/native/open_folder.dart';
 import 'package:doorstep_app/util/native/pick_directory_path.dart';
+import 'package:doorstep_app/util/ui/snackbar.dart';
+import 'package:doorstep_app/widget/dialogs/trust_device_dialog.dart';
 import 'package:doorstep_app/widget/doorstep_card.dart';
+import 'package:doorstep_app/widget/doorstep_empty_state.dart';
 import 'package:doorstep_app/widget/doorstep_header.dart';
+import 'package:doorstep_app/widget/doorstep_list_tile.dart';
+import 'package:doorstep_app/widget/doorstep_section.dart';
+import 'package:doorstep_app/widget/doorstep_status_chip.dart';
+import 'package:doorstep_isolates/model/device.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/device.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+/// Doorstep home.
+///
+/// Designed as a *status first* dashboard: this device's state is the hero, then
+/// devices you can connect to right now, then the devices you already trust,
+/// then the folders/files that move.
 class DoorstepDropZoneTab extends StatefulWidget {
   const DoorstepDropZoneTab({super.key});
 
@@ -33,6 +45,8 @@ class DoorstepDropZoneTab extends StatefulWidget {
 class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   static bool get _isMobile => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
+  DateTime? _lastRefresh;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +55,13 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
       // fresh (handles DHCP drift and app restarts without re-scanning).
       Future.microtask(() => ref.notifier(doorstepPairingProvider).reconnectToPairedDevices()); // ignore: discarded_futures
     }
+    Future.microtask(() => ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan())); // ignore: discarded_futures
+    _lastRefresh = DateTime.now();
+  }
+
+  void _refreshDiscovery() {
+    ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan());
+    setState(() => _lastRefresh = DateTime.now());
   }
 
   @override
@@ -59,363 +80,150 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
       backgroundColor: DoorstepTheme.backgroundOf(context),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DoorstepHeader(
                 title: 'Doorstep',
-                subtitle: _isMobile ? 'Pair with your laptop and receive files automatically.' : 'Your phone is now another folder on your computer.',
+                subtitle: _isMobile ? 'Connect once, then files find you.' : 'Your phone is another folder on this computer.',
+                trailing: IconButton(
+                  tooltip: 'Search again',
+                  onPressed: _refreshDiscovery,
+                  icon: const Icon(Icons.refresh_rounded, size: 22),
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // ── Hero Quick Settings Dashboard ─────────────────────────────
-              _buildHeroDashboard(context, settings, deviceInfo),
-              const SizedBox(height: 28),
+              _StatusPanel(
+                alias: deviceInfo.alias,
+                ip: deviceInfo.ip,
+                port: deviceInfo.port,
+                pairedCount: pairedDevices.length,
+                nearbyCount: discoveredNearby.length,
+                dropZoneCount: watchedFolders.length,
+                sleepMode: settings.sleepMode,
+                onToggleSleep: _isMobile
+                    ? () => ref
+                          .notifier(doorstepSettingsProvider)
+                          .setSleepMode(!settings.sleepMode) // ignore: discarded_futures
+                    : null,
+                showDropZones: !_isMobile,
+              ),
+              const SizedBox(height: 26),
 
-              // ── Discovered Nearby Devices on Doorstep Network ──────────────
-              if (discoveredNearby.isNotEmpty) ...[
-                const _SectionLabel(label: 'DOORSTEP NETWORK · NEARBY DEVICES'),
-                const SizedBox(height: 12),
-                ...discoveredNearby.map(
-                  (d) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _DiscoveredDeviceCard(device: d),
-                  ),
+              // ── Nearby ────────────────────────────────────────────────────
+              DoorstepSection(
+                title: 'Nearby on the Doorstep network',
+                subtitle: discoveredNearby.isEmpty
+                    ? 'Make sure both devices are on the same Wi-Fi (or the same hotspot)'
+                    : '${discoveredNearby.length} ready to connect',
+                action: TextButton(
+                  onPressed: _refreshDiscovery,
+                  style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                  child: const Text('Search'),
                 ),
-                const SizedBox(height: 20),
-              ],
-
-              // ── Paired Devices ──────────────────────────────────────────
-              const _SectionLabel(label: 'PAIRED DEVICES'),
-              const SizedBox(height: 12),
-              if (pairedDevices.isEmpty)
-                DoorstepCard(
-                  child: Row(
-                    children: [
-                      Icon(Icons.devices, color: DoorstepTheme.textMutedOf(context), size: 28),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          discoveredNearby.isNotEmpty
-                              ? 'Tap "Connect & Trust" above to pair with a discovered device.'
-                              : 'Searching Doorstep network for nearby devices… (or tap "Pair Device" below).',
-                          style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13.5),
+                children: discoveredNearby.isEmpty
+                    ? [
+                        DoorstepEmptyState(
+                          inline: true,
+                          kind: DoorstepEmptyKind.searching,
+                          icon: Icons.wifi_tethering_rounded,
+                          title: 'Looking for devices…',
+                          message: _lastRefresh == null
+                              ? 'Doorstep is listening for other Doorstep devices on this network.'
+                              : 'Nothing found yet. Both devices need to be on the same Wi-Fi network, or your phone on the laptop\'s hotspot.',
+                          secondaryLabel: 'Having trouble? Connect manually',
+                          onSecondary: () => _showManualPairing(context),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ...pairedDevices.map(
-                  (d) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _DeviceCard(device: d),
-                  ),
-                ),
-
-              const SizedBox(height: 28),
-
-              // ── Drop Zones ──────────────────────────────────────────────
-              const _SectionLabel(label: 'ACTIVE DROP ZONES'),
-              const SizedBox(height: 12),
-              if (_isMobile)
-                DoorstepCard(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-                    child: Row(
-                      children: [
-                        Icon(Icons.dns_outlined, color: DoorstepTheme.textMutedOf(context), size: 28),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            'Drop zones are folders on your laptop. Open Doorstep on your computer and add a folder — files dropped there arrive here automatically.',
-                            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13.5, height: 1.4),
-                          ),
-                        ),
+                      ]
+                    : [
+                        ...discoveredNearby.map((d) => _DiscoveredDeviceRow(device: d)),
                       ],
+              ),
+
+              // ── Your devices ──────────────────────────────────────────────
+              DoorstepSection(
+                title: 'Your devices',
+                subtitle: pairedDevices.isEmpty ? 'Nothing connected yet' : '${pairedDevices.length} connected',
+                children: pairedDevices.isEmpty
+                    ? [
+                        DoorstepEmptyState(
+                          inline: true,
+                          kind: DoorstepEmptyKind.firstUse,
+                          icon: Icons.devices_rounded,
+                          title: 'No devices connected',
+                          message: discoveredNearby.isNotEmpty
+                              ? 'Tap Connect on a device above. Doorstep will ask whether it is your own device or just for this session.'
+                              : 'Devices you connect to will appear here, and stay connected.',
+                        ),
+                      ]
+                    : pairedDevices.map((d) => _PairedDeviceRow(device: d)).toList(),
+              ),
+
+              // ── Drop zones / send ─────────────────────────────────────────
+              if (_isMobile)
+                DoorstepSection(
+                  title: 'Move files',
+                  children: [
+                    DoorstepListTile(
+                      icon: Icons.folder_open_rounded,
+                      title: 'Browse this computer',
+                      subtitle: 'Open folders on your laptop and pull files over',
+                      enabled: pairedDevices.isNotEmpty,
+                      trailing: const DoorstepChevron(),
+                      onTap: () => _openBrowse(context),
                     ),
-                  ),
-                )
-              else if (watchedFolders.isEmpty)
-                DoorstepCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.folder_open, size: 40, color: DoorstepTheme.textMutedOf(context)),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Default Doorstep folder initializing…',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: DoorstepTheme.textMutedOf(context)),
-                          ),
-                        ],
+                    DoorstepListTile(
+                      icon: Icons.send_rounded,
+                      title: 'Send files from this phone',
+                      subtitle: 'Pick files and send them to a connected device',
+                      enabled: pairedDevices.isNotEmpty,
+                      trailing: const DoorstepChevron(),
+                      onTap: () => _sendToLaptop(context),
+                    ),
+                    if (pairedDevices.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: Text(
+                          'Connect a device first — then you can send and browse.',
+                          style: TextStyle(fontSize: 12.5, height: 1.4),
+                        ),
                       ),
-                    ),
-                  ),
+                  ],
                 )
               else
-                ...watchedFolders.map(
-                  (folder) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _FolderCard(folder: folder),
-                  ),
-                ),
-
-              if (_isMobile && pairedDevices.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openBrowse(context),
-                        icon: const Icon(Icons.folder_open, size: 18),
-                        label: const Text('Browse Laptop'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _sendToLaptop(context),
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        label: const Text('Send Files'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              if (!_isMobile) ...[
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
+                DoorstepSection(
+                  title: 'Drop zones',
+                  subtitle: watchedFolders.isEmpty
+                      ? 'Folders that send automatically'
+                      : '${watchedFolders.length} folder${watchedFolders.length == 1 ? '' : 's'} watched',
+                  action: TextButton.icon(
                     onPressed: () => _addDropZone(context),
-                    icon: const Icon(Icons.add_rounded, size: 20),
-                    label: const Text('Add Drop Zone'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
+                    icon: const Icon(Icons.add_rounded, size: 17),
+                    label: const Text('Add'),
+                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                   ),
+                  children: watchedFolders.isEmpty
+                      ? [
+                          DoorstepEmptyState(
+                            inline: true,
+                            kind: DoorstepEmptyKind.firstUse,
+                            icon: Icons.folder_special_rounded,
+                            title: 'No drop zone yet',
+                            message:
+                                'Add a folder here. Anything you drop into it is sent to your connected devices automatically — even while Doorstep sits in the tray.',
+                            actionLabel: 'Choose a folder',
+                            onAction: () => _addDropZone(context),
+                          ),
+                        ]
+                      : watchedFolders.map((f) => _FolderCard(folder: f)).toList(),
                 ),
-              ],
+
+              const SizedBox(height: 60),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeroDashboard(BuildContext context, DoorstepSettings settings, Device deviceInfo) {
-    final ip = deviceInfo.ip;
-    final displayIp = ip == null || ip == '-' ? 'Disconnected' : '$ip:${deviceInfo.port}';
-
-    return DoorstepCard(
-      borderColor: DoorstepTheme.borderOf(context),
-      backgroundColor: DoorstepTheme.surfaceOf(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Icon(
-                  _isMobile ? Icons.phone_android_rounded : Icons.laptop_chromebook_rounded,
-                  color: DoorstepTheme.primaryOf(context),
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      deviceInfo.alias,
-                      style: TextStyle(
-                        color: DoorstepTheme.textMainOf(context),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      displayIp,
-                      style: TextStyle(
-                        color: DoorstepTheme.textMutedOf(context),
-                        fontSize: 12.5,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Dynamic Status Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: settings.sleepMode ? DoorstepTheme.warning.withValues(alpha: 0.15) : DoorstepTheme.success.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: settings.sleepMode ? DoorstepTheme.warning : DoorstepTheme.success,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      settings.sleepMode ? 'Sleep Mode' : 'Active',
-                      style: TextStyle(
-                        color: settings.sleepMode ? DoorstepTheme.warning : const Color(0xFF16A34A),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Divider(height: 1),
-          const SizedBox(height: 18),
-
-          // Material You Quick Setting Tiles Grid
-          Row(
-            children: [
-              // Tile 1: Sleep Mode Toggle Widget
-              Expanded(
-                child: InkWell(
-                  onTap: () {
-                    // ignore: discarded_futures
-                    ref.notifier(doorstepSettingsProvider).setSleepMode(!settings.sleepMode);
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: settings.sleepMode
-                          ? DoorstepTheme.warning.withValues(alpha: 0.15)
-                          : DoorstepTheme.borderOf(context).withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: settings.sleepMode ? DoorstepTheme.warning.withValues(alpha: 0.25) : Colors.transparent,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          settings.sleepMode ? Icons.bedtime_rounded : Icons.bedtime_outlined,
-                          color: settings.sleepMode ? DoorstepTheme.warning : DoorstepTheme.textMutedOf(context),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Sleep Mode',
-                                style: TextStyle(
-                                  color: settings.sleepMode ? DoorstepTheme.warning : DoorstepTheme.textMainOf(context),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                settings.sleepMode ? 'Quiet' : 'Auto-Accept',
-                                style: TextStyle(
-                                  color: DoorstepTheme.textMutedOf(context),
-                                  fontSize: 10.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // Tile 2: Pair Device / Scanner Action
-              Expanded(
-                child: InkWell(
-                  onTap: () => _showPairingModal(context),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.25),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.qr_code_scanner_rounded,
-                          color: DoorstepTheme.primaryOf(context),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Pair Device',
-                                style: TextStyle(
-                                  color: DoorstepTheme.primaryOf(context),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _isMobile ? 'Scan QR' : 'Show QR',
-                                style: TextStyle(
-                                  color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.7),
-                                  fontSize: 10.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -425,18 +233,14 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     if (path == null) return;
     final added = await ref.notifier(doorstepWatcherProvider).addFolder(path);
     if (!added && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not add that folder as a drop zone.')),
-      );
+      context.showSnackBar('Could not add that folder as a drop zone.');
     }
   }
 
   Future<void> _openBrowse(BuildContext context) async {
     final paired = ref.read(doorstepPairingProvider);
     if (paired.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pair a laptop first — tap "Pair Device" and scan its QR code.')),
-      );
+      context.showSnackBar('Connect a device first.');
       return;
     }
     unawaited(
@@ -449,9 +253,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   Future<void> _sendToLaptop(BuildContext context) async {
     final paired = ref.read(doorstepPairingProvider);
     if (paired.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pair a laptop first — tap "Pair Device" and scan its QR code.')),
-      );
+      context.showSnackBar('Connect a device first.');
       return;
     }
 
@@ -462,31 +264,23 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
 
     final files = ref.read(selectedSendingFilesProvider);
     if (files.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No files selected.')),
-      );
+      context.showSnackBar('No files selected.');
       return;
     }
 
     final laptop = paired.reduce((a, b) => a.lastSeen.isAfter(b.lastSeen) ? a : b);
     final target = ref.notifier(doorstepPairingProvider).resolveTarget(laptop);
     if (target.ip == null || target.ip == '0.0.0.0' || target.ip == '-') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The laptop is not reachable right now. Make sure it is on and on the same Wi-Fi.')),
-      );
+      context.showSnackBar('That device is not reachable right now. Check it is on and on the same Wi-Fi.');
       return;
     }
 
-    await ref
-        .notifier(sendProvider)
-        .startSession(
-          target: target,
-          files: files,
-          background: false,
-        );
+    await ref.notifier(sendProvider).startSession(target: target, files: files, background: false);
   }
 
-  Future<void> _showPairingModal(BuildContext context) async {
+  /// Fallback for networks where UDP discovery is blocked. Reachable from the
+  /// nearby empty state, never the primary path.
+  Future<void> _showManualPairing(BuildContext context) async {
     if (_isMobile) {
       unawaited(Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DoorstepPairScanPage())));
       return;
@@ -513,7 +307,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     unawaited(
       showModalBottomSheet(
         context: context,
-        backgroundColor: DoorstepTheme.surface,
+        backgroundColor: DoorstepTheme.surfaceOf(context),
         isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -524,94 +318,232 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Small helper widgets
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Status panel (hero) ───────────────────────────────────────────────────────
 
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
+class _StatusPanel extends StatelessWidget {
+  final String alias;
+  final String? ip;
+  final int port;
+  final int pairedCount;
+  final int nearbyCount;
+  final int dropZoneCount;
+  final bool sleepMode;
+  final VoidCallback? onToggleSleep;
+  final bool showDropZones;
+
+  const _StatusPanel({
+    required this.alias,
+    required this.ip,
+    required this.port,
+    required this.pairedCount,
+    required this.nearbyCount,
+    required this.dropZoneCount,
+    required this.sleepMode,
+    required this.onToggleSleep,
+    required this.showDropZones,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        color: DoorstepTheme.textMutedOf(context),
-        fontSize: 11,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.5,
+    final connected = ip != null && ip != '-' && ip!.isNotEmpty;
+
+    final (chipLabel, chipTone, chipIcon) = sleepMode
+        ? ('Sleep mode', DoorstepStatusTone.warning, Icons.bedtime_rounded)
+        : connected
+        ? ('Ready to receive', DoorstepStatusTone.positive, Icons.check_circle_rounded)
+        : ('Not connected to Wi-Fi', DoorstepStatusTone.negative, Icons.wifi_off_rounded);
+
+    return DoorstepCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS
+                      ? Icons.phone_android_rounded
+                      : Icons.laptop_mac_rounded,
+                  color: DoorstepTheme.primaryOf(context),
+                  size: 25,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      alias,
+                      style: TextStyle(
+                        color: DoorstepTheme.textMainOf(context),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      connected ? '$ip:$port' : 'Not on a network',
+                      style: TextStyle(
+                        color: DoorstepTheme.textMutedOf(context),
+                        fontSize: 12.5,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              DoorstepStatusChip(label: chipLabel, tone: chipTone, icon: chipIcon, pulse: connected && !sleepMode),
+              const Spacer(),
+              if (onToggleSleep != null)
+                TextButton.icon(
+                  onPressed: onToggleSleep,
+                  icon: Icon(sleepMode ? Icons.bedtime_rounded : Icons.bedtime_outlined, size: 16),
+                  label: Text(sleepMode ? 'Wake' : 'Sleep'),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: sleepMode ? DoorstepTheme.warning : DoorstepTheme.textMutedOf(context),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: DoorstepTheme.borderOf(context).withValues(alpha: 0.7)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _Stat(label: 'Nearby', value: '$nearbyCount'),
+              _Stat(label: 'Devices', value: '$pairedCount'),
+              if (showDropZones) _Stat(label: 'Drop zones', value: '$dropZoneCount'),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Discovered device card (Direct Doorstep Network Peer) ───────────────────
+class _Stat extends StatelessWidget {
+  final String label;
+  final String value;
 
-class _DiscoveredDeviceCard extends StatelessWidget {
+  const _Stat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              color: DoorstepTheme.textMainOf(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Nearby (discovered) device row ────────────────────────────────────────────
+
+class _DiscoveredDeviceRow extends StatelessWidget {
   final Device device;
-  const _DiscoveredDeviceCard({required this.device});
+
+  const _DiscoveredDeviceRow({required this.device});
 
   @override
   Widget build(BuildContext context) {
     final ref = context.ref;
-    final isMobile = device.deviceType == DeviceType.mobile;
+    final isPhone = device.deviceType == DeviceType.mobile;
 
-    return DoorstepCard(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(11),
             ),
             child: Icon(
-              isMobile ? Icons.phone_android_rounded : Icons.laptop_chromebook_rounded,
+              isPhone ? Icons.phone_android_rounded : Icons.laptop_mac_rounded,
               color: DoorstepTheme.primaryOf(context),
-              size: 22,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   device.alias,
-                  style: TextStyle(
-                    color: DoorstepTheme.textMainOf(context),
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 Text(
-                  '${device.ip}:${device.port}  ·  Discovered online',
-                  style: TextStyle(
-                    color: DoorstepTheme.textMutedOf(context),
-                    fontSize: 11.5,
-                  ),
+                  '${device.ip} · on the Doorstep network',
+                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
+          const SizedBox(width: 10),
+          FilledButton(
             onPressed: () async {
-              await ref.notifier(doorstepPairingProvider).pairWithDiscoveredDevice(device);
+              final trust = await showTrustDeviceDialog(
+                context,
+                alias: device.alias,
+                incoming: false,
+                address: '${device.ip}:${device.port}',
+              );
+              if (trust == null) return;
+              await ref.notifier(doorstepPairingProvider).pairWithDiscoveredDevice(device, trustLevel: trust);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Connected & trusted ${device.alias}!')),
+                context.showSnackBar(
+                  trust == DeviceTrustLevel.persistent
+                      ? '${device.alias} connected — it will reconnect automatically.'
+                      : '${device.alias} connected for this session only.',
                 );
               }
             },
-            icon: const Icon(Icons.link_rounded, size: 16),
-            label: const Text('Connect & Trust'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
             ),
+            child: const Text('Connect'),
           ),
         ],
       ),
@@ -619,234 +551,151 @@ class _DiscoveredDeviceCard extends StatelessWidget {
   }
 }
 
-// ── Device card ──────────────────────────────────────────────────────────────
+// ── Paired device row ─────────────────────────────────────────────────────────
 
-class _DeviceCard extends StatefulWidget {
+class _PairedDeviceRow extends StatelessWidget {
   final PairedDevice device;
-  const _DeviceCard({required this.device});
 
-  @override
-  State<_DeviceCard> createState() => _DeviceCardState();
-}
-
-class _DeviceCardState extends State<_DeviceCard> with SingleTickerProviderStateMixin, Refena {
-  late final AnimationController _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    unawaited(_pulse.repeat(reverse: true));
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
+  const _PairedDeviceRow({required this.device});
 
   @override
   Widget build(BuildContext context) {
-    final sinceLastSeen = DateTime.now().difference(widget.device.lastSeen);
+    final sinceLastSeen = DateTime.now().difference(device.lastSeen);
     final isOnline = sinceLastSeen.inMinutes < 5;
+    final isTemporary = device.trustLevel == DeviceTrustLevel.temporary;
+    final connected = isOnline || isTemporary;
 
-    return DoorstepCard(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
         children: [
-          AnimatedBuilder(
-            animation: _pulse,
-            builder: (context, child) => Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isOnline ? DoorstepTheme.success : DoorstepTheme.textMutedOf(context),
-                boxShadow: isOnline
-                    ? [
-                        BoxShadow(
-                          color: Color.lerp(
-                            const Color(0x0086EFAC),
-                            const Color(0x9986EFAC),
-                            _pulse.value,
-                          )!,
-                          blurRadius: 10,
-                          spreadRadius: 3,
-                        ),
-                      ]
-                    : [],
-              ),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(11),
             ),
+            child: Icon(Icons.devices_rounded, color: DoorstepTheme.primaryOf(context), size: 18),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.device.alias,
-                  style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 15, fontWeight: FontWeight.bold),
+                  device.alias,
+                  style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  '${widget.device.lastKnownIp}:${widget.device.port}  ·  '
-                  '${isOnline ? 'Online' : 'Last seen ${_formatAge(sinceLastSeen)}'}  ·  '
-                  '${widget.device.trustLevel == DeviceTrustLevel.temporary ? 'Temporary' : 'Trusted'}',
+                  isTemporary
+                      ? 'This session only'
+                      : connected
+                      ? 'Connected · ${device.lastKnownIp}'
+                      : 'Last seen ${_formatAge(sinceLastSeen)}',
                   style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.link_off_rounded, color: DoorstepTheme.textMutedOf(context), size: 22),
-            tooltip: 'Revoke pairing',
-            onPressed: () => _confirmRevoke(context),
+          const SizedBox(width: 8),
+          DoorstepStatusChip(
+            label: isTemporary ? 'Session' : (isOnline ? 'Online' : 'Offline'),
+            tone: isTemporary ? DoorstepStatusTone.warning : (isOnline ? DoorstepStatusTone.positive : DoorstepStatusTone.neutral),
           ),
         ],
       ),
     );
   }
 
-  void _confirmRevoke(BuildContext context) {
-    final isTemporary = widget.device.trustLevel == DeviceTrustLevel.temporary;
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: DoorstepTheme.surfaceOf(context),
-          title: Text(
-            isTemporary ? 'Forget this device?' : 'Revoke ${widget.device.alias}?',
-            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            isTemporary ? 'This temporary connection will be closed.' : '"${widget.device.alias}" will no longer be trusted.',
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 14, height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel', style: TextStyle(color: DoorstepTheme.textMutedOf(context))),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                // ignore: discarded_futures
-                ref.notifier(doorstepPairingProvider).revokeDevice(widget.device.id);
-              },
-              child: const Text(
-                'Revoke',
-                style: TextStyle(color: DoorstepTheme.danger, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatAge(Duration d) {
+  static String _formatAge(Duration d) {
     if (d.inMinutes < 60) return '${d.inMinutes}m ago';
     if (d.inHours < 24) return '${d.inHours}h ago';
     return '${d.inDays}d ago';
   }
 }
 
-// ── Folder card ──────────────────────────────────────────────────────────────
+// ── Folder (drop zone) card ───────────────────────────────────────────────────
 
 class _FolderCard extends StatelessWidget {
   final WatchedFolder folder;
+
   const _FolderCard({required this.folder});
 
   @override
   Widget build(BuildContext context) {
-    return DoorstepCard(
+    final ref = context.ref;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 13, 8, 13),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(Icons.folder_special_rounded, color: DoorstepTheme.primaryOf(context), size: 24),
+            child: Icon(Icons.folder_special_rounded, color: DoorstepTheme.primaryOf(context), size: 18),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   folder.name,
-                  style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 15, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   folder.path,
-                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                InkWell(
-                  onTap: () => _pickTargetDevices(context, folder),
-                  borderRadius: BorderRadius.circular(100),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.25), width: 0.8),
+                Row(
+                  children: [
+                    _MiniChip(
+                      icon: Icons.send_to_mobile_rounded,
+                      label: _targetDevicesLabel(context, folder),
+                      onTap: () => _pickTargetDevices(context, folder),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.send_to_mobile_rounded, size: 13, color: DoorstepTheme.primaryOf(context)),
-                        const SizedBox(width: 6),
-                        Text(
-                          _targetDevicesLabel(context, folder),
-                          style: TextStyle(
-                            color: DoorstepTheme.primaryOf(context),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 7),
+                    _MiniChip(
+                      icon: folder.autoTransfer ? Icons.bolt_rounded : Icons.touch_app_rounded,
+                      label: folder.autoTransfer ? 'Automatic' : 'Manual',
+                      tone: folder.autoTransfer ? DoorstepStatusTone.positive : DoorstepStatusTone.warning,
+                      onTap: () => ref.notifier(doorstepWatcherProvider).toggleAutoTransfer(folder.id), // ignore: discarded_futures
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                folder.autoTransfer ? 'Auto' : 'Manual',
-                style: TextStyle(
-                  color: folder.autoTransfer ? DoorstepTheme.success : DoorstepTheme.warning,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Switch(
-                value: folder.autoTransfer,
-                activeTrackColor: DoorstepTheme.success.withValues(alpha: 0.4),
-                activeThumbColor: DoorstepTheme.success,
-                onChanged: (_) {
-                  // ignore: discarded_futures
-                  context.ref.notifier(doorstepWatcherProvider).toggleAutoTransfer(folder.id);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: DoorstepTheme.danger, size: 22),
-            tooltip: 'Remove drop zone',
-            onPressed: () {
-              _confirmRemove(context, folder);
+          PopupMenuButton<String>(
+            tooltip: 'Drop zone options',
+            icon: Icon(Icons.more_vert_rounded, size: 20, color: DoorstepTheme.textMutedOf(context)),
+            onSelected: (value) {
+              switch (value) {
+                case 'open':
+                  openFolder(folderPath: folder.path); // ignore: discarded_futures
+                case 'remove':
+                  _confirmRemove(context, folder);
+              }
             },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'open', child: Text('Open folder')),
+              PopupMenuItem(value: 'remove', child: Text('Remove drop zone')),
+            ],
           ),
         ],
       ),
@@ -875,40 +724,35 @@ class _FolderCard extends StatelessWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           return AlertDialog(
-            backgroundColor: DoorstepTheme.surfaceOf(context),
-            title: Text(
-              'Send to…',
-              style: TextStyle(color: DoorstepTheme.textMainOf(context), fontWeight: FontWeight.bold),
-            ),
+            title: const Text('Send this folder to…', style: TextStyle(fontWeight: FontWeight.w700)),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Files dropped into "${folder.name}" go to the devices you pick here.',
-                    style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13, height: 1.4),
+                    'Files dropped into “${folder.name}” go to the devices you pick here.',
+                    style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 13, height: 1.4),
                   ),
                   const SizedBox(height: 14),
-                  // All devices
                   CheckboxListTile(
                     value: allSelected,
-                    activeColor: DoorstepTheme.primaryOf(context),
+                    activeColor: DoorstepTheme.primaryOf(ctx),
                     onChanged: (value) {
                       setState(() {
                         if (value == true) {
                           selected.clear();
                         }
                       });
-                      if (value == true) Navigator.of(ctx).pop(true); // all mode
+                      if (value == true) Navigator.of(ctx).pop(true);
                     },
                     title: Text(
-                      'All paired devices',
-                      style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14, fontWeight: FontWeight.bold),
+                      'Every connected device',
+                      style: TextStyle(color: DoorstepTheme.textMainOf(ctx), fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Every trusted device gets files from this folder',
-                      style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5),
+                      'New devices are included automatically',
+                      style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 11.5),
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
@@ -916,15 +760,15 @@ class _FolderCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(12),
                       child: Text(
-                        'No devices paired yet.',
-                        style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                        'No devices connected yet.',
+                        style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 12),
                       ),
                     )
                   else
                     ...paired.map(
                       (d) => CheckboxListTile(
                         value: !allSelected && selected.contains(d.id),
-                        activeColor: DoorstepTheme.primaryOf(context),
+                        activeColor: DoorstepTheme.primaryOf(ctx),
                         onChanged: (value) {
                           setState(() {
                             if (value == true) {
@@ -934,18 +778,10 @@ class _FolderCard extends StatelessWidget {
                             }
                           });
                         },
-                        title: Text(
-                          d.alias,
-                          style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14),
-                        ),
+                        title: Text(d.alias, style: TextStyle(color: DoorstepTheme.textMainOf(ctx), fontSize: 14)),
                         subtitle: Text(
-                          d.trustLevel == DeviceTrustLevel.temporary ? 'Temporary session' : 'Trusted device',
-                          style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5),
-                        ),
-                        secondary: Icon(
-                          d.trustLevel == DeviceTrustLevel.temporary ? Icons.timer_rounded : Icons.check_circle_rounded,
-                          color: d.trustLevel == DeviceTrustLevel.temporary ? DoorstepTheme.warning : DoorstepTheme.success,
-                          size: 20,
+                          d.trustLevel == DeviceTrustLevel.temporary ? 'This session only' : 'Connected device',
+                          style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 11.5),
                         ),
                         controlAffinity: ListTileControlAffinity.leading,
                       ),
@@ -956,14 +792,11 @@ class _FolderCard extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text('Cancel', style: TextStyle(color: DoorstepTheme.textMutedOf(context))),
+                child: Text('Cancel', style: TextStyle(color: DoorstepTheme.textMutedOf(ctx))),
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(
-                  'Apply',
-                  style: TextStyle(color: DoorstepTheme.primaryOf(context), fontWeight: FontWeight.bold),
-                ),
+                child: const Text('Apply'),
               ),
             ],
           );
@@ -973,7 +806,6 @@ class _FolderCard extends StatelessWidget {
 
     if (result == null || !context.mounted) return;
     if (result == true) {
-      // All devices
       await context.ref.notifier(doorstepWatcherProvider).setFolderTargetDevices(folder.id, const []);
     } else {
       await context.ref.notifier(doorstepWatcherProvider).setFolderTargetDevices(folder.id, selected.toList());
@@ -985,29 +817,22 @@ class _FolderCard extends StatelessWidget {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: DoorstepTheme.surfaceOf(context),
-          title: Text(
-            'Remove Drop Zone?',
-            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontWeight: FontWeight.bold),
-          ),
+          title: const Text('Remove this drop zone?', style: TextStyle(fontWeight: FontWeight.w700)),
           content: Text(
-            'Remove "${folder.name}" from Doorstep?\n\nYour files will not be deleted.',
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 14),
+            '“${folder.name}” will stop sending. You can add it again later — your files are not deleted.',
+            style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 14, height: 1.45),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel', style: TextStyle(color: DoorstepTheme.textMutedOf(context))),
+              child: Text('Keep', style: TextStyle(color: DoorstepTheme.textMutedOf(ctx))),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
                 unawaited(context.ref.notifier(doorstepWatcherProvider).removeFolder(folder.id));
               },
-              child: const Text(
-                'Remove',
-                style: TextStyle(color: DoorstepTheme.danger, fontWeight: FontWeight.bold),
-              ),
+              child: const Text('Remove'),
             ),
           ],
         ),
@@ -1016,10 +841,60 @@ class _FolderCard extends StatelessWidget {
   }
 }
 
-// ── Pairing modal ─────────────────────────────────────────────────────────────
+class _MiniChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final DoorstepStatusTone tone;
+  final VoidCallback onTap;
+
+  const _MiniChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.tone = DoorstepStatusTone.neutral,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = switch (tone) {
+      DoorstepStatusTone.positive => isDark ? DoorstepTheme.success : const Color(0xFF15803D),
+      DoorstepStatusTone.warning => isDark ? DoorstepTheme.warning : const Color(0xFFA16207),
+      DoorstepStatusTone.negative => isDark ? DoorstepTheme.danger : const Color(0xFFB91C1C),
+      DoorstepStatusTone.neutral => DoorstepTheme.primaryOf(context),
+    };
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: color.withValues(alpha: 0.24), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12.5, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Pairing modal (fallback path only) ───────────────────────────────────────
 
 class _PairingModal extends StatelessWidget {
   final DoorstepPairingPayload payload;
+
   const _PairingModal({required this.payload});
 
   @override
@@ -1039,14 +914,14 @@ class _PairingModal extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Pair Your Device',
-            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 22, fontWeight: FontWeight.bold),
+            'Connect manually',
+            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4),
           ),
           const SizedBox(height: 8),
           Text(
-            'Open the Doorstep app on your phone and scan this code.\nYour phone will ask you whether this is a personal device.',
+            'Only needed if Doorstep cannot find your other device automatically.\nOpen Doorstep on the other device and scan this code.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13, height: 1.4),
+            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13, height: 1.45),
           ),
           const SizedBox(height: 10),
           Row(
@@ -1064,7 +939,6 @@ class _PairingModal extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -1073,24 +947,16 @@ class _PairingModal extends StatelessWidget {
               border: Border.all(color: DoorstepTheme.borderOf(context)),
             ),
             child: Text(
-              'Alias: ${payload.alias}  ·  IP: ${payload.ip}:${payload.port}',
+              '${payload.alias}  ·  ${payload.ip}:${payload.port}',
               style: TextStyle(color: DoorstepTheme.primaryOf(context), fontSize: 12, fontFamily: 'monospace'),
             ),
           ),
-          const SizedBox(height: 24),
-
+          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
             ),
             child: SizedBox(
               width: 200,
@@ -1098,33 +964,15 @@ class _PairingModal extends StatelessWidget {
               child: PrettyQrView.data(
                 data: payload.encode(),
                 decoration: const PrettyQrDecoration(
-                  shape: PrettyQrSmoothSymbol(
-                    color: Colors.black,
-                  ),
+                  shape: PrettyQrSmoothSymbol(color: Colors.black),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.security_rounded, color: DoorstepTheme.primaryOf(context), size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  'LAN only  ·  Secure Encryption  ·  No Cloud',
-                  style: TextStyle(color: DoorstepTheme.primaryOf(context), fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+          const SizedBox(height: 20),
+          Text(
+            'LAN only · encrypted · nothing leaves your network',
+            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5, fontWeight: FontWeight.w600),
           ),
         ],
       ),

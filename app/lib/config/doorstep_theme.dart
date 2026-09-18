@@ -25,56 +25,81 @@ class DoorstepTheme {
   static const Color lightTextMain = Color(0xFF1A1D20);
 
   // ── Theme-aware lookups ───────────────────────────────────────────────────
-  // The Doorstep pages keep their branded look but follow the app's active
-  // theme (brightness + user color mode), so changing the color in settings
-  // is reflected on every page — not just the settings page and nav.
+  // Everything below resolves from the *active* Material theme rather than from
+  // the constants above. That is what makes a colour change in Settings show up
+  // on every page: the brand palette is only the default (see `ColorMode`), and
+  // the theme carries whatever the user picked.
 
-  /// Page background: deep steel black in dark mode, clean light grey in light.
-  static Color backgroundOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? background : lightBackground;
+  /// Page background.
+  static Color backgroundOf(BuildContext context) => Theme.of(context).scaffoldBackgroundColor;
 
-  /// Card / sheet surface color, matching the current brightness.
-  static Color surfaceOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? surface : lightSurface;
+  /// Card / sheet surface colour.
+  static Color surfaceOf(BuildContext context) => Theme.of(context).cardColor;
 
-  /// Card border color, matching the current brightness.
-  static Color borderOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? surfaceBorder : const Color(0xFFE2E8F0);
+  /// Slightly raised surface (e.g. nested tiles, code blocks).
+  static Color surfaceAltOf(BuildContext context) => Theme.of(context).colorScheme.surfaceContainerHighest;
 
-  /// Primary text color matching the current brightness.
-  static Color textMainOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? textMain : lightTextMain;
+  /// Hairline border / divider colour.
+  static Color borderOf(BuildContext context) => Theme.of(context).colorScheme.outline;
 
-  /// Muted / subtitle text color matching the current brightness.
-  static Color textMutedOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? textMuted : const Color(0xFF64748B);
+  /// Primary text colour.
+  static Color textMainOf(BuildContext context) => Theme.of(context).colorScheme.onSurface;
 
-  /// The brand accent as resolved from the active theme (follows the user's
-  /// chosen color mode / dynamic color).
+  /// Muted / supporting text colour.
+  static Color textMutedOf(BuildContext context) => Theme.of(context).colorScheme.onSurfaceVariant;
+
+  /// Semantic colours that follow the active scheme where it defines them and
+  /// otherwise fall back to the brand palette for the current brightness.
+  static Color successOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? success : const Color(0xFF15803D);
+
+  static Color warningOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? warning : const Color(0xFFA16207);
+
+  static Color dangerOf(BuildContext context) => Theme.of(context).brightness == Brightness.dark ? danger : const Color(0xFFB91C1C);
+
+  /// The active accent.
   static Color primaryOf(BuildContext context) => Theme.of(context).colorScheme.primary;
 
-  static ThemeData get darkTheme => _build(Brightness.dark);
+  static ThemeData get darkTheme => buildFromScheme(_brandScheme(Brightness.dark));
 
-  static ThemeData get lightTheme => _build(Brightness.light);
+  static ThemeData get lightTheme => buildFromScheme(_brandScheme(Brightness.light));
 
-  static ThemeData _build(Brightness brightness) {
+  /// The default Doorstep colour scheme for [brightness].
+  static ColorScheme _brandScheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
 
     // Choose primary based on brightness to ensure good contrast
     final activePrimary = isDark ? primary : const Color(0xFF0F60FF);
     final activeSecondary = isDark ? accent : const Color(0xFF006874);
 
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: activePrimary,
-          brightness: brightness,
-        ).copyWith(
-          primary: activePrimary,
-          onPrimary: Colors.white,
-          secondary: activeSecondary,
-          onSecondary: Colors.white,
-          error: danger,
-          onError: Colors.white,
-          surface: isDark ? surface : lightSurface,
-          onSurface: isDark ? textMain : lightTextMain,
-          surfaceContainerHighest: isDark ? surfaceBorder : const Color(0xFFE2E8F0),
-          outline: isDark ? surfaceBorder : const Color(0xFFCBD5E1),
-        );
+    return ColorScheme.fromSeed(
+      seedColor: activePrimary,
+      brightness: brightness,
+    ).copyWith(
+      primary: activePrimary,
+      onPrimary: Colors.white,
+      secondary: activeSecondary,
+      onSecondary: Colors.white,
+      error: danger,
+      onError: Colors.white,
+      surface: isDark ? surface : lightSurface,
+      onSurface: isDark ? textMain : lightTextMain,
+      onSurfaceVariant: isDark ? textMuted : const Color(0xFF64748B),
+      surfaceContainerHighest: isDark ? surfaceBorder : const Color(0xFFE2E8F0),
+      surfaceContainerLowest: isDark ? background : lightBackground,
+      inverseSurface: isDark ? const Color(0xFF1E222B) : const Color(0xFF1E293B),
+      onInverseSurface: textMain,
+      outline: isDark ? surfaceBorder : const Color(0xFFCBD5E1),
+    );
+  }
+
+  /// Applies the Doorstep component treatment (rounded containment, stadium
+  /// controls, tonal surfaces) on top of *any* colour scheme.
+  ///
+  /// This is what keeps the app's shape language when the user switches colour
+  /// mode: the accent changes, the layout and shapes do not.
+  static ThemeData buildFromScheme(ColorScheme colorScheme) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final activePrimary = colorScheme.primary;
 
     final border = OutlineInputBorder(
       borderSide: BorderSide(color: colorScheme.outline),
@@ -83,10 +108,10 @@ class DoorstepTheme {
 
     return (isDark ? ThemeData.dark() : ThemeData.light()).copyWith(
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: isDark ? background : lightBackground,
-      cardColor: isDark ? surface : lightSurface,
+      scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
+      cardColor: colorScheme.surface,
       appBarTheme: AppBarTheme(
-        backgroundColor: isDark ? background : lightBackground,
+        backgroundColor: colorScheme.surfaceContainerLowest,
         elevation: 0,
         centerTitle: false,
         foregroundColor: colorScheme.onSurface,
@@ -98,20 +123,20 @@ class DoorstepTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: isDark ? surface : lightSurface,
+        color: colorScheme.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: isDark ? surfaceBorder : const Color(0xFFE2E8F0), width: 0.8),
+          side: BorderSide(color: colorScheme.outline, width: 0.8),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? surface : lightSurface,
+        backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? surface : lightSurface,
+        backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -119,13 +144,13 @@ class DoorstepTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isDark ? const Color(0xFF1E222B) : const Color(0xFF1E293B),
-        contentTextStyle: const TextStyle(color: textMain),
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: TextStyle(color: colorScheme.onInverseSurface),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isDark ? surface : const Color(0xFFE2E8F0),
+        fillColor: colorScheme.surfaceContainerHighest,
         border: border,
         focusedBorder: border.copyWith(borderSide: BorderSide(color: activePrimary, width: 1.5)),
         enabledBorder: border,
@@ -159,38 +184,38 @@ class DoorstepTheme {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return Colors.white;
-          return isDark ? surfaceBorder : const Color(0xFF94A3B8);
+          if (states.contains(WidgetState.selected)) return colorScheme.onPrimary;
+          return colorScheme.outline;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return activePrimary;
-          return isDark ? surfaceBorder : const Color(0xFFCBD5E1);
+          return colorScheme.outline;
         }),
         trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: activePrimary,
-        linearTrackColor: isDark ? surfaceBorder : const Color(0xFFE2E8F0),
+        linearTrackColor: colorScheme.surfaceContainerHighest,
       ),
       dividerTheme: DividerThemeData(
-        color: isDark ? surfaceBorder : const Color(0xFFE2E8F0),
+        color: colorScheme.outline,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: isDark ? background : lightBackground,
+        backgroundColor: colorScheme.surfaceContainerLowest,
         indicatorColor: activePrimary.withValues(alpha: 0.18),
         iconTheme: WidgetStatePropertyAll(
-          IconThemeData(color: isDark ? textMuted : const Color(0xFF475569)),
+          IconThemeData(color: colorScheme.onSurfaceVariant),
         ),
         labelTextStyle: WidgetStatePropertyAll(
           TextStyle(
-            color: isDark ? textMuted : const Color(0xFF475569),
+            color: colorScheme.onSurfaceVariant,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
       navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: isDark ? background : lightBackground,
+        backgroundColor: colorScheme.surfaceContainerLowest,
         indicatorColor: activePrimary.withValues(alpha: 0.18),
         selectedIconTheme: IconThemeData(color: activePrimary),
         selectedLabelTextStyle: TextStyle(
@@ -198,20 +223,15 @@ class DoorstepTheme {
           fontWeight: FontWeight.bold,
           fontSize: 13,
         ),
-        unselectedIconTheme: IconThemeData(
-          color: isDark ? textMuted : const Color(0xFF475569),
-        ),
-        unselectedLabelTextStyle: TextStyle(
-          color: isDark ? textMuted : const Color(0xFF475569),
-          fontSize: 13,
-        ),
+        unselectedIconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+        unselectedLabelTextStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E222B) : const Color(0xFF1E293B),
+          color: colorScheme.inverseSurface,
           borderRadius: BorderRadius.circular(8),
         ),
-        textStyle: const TextStyle(color: textMain, fontSize: 12),
+        textStyle: TextStyle(color: colorScheme.onInverseSurface, fontSize: 12),
       ),
     );
   }

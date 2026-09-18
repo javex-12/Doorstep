@@ -854,6 +854,73 @@ dependencies = [
 ]
 
 [[package]]
+name = "doorstep-cli"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "clap",
+ "crossterm",
+ "dirs",
+ "doorstep_core",
+ "futures-util",
+ "gethostname",
+ "if-addrs",
+ "mime_guess",
+ "pem 4.0.0",
+ "ratatui",
+ "ratatui-explorer",
+ "rcgen 0.14.8",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "toml",
+ "uuid",
+]
+
+[[package]]
+name = "doorstep_core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "bytes",
+ "ed25519-dalek",
+ "flate2",
+ "form_urlencoded",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "if-addrs",
+ "lru 0.16.4",
+ "pem 3.0.6",
+ "percent-encoding",
+ "rand 0.9.5",
+ "reqwest",
+ "rsa",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha2",
+ "socket2 0.6.5",
+ "thiserror 2.0.19",
+ "tokio",
+ "tokio-rustls",
+ "tokio-stream",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "tungstenite",
+ "uuid",
+ "webrtc",
+ "x509-parser 0.18.1",
+]
+
+[[package]]
 name = "dtls"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1792,73 +1859,6 @@ name = "litrs"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
-
-[[package]]
-name = "localsend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.22.1",
- "bytes",
- "ed25519-dalek",
- "flate2",
- "form_urlencoded",
- "futures-util",
- "http-body-util",
- "hyper",
- "hyper-util",
- "if-addrs",
- "lru 0.16.4",
- "pem 3.0.6",
- "percent-encoding",
- "rand 0.9.5",
- "reqwest",
- "rsa",
- "rustls",
- "serde",
- "serde_json",
- "sha2",
- "socket2 0.6.5",
- "thiserror 2.0.19",
- "tokio",
- "tokio-rustls",
- "tokio-stream",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "tungstenite",
- "uuid",
- "webrtc",
- "x509-parser 0.18.1",
-]
-
-[[package]]
-name = "localsend-cli"
-version = "1.17.0"
-dependencies = [
- "anyhow",
- "bytes",
- "clap",
- "crossterm",
- "dirs",
- "futures-util",
- "gethostname",
- "if-addrs",
- "localsend",
- "mime_guess",
- "pem 4.0.0",
- "ratatui",
- "ratatui-explorer",
- "rcgen 0.14.8",
- "serde",
- "serde_json",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "toml",
- "uuid",
-]
 
 [[package]]
 name = "lock_api"

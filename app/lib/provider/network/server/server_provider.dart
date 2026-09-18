@@ -9,11 +9,11 @@ import 'package:doorstep_app/provider/network/server/controller/send_controller.
 import 'package:doorstep_app/provider/network/server/server_utils.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/util/alias_generator.dart';
-import 'package:localsend_isolates/constants.dart';
-import 'package:localsend_isolates/isolate.dart';
-import 'package:localsend_isolates/model/dto/multicast_dto.dart';
-import 'package:localsend_isolates/rust/api/server.dart' show WebSendI18n, WebSendParams;
-import 'package:localsend_isolates/util/rust.dart';
+import 'package:doorstep_isolates/constants.dart';
+import 'package:doorstep_isolates/isolate.dart';
+import 'package:doorstep_isolates/model/dto/multicast_dto.dart';
+import 'package:doorstep_isolates/rust/api/server.dart' show WebSendI18n, WebSendParams;
+import 'package:doorstep_isolates/util/rust.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 

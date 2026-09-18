@@ -6,7 +6,7 @@ import 'package:doorstep_app/provider/favorites_provider.dart';
 import 'package:doorstep_app/provider/local_ip_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
-import 'package:localsend_isolates/util/sleep.dart';
+import 'package:doorstep_isolates/util/sleep.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// Scans the network via multicast first,

@@ -5,8 +5,8 @@ import 'package:doorstep_app/model/persistence/favorite_device.dart';
 import 'package:doorstep_app/model/state/nearby_devices_state.dart';
 import 'package:doorstep_app/provider/favorites_provider.dart';
 import 'package:doorstep_app/provider/logging/discovery_logs_provider.dart';
-import 'package:localsend_isolates/isolate.dart';
-import 'package:localsend_isolates/model/device.dart';
+import 'package:doorstep_isolates/isolate.dart';
+import 'package:doorstep_isolates/model/device.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// This provider is responsible for:

@@ -9,7 +9,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::Response;
 use futures_util::stream::StreamExt;
 use futures_util::SinkExt;
-use localsend::webrtc::signaling::{
+use doorstep_core::webrtc::signaling::{
     ClientInfo, ClientInfoWithoutId, WsClientMessage, WsClientSdpMessage, WsServerMessage,
     WsServerSdpMessage,
 };

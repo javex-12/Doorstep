@@ -9,8 +9,8 @@ import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/util/native/cross_file_converters.dart';
+import 'package:doorstep_isolates/model/device.dart';
 import 'package:flutter/foundation.dart' show immutable;
-import 'package:localsend_isolates/model/device.dart';
 import 'package:logging/logging.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 

@@ -4,12 +4,12 @@
 use super::App;
 use crate::ui::Category;
 use crate::util::{self, SpeedMeter};
-use localsend::http::client::v2::LsHttpClientV2;
-use localsend::http::dto::ProtocolType;
-use localsend::http::dto_v2::ProtocolTypeV2;
-use localsend::http::server::common::save::FileUploadTarget;
-use localsend::http::server::v2::{PrepareUploadDecisionV2, ServerEventV2, SessionEndReasonV2};
-use localsend::model::transfer::FileDto;
+use doorstep_core::http::client::v2::LsHttpClientV2;
+use doorstep_core::http::dto::ProtocolType;
+use doorstep_core::http::dto_v2::ProtocolTypeV2;
+use doorstep_core::http::server::common::save::FileUploadTarget;
+use doorstep_core::http::server::v2::{PrepareUploadDecisionV2, ServerEventV2, SessionEndReasonV2};
+use doorstep_core::model::transfer::FileDto;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};

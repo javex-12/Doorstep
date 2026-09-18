@@ -1,12 +1,12 @@
 //! `identity.pem`: this device's certificate and private key.
 
 use anyhow::Context;
-use localsend::crypto::cert::fingerprint_from_cert_der;
-use localsend::http::dto_v2::{PROTOCOL_VERSION_V2, ProtocolTypeV2, RegisterDtoV2};
-use localsend::http::server::TlsConfig;
-use localsend::http::state::ClientInfo;
-use localsend::model::discovery::DeviceType;
-use localsend::multicast::MulticastDevice;
+use doorstep_core::crypto::cert::fingerprint_from_cert_der;
+use doorstep_core::http::dto_v2::{PROTOCOL_VERSION_V2, ProtocolTypeV2, RegisterDtoV2};
+use doorstep_core::http::server::TlsConfig;
+use doorstep_core::http::state::ClientInfo;
+use doorstep_core::model::discovery::DeviceType;
+use doorstep_core::multicast::MulticastDevice;
 use std::path::Path;
 
 /// This device's identity: a self-signed certificate whose SHA-256

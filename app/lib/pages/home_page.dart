@@ -12,6 +12,7 @@ import 'package:doorstep_app/pages/tabs/send_tab.dart';
 import 'package:doorstep_app/pages/tabs/settings_tab.dart';
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:doorstep_app/util/native/cross_file_converters.dart';
+import 'package:doorstep_app/widget/doorstep_logo.dart';
 import 'package:doorstep_app/widget/responsive_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -128,15 +129,22 @@ class _HomePageState extends State<HomePage> with Refena {
                     extended: sizingInformation.isDesktop,
                     backgroundColor: Theme.of(context).cardColorWithElevation,
                     leading: sizingInformation.isDesktop
-                        ? const Column(
+                        ? Column(
                             children: [
-                              SizedBox(height: 20),
+                              const SizedBox(height: 22),
+                              const DoorstepLogo(withText: false, size: 42),
+                              const SizedBox(height: 10),
                               Text(
                                 'Doorstep',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF6366F1)),
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.6,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
-                              SizedBox(height: 20),
+                              const SizedBox(height: 22),
                             ],
                           )
                         : null,

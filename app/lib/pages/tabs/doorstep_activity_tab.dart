@@ -5,14 +5,23 @@ import 'package:doorstep_app/provider/doorstep_arrival_provider.dart';
 import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
 import 'package:doorstep_app/provider/receive_history_provider.dart';
 import 'package:doorstep_app/util/native/open_file.dart';
+import 'package:doorstep_app/util/native/open_folder.dart';
+import 'package:doorstep_app/util/ui/snackbar.dart';
 import 'package:doorstep_app/widget/door_entry_animation.dart';
-import 'package:doorstep_app/widget/doorstep_card.dart';
+import 'package:doorstep_app/widget/doorstep_empty_state.dart';
 import 'package:doorstep_app/widget/doorstep_header.dart';
+import 'package:doorstep_app/widget/doorstep_section.dart';
+import 'package:doorstep_app/widget/doorstep_status_chip.dart';
 import 'package:doorstep_app/widget/file_thumbnail.dart';
+import 'package:doorstep_isolates/util/file_size_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/util/file_size_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
+/// Doorstep activity.
+///
+/// A day-grouped timeline of everything that moved, plus whatever is moving
+/// right now. Empty states always explain what will appear here and offer the
+/// one action that changes that.
 class DoorstepActivityTab extends StatefulWidget {
   const DoorstepActivityTab({super.key});
 
@@ -42,19 +51,35 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
     final received = context.watch(receiveHistoryProvider);
     _trackArrival(received);
 
+    // Day-grouped, newest first. The provider already returns newest first, so
+    // a single ordered pass keeps the groups in order.
+    final grouped = <String, List<ReceiveHistoryEntry>>{};
+    for (final entry in received) {
+      grouped.putIfAbsent(_dayLabel(entry.timestamp), () => []).add(entry);
+    }
+
     return Scaffold(
       backgroundColor: DoorstepTheme.backgroundOf(context),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const DoorstepHeader(
+              DoorstepHeader(
                 title: 'Activity',
-                subtitle: 'Files that walked in the door, and transfers in flight.',
+                subtitle: received.isEmpty
+                    ? 'Files you send and receive will show up here.'
+                    : '${received.length} transfer${received.length == 1 ? '' : 's'} so far',
+                trailing: received.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Clear history',
+                        icon: const Icon(Icons.delete_sweep_rounded, size: 22),
+                        onPressed: () => _confirmClear(context),
+                      ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               if (_arrival != null) ...[
                 DoorEntryAnimation(
@@ -62,128 +87,43 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
                   entry: _arrival!,
                   onDone: () => setState(() => _arrival = null),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
               ],
 
-              // ── Transfer History (Sent & Received) ─────────────────────
-              const _SectionLabel(label: 'TRANSFER HISTORY'),
-              const SizedBox(height: 12),
+              // ── In flight ────────────────────────────────────────────────
+              if (transfers.isNotEmpty)
+                DoorstepSection(
+                  title: 'Happening now',
+                  subtitle: '${transfers.length} transfer${transfers.length == 1 ? '' : 's'} in progress',
+                  children: transfers.map((item) => _InFlightRow(item: item)).toList(),
+                ),
+
+              // ── History ──────────────────────────────────────────────────
               if (received.isEmpty)
-                DoorstepCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.history_rounded, size: 40, color: DoorstepTheme.textMutedOf(context)),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No transfer history yet',
-                            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Files sent and received on this device will appear here.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12.5),
-                          ),
-                        ],
-                      ),
+                DoorstepSection(
+                  title: 'History',
+                  children: [
+                    DoorstepEmptyState(
+                      inline: true,
+                      kind: DoorstepEmptyKind.noData,
+                      icon: Icons.inbox_rounded,
+                      title: 'Nothing here yet',
+                      message: transfers.isEmpty
+                          ? 'Connect a device and send a file — or add a drop zone on your computer — and it will appear here.'
+                          : 'Your finished transfers will be listed here.',
                     ),
-                  ),
+                  ],
                 )
               else
-                ...received
-                    .take(12)
-                    .map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _ReceivedFileCard(entry: entry),
-                      ),
-                    ),
-
-              const SizedBox(height: 28),
-
-              // ── Transfers in flight ──────────────────────────────────────
-              const _SectionLabel(label: 'TRANSFERS IN FLIGHT'),
-              const SizedBox(height: 12),
-              if (transfers.isEmpty)
-                DoorstepCard(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.swap_horizontal_circle_outlined, size: 40, color: DoorstepTheme.textMutedOf(context)),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No active transfers',
-                            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Files dropped into watched folders will appear here automatically.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12.5),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              else
-                ...transfers.map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: DoorstepCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              _getStatusIcon(item.status),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.fileName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 15, fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${item.sourceDevice} → ${item.targetDevice}',
-                                      style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              _getStatusBadge(item.status),
-                            ],
-                          ),
-                          if (item.status == DoorstepTransferStatus.transferring) ...[
-                            const SizedBox(height: 14),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: LinearProgressIndicator(
-                                value: item.progress,
-                                minHeight: 6,
-                                backgroundColor: DoorstepTheme.borderOf(context),
-                                color: DoorstepTheme.primaryOf(context),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                ...grouped.entries.map(
+                  (group) => DoorstepSection(
+                    title: group.key,
+                    subtitle: '${group.value.length} item${group.value.length == 1 ? '' : 's'}',
+                    children: group.value.map((entry) => _HistoryRow(entry: entry)).toList(),
                   ),
                 ),
+
+              const SizedBox(height: 60),
             ],
           ),
         ),
@@ -191,151 +131,165 @@ class _DoorstepActivityTabState extends State<DoorstepActivityTab> with Refena {
     );
   }
 
-  Widget _getStatusIcon(DoorstepTransferStatus status) {
-    switch (status) {
-      case DoorstepTransferStatus.completed:
-        return const Icon(Icons.check_circle_rounded, color: DoorstepTheme.success, size: 24);
-      case DoorstepTransferStatus.transferring:
-        return SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2.5, color: DoorstepTheme.primaryOf(context)),
-        );
-      case DoorstepTransferStatus.failed:
-        return const Icon(Icons.error_rounded, color: DoorstepTheme.danger, size: 24);
-      case DoorstepTransferStatus.pending:
-      case DoorstepTransferStatus.retrying:
-        return const Icon(Icons.schedule_rounded, color: DoorstepTheme.warning, size: 24);
-    }
+  static String _dayLabel(DateTime timestamp) {
+    final now = DateTime.now();
+    final date = DateTime(timestamp.year, timestamp.month, timestamp.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = today.difference(date).inDays;
+    if (diff == 0) return 'Today';
+    if (diff == 1) return 'Yesterday';
+    if (diff < 7) return '$diff days ago';
+    return '${timestamp.day.toString().padLeft(2, '0')}/${timestamp.month.toString().padLeft(2, '0')}/${timestamp.year}';
   }
 
-  Widget _getStatusBadge(DoorstepTransferStatus status) {
-    Color bg;
-    Color text;
-    String label;
-
-    switch (status) {
-      case DoorstepTransferStatus.completed:
-        bg = DoorstepTheme.success.withValues(alpha: 0.15);
-        text = DoorstepTheme.success;
-        label = 'Completed';
-        break;
-      case DoorstepTransferStatus.transferring:
-        bg = DoorstepTheme.primaryOf(context).withValues(alpha: 0.15);
-        text = DoorstepTheme.primaryOf(context);
-        label = 'Transferring';
-        break;
-      case DoorstepTransferStatus.failed:
-        bg = DoorstepTheme.danger.withValues(alpha: 0.15);
-        text = DoorstepTheme.danger;
-        label = 'Failed';
-        break;
-      case DoorstepTransferStatus.pending:
-        bg = DoorstepTheme.warning.withValues(alpha: 0.15);
-        text = DoorstepTheme.warning;
-        label = 'Pending';
-        break;
-      case DoorstepTransferStatus.retrying:
-        bg = DoorstepTheme.warning.withValues(alpha: 0.15);
-        text = DoorstepTheme.warning;
-        label = 'Retrying';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(100)),
-      child: Text(
-        label,
-        style: TextStyle(color: text, fontSize: 11, fontWeight: FontWeight.bold),
+  Future<void> _confirmClear(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear transfer history?'),
+        content: const Text('This only clears the list. Your files stay exactly where they are.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
+          FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Clear')),
+        ],
       ),
     );
+    if (confirmed != true || !context.mounted) return;
+    await context.ref.redux(receiveHistoryProvider).dispatchAsync(RemoveAllHistoryEntriesAction());
+    if (context.mounted) context.showSnackBar('History cleared.');
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
+// ── In-flight transfer row ────────────────────────────────────────────────────
+
+class _InFlightRow extends StatelessWidget {
+  final DoorstepTransferState item;
+
+  const _InFlightRow({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        color: DoorstepTheme.textMutedOf(context),
-        fontSize: 11,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.5,
+    final status = item.status;
+    final progress = item.progress;
+    final transferring = status == DoorstepTransferStatus.transferring;
+
+    final (label, tone) = switch (status) {
+      DoorstepTransferStatus.completed => ('Done', DoorstepStatusTone.positive),
+      DoorstepTransferStatus.transferring => ('${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%', DoorstepStatusTone.neutral),
+      DoorstepTransferStatus.failed => ('Failed', DoorstepStatusTone.negative),
+      DoorstepTransferStatus.pending => ('Waiting', DoorstepStatusTone.warning),
+      DoorstepTransferStatus.retrying => ('Retrying', DoorstepStatusTone.warning),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 13, 16, 13),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.fileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.sourceDevice} → ${item.targetDevice}',
+                      style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              DoorstepStatusChip(label: label, tone: tone),
+            ],
+          ),
+          if (transferring) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 5,
+                backgroundColor: DoorstepTheme.borderOf(context),
+                color: DoorstepTheme.primaryOf(context),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 }
 
-// ── One transfer file entry ──────────────────────────────────────────────────
+// ── History row ───────────────────────────────────────────────────────────────
 
-class _ReceivedFileCard extends StatelessWidget {
+class _HistoryRow extends StatelessWidget {
   final ReceiveHistoryEntry entry;
-  const _ReceivedFileCard({required this.entry});
+
+  const _HistoryRow({required this.entry});
 
   @override
   Widget build(BuildContext context) {
     final isSent = entry.senderAlias.startsWith('Sent to');
+    final path = entry.path;
 
-    return DoorstepCard(
-      onTap: entry.path != null ? () => openFile(context, entry.fileType, entry.path!) : null,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: FilePathThumbnail(path: entry.path, fileType: entry.fileType),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        entry.fileName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isSent ? DoorstepTheme.primaryOf(context).withValues(alpha: 0.12) : DoorstepTheme.success.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        isSent ? 'SENT' : 'RECEIVED',
-                        style: TextStyle(
-                          color: isSent ? DoorstepTheme.primaryOf(context) : const Color(0xFF16A34A),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${entry.fileSize.asReadableFileSize}  ·  ${entry.senderAlias}  ·  ${entry.timestampString}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5),
-                ),
-              ],
+    return InkWell(
+      onTap: path == null ? null : () => openFile(context, entry.fileType, path),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(11),
+              child: SizedBox(
+                width: 38,
+                height: 38,
+                child: FilePathThumbnail(path: path, fileType: entry.fileType),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          if (entry.path != null) Icon(Icons.open_in_new_rounded, color: DoorstepTheme.textMutedOf(context).withValues(alpha: 0.6), size: 18),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 14.5, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${entry.fileSize.asReadableFileSize} · ${isSent ? 'Sent' : 'Received'} · ${entry.timestampString}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (path != null)
+              IconButton(
+                tooltip: 'Show in folder',
+                onPressed: () {
+                  final separator = path.contains('\\') ? '\\' : '/';
+                  final folder = path.substring(0, path.lastIndexOf(separator));
+                  openFolder(folderPath: folder, fileName: entry.fileName); // ignore: discarded_futures
+                },
+                icon: Icon(Icons.folder_open_rounded, size: 19, color: DoorstepTheme.textMutedOf(context)),
+              ),
+          ],
+        ),
       ),
     );
   }

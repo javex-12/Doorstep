@@ -2,9 +2,9 @@ import 'package:doorstep_app/model/cross_file.dart';
 import 'package:doorstep_app/model/persistence/paired_device.dart';
 import 'package:doorstep_app/model/state/nearby_devices_state.dart';
 import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
-import 'package:localsend_isolates/constants.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/model/file_type.dart';
+import 'package:doorstep_isolates/constants.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/model/file_type.dart';
 import 'package:test/test.dart';
 
 void main() {

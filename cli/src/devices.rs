@@ -1,4 +1,4 @@
-use localsend::http::dto_v2::ProtocolTypeV2;
+use doorstep_core::http::dto_v2::ProtocolTypeV2;
 
 /// A discovered Doorstep device.
 #[derive(Clone)]

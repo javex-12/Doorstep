@@ -4,11 +4,11 @@ import 'package:doorstep_app/model/state/server/receive_session_state.dart';
 import 'package:doorstep_app/model/state/settings_state.dart';
 import 'package:doorstep_app/pages/receive_page.dart';
 import 'package:doorstep_app/provider/network/webrtc/signaling_provider.dart';
-import 'package:localsend_isolates/model/dto/file_dto.dart' as dart_model;
-import 'package:localsend_isolates/model/session_status.dart';
-import 'package:localsend_isolates/model/stored_security_context.dart';
-import 'package:localsend_isolates/rust/api/model.dart';
-import 'package:localsend_isolates/rust/api/webrtc.dart';
+import 'package:doorstep_isolates/model/dto/file_dto.dart' as dart_model;
+import 'package:doorstep_isolates/model/session_status.dart';
+import 'package:doorstep_isolates/model/stored_security_context.dart';
+import 'package:doorstep_isolates/rust/api/model.dart';
+import 'package:doorstep_isolates/rust/api/webrtc.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

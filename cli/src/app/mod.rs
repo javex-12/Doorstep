@@ -9,10 +9,10 @@ use crate::picker::Picker;
 use crate::storage;
 use crate::ui::{Category, Ui};
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use localsend::http::dto_v2::ProtocolTypeV2;
-use localsend::http::server::v2::ServerEventV2;
-use localsend::http::server::{ServerConfigV2, ServerHandle, start_with_port};
-use localsend::multicast::{
+use doorstep_core::http::dto_v2::ProtocolTypeV2;
+use doorstep_core::http::server::v2::ServerEventV2;
+use doorstep_core::http::server::{ServerConfigV2, ServerHandle, start_with_port};
+use doorstep_core::multicast::{
     self, DEFAULT_MULTICAST_GROUP, DEFAULT_MULTICAST_GROUP_V6, DEFAULT_PORT, InterfaceFilter,
     MulticastConfig, MulticastEvent,
 };

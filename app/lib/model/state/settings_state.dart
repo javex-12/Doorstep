@@ -2,8 +2,8 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:doorstep_app/gen/strings.g.dart';
 import 'package:doorstep_app/model/persistence/color_mode.dart';
 import 'package:doorstep_app/model/send_mode.dart';
+import 'package:doorstep_isolates/model/device.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/device.dart';
 
 part 'settings_state.mapper.dart';
 

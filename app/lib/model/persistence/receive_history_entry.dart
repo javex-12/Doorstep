@@ -1,7 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:doorstep_app/gen/strings.g.dart';
+import 'package:doorstep_isolates/model/file_type.dart';
 import 'package:intl/intl.dart';
-import 'package:localsend_isolates/model/file_type.dart';
 
 part 'receive_history_entry.mapper.dart';
 

@@ -1,7 +1,7 @@
 import 'package:doorstep_app/gen/strings.g.dart';
-import 'package:localsend_isolates/util/notification_strings.dart';
+import 'package:doorstep_isolates/util/notification_strings.dart';
 
-/// The translations that `localsend_isolates` needs, taken from the current locale.
+/// The translations that `doorstep_isolates` needs, taken from the current locale.
 ///
 /// Lazy, so it resolves after the locale has been applied in `preInit`. The locale is pinned on
 /// app start, so binding the translation members once is enough.

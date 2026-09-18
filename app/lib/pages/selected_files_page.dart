@@ -7,9 +7,9 @@ import 'package:doorstep_app/util/ui/nav_bar_padding.dart';
 import 'package:doorstep_app/widget/dialogs/message_input_dialog.dart';
 import 'package:doorstep_app/widget/file_thumbnail.dart';
 import 'package:doorstep_app/widget/responsive_list_view.dart';
+import 'package:doorstep_isolates/model/file_type.dart';
+import 'package:doorstep_isolates/util/file_size_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/file_type.dart';
-import 'package:localsend_isolates/util/file_size_helper.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

@@ -12,15 +12,22 @@ class DoorstepSettings {
   /// itself to laptops, so auto-transfer does not work until it is turned off.
   final bool sleepMode;
 
+  /// Phone side: keep a listener running (foreground service + ongoing
+  /// notification on Android) so a trusted laptop can push files even when the
+  /// Doorstep UI is closed. Defaults to true — that is the Doorstep promise.
+  final bool backgroundService;
+
   const DoorstepSettings({
     this.autoAcceptFromPaired = true,
     this.sleepMode = false,
+    this.backgroundService = true,
   });
 
-  DoorstepSettings copyWith({bool? autoAcceptFromPaired, bool? sleepMode}) {
+  DoorstepSettings copyWith({bool? autoAcceptFromPaired, bool? sleepMode, bool? backgroundService}) {
     return DoorstepSettings(
       autoAcceptFromPaired: autoAcceptFromPaired ?? this.autoAcceptFromPaired,
       sleepMode: sleepMode ?? this.sleepMode,
+      backgroundService: backgroundService ?? this.backgroundService,
     );
   }
 }
@@ -36,6 +43,7 @@ class DoorstepSettingsNotifier extends Notifier<DoorstepSettings> {
     return DoorstepSettings(
       autoAcceptFromPaired: persistence.getDoorstepAutoAccept(),
       sleepMode: persistence.getDoorstepSleepMode(),
+      backgroundService: persistence.getDoorstepBackgroundService(),
     );
   }
 
@@ -47,5 +55,10 @@ class DoorstepSettingsNotifier extends Notifier<DoorstepSettings> {
   Future<void> setSleepMode(bool value) async {
     state = state.copyWith(sleepMode: value);
     await ref.read(persistenceProvider).setDoorstepSleepMode(value);
+  }
+
+  Future<void> setBackgroundService(bool value) async {
+    state = state.copyWith(backgroundService: value);
+    await ref.read(persistenceProvider).setDoorstepBackgroundService(value);
   }
 }

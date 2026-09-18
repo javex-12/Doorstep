@@ -27,45 +27,13 @@ ThemeData getTheme(ColorMode colorMode, Brightness brightness, DynamicColors? dy
 
   final colorScheme = _determineColorScheme(colorMode, brightness, dynamicColors);
 
-  final lightInputBorder = OutlineInputBorder(
-    borderSide: BorderSide(color: colorScheme.secondaryContainer),
-    borderRadius: _borderRadius,
-  );
-
-  final darkInputBorder = OutlineInputBorder(
-    borderSide: BorderSide(color: colorScheme.secondaryContainer),
-    borderRadius: _borderRadius,
-  );
-
-  return ThemeData(
-    colorScheme: colorScheme,
-    useMaterial3: true,
-    navigationBarTheme: colorScheme.brightness == Brightness.dark
-        ? NavigationBarThemeData(
-            iconTheme: WidgetStateProperty.all(const IconThemeData(color: Colors.white)),
-          )
-        : null,
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: colorScheme.secondaryContainer,
-      border: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      focusedBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      enabledBorder: colorScheme.brightness == Brightness.light ? lightInputBorder : darkInputBorder,
-      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: colorScheme.brightness == Brightness.dark ? Colors.white : null,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8 + desktopPaddingFix),
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8 + desktopPaddingFix),
-      ),
-    ),
-    fontFamily: _resolveFontFamily(),
-  );
+  // Every colour mode gets the same Doorstep shape language (rounded
+  // containment, stadium controls, tonal surfaces) — only the palette changes.
+  // Without this, switching colour mode reverted the rest of the app to stock
+  // Material and only the nav and Settings looked branded.
+  final base = DoorstepTheme.buildFromScheme(colorScheme);
+  final fontFamily = _resolveFontFamily();
+  return fontFamily == null ? base : base.copyWith(textTheme: base.textTheme.apply(fontFamily: fontFamily));
 }
 
 /// Resolves the platform font that renders CJK scripts correctly (see

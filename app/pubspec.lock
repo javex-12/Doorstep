@@ -338,6 +338,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.3"
+  doorstep_isolates:
+    dependency: "direct main"
+    description:
+      path: "../packages/doorstep_isolates"
+      relative: true
+    source: path
+    version: "0.0.1"
   dynamic_color:
     dependency: "direct main"
     description:
@@ -878,13 +885,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.0"
-  localsend_isolates:
-    dependency: "direct main"
-    description:
-      path: "../packages/localsend_isolates"
-      relative: true
-    source: path
-    version: "0.0.1"
   logging:
     dependency: "direct main"
     description:
@@ -1383,10 +1383,10 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.8.1"
-  rust_lib_localsend_app:
+  rust_lib_doorstep:
     dependency: transitive
     description:
-      path: "../packages/localsend_isolates/rust_builder"
+      path: "../packages/doorstep_isolates/rust_builder"
       relative: true
     source: path
     version: "0.0.1"

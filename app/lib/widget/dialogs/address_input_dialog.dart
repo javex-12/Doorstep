@@ -9,11 +9,11 @@ import 'package:doorstep_app/provider/last_devices.provider.dart';
 import 'package:doorstep_app/provider/local_ip_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/widget/dialogs/error_dialog.dart';
+import 'package:doorstep_isolates/model/device.dart';
+import 'package:doorstep_isolates/rust/api/model.dart';
+import 'package:doorstep_isolates/util/rust.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/model/device.dart';
-import 'package:localsend_isolates/rust/api/model.dart';
-import 'package:localsend_isolates/util/rust.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

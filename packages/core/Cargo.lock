@@ -528,6 +528,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "doorstep_core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64",
+ "bytes",
+ "ed25519-dalek",
+ "flate2",
+ "form_urlencoded",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "if-addrs",
+ "lru",
+ "pem",
+ "percent-encoding",
+ "rand 0.9.2",
+ "rcgen",
+ "reqwest",
+ "rsa",
+ "rustls",
+ "serde",
+ "serde_json",
+ "sha2",
+ "socket2 0.6.2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-rustls",
+ "tokio-stream",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "tungstenite",
+ "uuid",
+ "webrtc",
+ "x509-parser 0.18.0",
+]
+
+[[package]]
 name = "dtls"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1242,47 +1283,6 @@ name = "litemap"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6373607a59f0be73a39b6fe456b8192fcc3585f602af20751600e974dd455e77"
-
-[[package]]
-name = "localsend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64",
- "bytes",
- "ed25519-dalek",
- "flate2",
- "form_urlencoded",
- "futures-util",
- "http-body-util",
- "hyper",
- "hyper-util",
- "if-addrs",
- "lru",
- "pem",
- "percent-encoding",
- "rand 0.9.2",
- "rcgen",
- "reqwest",
- "rsa",
- "rustls",
- "serde",
- "serde_json",
- "sha2",
- "socket2 0.6.2",
- "thiserror 2.0.18",
- "tokio",
- "tokio-rustls",
- "tokio-stream",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "tungstenite",
- "uuid",
- "webrtc",
- "x509-parser 0.18.0",
-]
 
 [[package]]
 name = "lock_api"

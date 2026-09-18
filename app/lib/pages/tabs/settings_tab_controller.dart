@@ -10,10 +10,10 @@ import 'package:doorstep_app/util/native/autostart_helper.dart';
 import 'package:doorstep_app/util/native/context_menu_helper.dart';
 import 'package:doorstep_app/util/ui/dynamic_colors.dart';
 import 'package:doorstep_app/util/ui/snackbar.dart';
+import 'package:doorstep_isolates/isolate.dart';
+import 'package:doorstep_isolates/model/device_info_result.dart';
+import 'package:doorstep_isolates/util/sleep.dart';
 import 'package:flutter/material.dart';
-import 'package:localsend_isolates/isolate.dart';
-import 'package:localsend_isolates/model/device_info_result.dart';
-import 'package:localsend_isolates/util/sleep.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 

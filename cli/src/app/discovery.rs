@@ -3,10 +3,10 @@
 
 use super::{App, AppEvent};
 use crate::ui::Category;
-use localsend::http::client::v2::LsHttpClientV2;
-use localsend::http::dto::ProtocolType;
-use localsend::http::dto_v2::ProtocolTypeV2;
-use localsend::multicast::MulticastEvent;
+use doorstep_core::http::client::v2::LsHttpClientV2;
+use doorstep_core::http::dto::ProtocolType;
+use doorstep_core::http::dto_v2::ProtocolTypeV2;
+use doorstep_core::multicast::MulticastEvent;
 use std::time::Duration;
 
 impl App {
