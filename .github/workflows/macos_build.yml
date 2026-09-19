@@ -56,14 +56,21 @@ jobs:
       # the release entitlements (network client/server are required) so the
       # bundle stays runnable on Apple Silicon. No Developer ID is involved —
       # this is an unsigned build, so users right-click → Open on first run.
+      # The Xcode product name is the target name (`Runner.app`); Finder and the
+      # Dock show it as "Doorstep" from CFBundleDisplayName. The .app is located
+      # by search rather than by a hardcoded name so a product rename cannot
+      # silently break packaging.
       - name: Ad-hoc re-sign with release entitlements
         working-directory: app
         run: |
-          codesign --force --sign - --entitlements macos/Runner/Release.entitlements build/macos/Build/Products/Release/Doorstep.app || echo "Ad-hoc re-signing failed — keeping the build-time signature"
+          APP=$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' | head -1)
+          codesign --force --deep --sign - --entitlements macos/Runner/Release.entitlements "$APP" || echo "Ad-hoc re-signing failed — keeping the build-time signature"
 
       - name: Package .app as zip
         working-directory: app/build/macos/Build/Products/Release
-        run: ditto -c -k --keepParent Doorstep.app Doorstep-macos-universal.zip
+        run: |
+          APP=$(find . -maxdepth 1 -name '*.app' | head -1)
+          ditto -c -k --keepParent "$APP" Doorstep-macos-universal.zip
 
       - name: Upload zip
         uses: actions/upload-artifact@v6

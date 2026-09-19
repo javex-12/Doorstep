@@ -1,0 +1,62 @@
+name: iOS Build (unsigned)
+
+# iOS needs a macOS runner with Xcode, which is why this exists as a workflow
+# instead of a local build. The .ipa is unsigned: install it with AltStore,
+# Sideloadly or Xcode, no Apple Developer account required.
+
+on:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.41.9"
+  RUST_VERSION: "1.93.1"
+
+jobs:
+  build_ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add iOS Rust targets
+        run: rustup target add aarch64-apple-ios x86_64-apple-ios
+
+      # The in-app purchase code is proprietary and does not build in CI.
+      - name: Remove proprietary dependencies
+        run: sh support/scripts/remove_proprietary_dependencies.sh
+
+      - name: Dependencies
+        working-directory: app
+        run: |
+          flutter pub get
+          cd ios && pod install --repo-update
+
+      - name: Build iOS (unsigned)
+        working-directory: app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned .ipa
+        working-directory: app
+        run: |
+          APP=$(find build/ios/iphoneos -maxdepth 1 -name '*.app' | head -1)
+          echo "Packaging $APP"
+          rm -rf build/ios/ipa && mkdir -p build/ios/ipa/Payload
+          cp -r "$APP" build/ios/ipa/Payload/
+          cd build/ios/ipa && zip -qry "$GITHUB_WORKSPACE/Doorstep-ios-unsigned.ipa" Payload
+
+      - name: Upload unsigned .ipa
+        uses: actions/upload-artifact@v6
+        with:
+          name: doorstep-ios-unsigned
+          path: Doorstep-ios-unsigned.ipa
+          if-no-files-found: error
