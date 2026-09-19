@@ -15,15 +15,15 @@ use std::path::PathBuf;
 #[command(name = "localsend-cli", version, about, after_help = HELP_SECTIONS)]
 pub struct Args {
     /// Device name shown to other devices [default: config.toml, else the hostname]
-    #[arg(long, env = "LOCALSEND_ALIAS")]
+    #[arg(long, env = "DOORSTEP_ALIAS")]
     pub alias: Option<String>,
 
     /// Port of the HTTP server [default: config.toml, else 53317]
-    #[arg(long, env = "LOCALSEND_PORT")]
+    #[arg(long, env = "DOORSTEP_PORT")]
     pub port: Option<u16>,
 
     /// Directory where received files are saved [default: config.toml, else the Downloads folder]
-    #[arg(long, env = "LOCALSEND_DESTINATION")]
+    #[arg(long, env = "DOORSTEP_DESTINATION")]
     pub destination: Option<PathBuf>,
 }
 
@@ -36,7 +36,7 @@ const HELP_SECTIONS: &str = "Events:\n  \
                              Y/N/P  Accept / Decline / Accept-and-Pair an incoming request\n  \
                              Ctrl+C Cancel the current transfer or request, or quit when idle\n \
                              \nEnvironment Variables:\n  \
-                             XDG_CONFIG_HOME, LOCALSEND_ALIAS, LOCALSEND_PORT, LOCALSEND_DESTINATION";
+                             XDG_CONFIG_HOME, DOORSTEP_ALIAS, DOORSTEP_PORT, DOORSTEP_DESTINATION";
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();

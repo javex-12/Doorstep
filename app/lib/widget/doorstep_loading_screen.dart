@@ -5,16 +5,20 @@ import 'package:doorstep_app/model/state/doorstep_transfer_state.dart';
 import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
 import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/network/server/server_provider.dart';
+import 'package:doorstep_app/util/ui/progress_route.dart';
 import 'package:doorstep_app/widget/doorstep_card.dart';
 import 'package:doorstep_app/widget/doorstep_logo.dart';
 import 'package:doorstep_isolates/model/session_status.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
-/// Clean and sleek transfer progress screen/overlay shown during active transfers.
+/// The one and only in-app progress surface: a compact banner that slides in
+/// at the bottom while a transfer runs.
 ///
-/// Features a linear progress bar, real-time speed/percentage, file name,
-/// and cancel/minimize controls with Doorstep aesthetics.
+/// It is deliberately *not* a full-screen takeover — a transfer should never
+/// block you from using Doorstep — and it shows **once per session**, not once
+/// per file. If the user opens the detailed progress screen, the banner steps
+/// aside so the two never stack.
 class DoorstepTransferOverlay extends StatefulWidget {
   const DoorstepTransferOverlay({super.key});
 
@@ -63,41 +67,28 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
     _idleTimer?.cancel();
     _idleTimer = null;
 
-    if (_dismissed) {
-      return const SizedBox.shrink();
-    }
+    return ValueListenableBuilder<int>(
+      valueListenable: progressScreenDepth,
+      builder: (context, detailedOpen, _) {
+        // The detailed progress screen is the surface while it is open.
+        if (detailedOpen > 0 || _dismissed) {
+          return const SizedBox.shrink();
+        }
 
-    return Material(
-      type: MaterialType.transparency,
-      child: Container(
-        color: DoorstepTheme.backgroundOf(context).withValues(alpha: 0.95),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: IconButton(
-                    tooltip: 'Minimize to background',
-                    onPressed: () => setState(() => _dismissed = true),
-                    icon: Icon(Icons.close_fullscreen_rounded, color: DoorstepTheme.textMutedOf(context)),
-                  ),
-                ),
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Material(
+              type: MaterialType.transparency,
+              child: _ProgressCard(
+                doorstep: doorstep,
+                onMinimize: () => setState(() => _dismissed = true),
               ),
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _ProgressCard(
-                    doorstep: doorstep,
-                    onMinimize: () => setState(() => _dismissed = true),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -214,15 +205,15 @@ class _ProgressCard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Actions: Run in background button
+            // Actions: keep it out of the way without stopping the transfer.
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: onMinimize,
-                icon: const Icon(Icons.arrow_downward_rounded, size: 18),
-                label: const Text('Run in Background'),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+                label: const Text('Hide'),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),

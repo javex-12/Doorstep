@@ -18,7 +18,7 @@ pub struct Config {
 
 const CONFIG_TEMPLATE: &str = "\
 # Doorstep CLI configuration. Command-line flags and environment variables
-# (LOCALSEND_ALIAS, LOCALSEND_PORT, LOCALSEND_DESTINATION) take precedence.
+# (DOORSTEP_ALIAS, DOORSTEP_PORT, DOORSTEP_DESTINATION) take precedence.
 
 # Device name shown to other devices (default: the hostname).
 #alias = \"My Device\"

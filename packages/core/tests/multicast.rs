@@ -6,8 +6,8 @@
 //! interface, a firewall dropping the group), so these tests skip themselves
 //! instead of failing when the environment does not carry the traffic.
 
-use localsend::model::discovery::{DeviceType, ProtocolTypeV2, PROTOCOL_VERSION_V2};
-use localsend::multicast::{
+use doorstep_core::model::discovery::{DeviceType, ProtocolTypeV2, PROTOCOL_VERSION_V2};
+use doorstep_core::multicast::{
     self, MulticastConfig, MulticastDevice, MulticastEvent, MulticastHandle,
 };
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};

@@ -1,7 +1,7 @@
 #![cfg(feature = "crypto")]
 
-use localsend::crypto::hash::{sha256_file_content, sha256_hex, HashError};
-use localsend::model::transfer::FileContent;
+use doorstep_core::crypto::hash::{sha256_file_content, sha256_hex, HashError};
+use doorstep_core::model::transfer::FileContent;
 use tokio_util::sync::CancellationToken;
 
 /// SHA-256 of "hello world".

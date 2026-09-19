@@ -5,15 +5,15 @@
 
 use bytes::Bytes;
 use futures_util::StreamExt;
-use localsend::crypto::cert::fingerprint_from_cert_der;
-use localsend::http::client::{ClientError, LsHttpClientV2};
-use localsend::http::dto::ProtocolType;
-use localsend::http::dto_v2::{PrepareUploadRequestDtoV2, ProtocolTypeV2, RegisterDtoV2};
-use localsend::http::server::common::save::FileUploadTarget;
-use localsend::http::server::v2::{PrepareUploadDecisionV2, ServerEventV2};
-use localsend::http::server::{start_with_port, ServerConfigV2, TlsConfig};
-use localsend::http::state::ClientInfo;
-use localsend::model::transfer::FileDto;
+use doorstep_core::crypto::cert::fingerprint_from_cert_der;
+use doorstep_core::http::client::{ClientError, LsHttpClientV2};
+use doorstep_core::http::dto::ProtocolType;
+use doorstep_core::http::dto_v2::{PrepareUploadRequestDtoV2, ProtocolTypeV2, RegisterDtoV2};
+use doorstep_core::http::server::common::save::FileUploadTarget;
+use doorstep_core::http::server::v2::{PrepareUploadDecisionV2, ServerEventV2};
+use doorstep_core::http::server::{start_with_port, ServerConfigV2, TlsConfig};
+use doorstep_core::http::state::ClientInfo;
+use doorstep_core::model::transfer::FileDto;
 use std::sync::atomic::{AtomicU16, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -232,7 +232,7 @@ async fn upload_bytes(
     let sent = Arc::new(AtomicU64::new(0));
     let progress = sent.clone();
     let body =
-        localsend::reqwest::Body::wrap_stream(ReceiverStream::new(rx).map(move |chunk: Bytes| {
+        doorstep_core::reqwest::Body::wrap_stream(ReceiverStream::new(rx).map(move |chunk: Bytes| {
             progress.fetch_add(chunk.len() as u64, Ordering::Relaxed);
             Ok::<Bytes, std::io::Error>(chunk)
         }));

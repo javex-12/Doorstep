@@ -1,8 +1,8 @@
 #![cfg(feature = "http")]
 
-use localsend::http::server::internal::{InternalConfig, InternalEvent};
-use localsend::http::server::start_with_port;
-use localsend::http::state::ClientInfo;
+use doorstep_core::http::server::internal::{InternalConfig, InternalEvent};
+use doorstep_core::http::server::start_with_port;
+use doorstep_core::http::state::ClientInfo;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -92,7 +92,7 @@ async fn wait_until_reachable(port: u16) {
 async fn test_show() {
     let server = start_test_server(true).await;
 
-    let response = localsend::reqwest::Client::new()
+    let response = doorstep_core::reqwest::Client::new()
         .post(format!(
             "http://127.0.0.1:{}/api/localsend/v2/show?token=show-token",
             server.port
@@ -113,7 +113,7 @@ async fn test_show() {
 async fn test_show_with_empty_body() {
     let server = start_test_server(true).await;
 
-    let response = localsend::reqwest::Client::new()
+    let response = doorstep_core::reqwest::Client::new()
         .post(format!(
             "http://127.0.0.1:{}/api/localsend/v2/show?token=show-token",
             server.port
@@ -130,7 +130,7 @@ async fn test_show_with_empty_body() {
 async fn test_show_with_invalid_token() {
     let server = start_test_server(true).await;
 
-    let response = localsend::reqwest::Client::new()
+    let response = doorstep_core::reqwest::Client::new()
         .post(format!(
             "http://127.0.0.1:{}/api/localsend/v2/show?token=wrong-token",
             server.port
@@ -148,7 +148,7 @@ async fn test_show_with_invalid_token() {
 async fn test_show_disabled() {
     let server = start_test_server(false).await;
 
-    let response = localsend::reqwest::Client::new()
+    let response = doorstep_core::reqwest::Client::new()
         .post(format!(
             "http://127.0.0.1:{}/api/localsend/v2/show?token=show-token",
             server.port

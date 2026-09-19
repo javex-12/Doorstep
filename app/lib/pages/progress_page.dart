@@ -14,6 +14,7 @@ import 'package:doorstep_app/util/native/platform_check.dart';
 import 'package:doorstep_app/util/native/taskbar_helper.dart';
 import 'package:doorstep_app/util/notification_strings.dart';
 import 'package:doorstep_app/util/ui/nav_bar_padding.dart';
+import 'package:doorstep_app/util/ui/progress_route.dart';
 import 'package:doorstep_app/widget/custom_progress_bar.dart';
 import 'package:doorstep_app/widget/dialogs/cancel_session_dialog.dart';
 import 'package:doorstep_app/widget/dialogs/error_dialog.dart';
@@ -67,6 +68,10 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
   @override
   void initState() {
     super.initState();
+
+    // Let the bottom transfer banner know this detailed screen is the surface
+    // now, so it does not stack a second copy on top of it.
+    progressScreenDepth.value++;
 
     // init
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -174,6 +179,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
   @override
   void dispose() {
     super.dispose();
+    progressScreenDepth.value = (progressScreenDepth.value - 1).clamp(0, 1 << 30);
     _finishTimer?.cancel();
     _wakelockPlusTimer?.cancel();
     TaskbarHelper.clearProgressBar(); // ignore: discarded_futures
