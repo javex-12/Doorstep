@@ -46,6 +46,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   static bool get _isMobile => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
   DateTime? _lastRefresh;
+  bool _initialScanScheduled = false;
 
   @override
   void initState() {
@@ -63,7 +64,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   ///  1. UDP multicast (fastest, works on most home routers)
   ///  2. UDP broadcast on the same interfaces (survives multicast filtering)
   ///  3. HTTP subnet sweep on the local interfaces (last resort, always works)
-  void _refreshDiscovery({bool deep = false}) {
+  void _refreshDiscovery() {
     ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan());
     final subnets = ref.read(localIpProvider).localIps.take(3).toList();
     if (subnets.isNotEmpty) {
@@ -76,9 +77,12 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Kick off the always-on subnet sweep once the first frame is up.
+    // Kick off the subnet sweep once the first frame is up. Guarded so a
+    // dependency change cannot queue a second scan on top of the first.
+    if (_initialScanScheduled) return;
+    _initialScanScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _refreshDiscovery(deep: true);
+      if (mounted) _refreshDiscovery();
     });
   }
 

@@ -101,6 +101,12 @@ class ForegroundService {
     _lastText = null;
     _queue.add(() async {
       if (_running) {
+        // Already up (usually the always-on idle notification) — just retitle it
+        // so a running transfer replaces "Doorstep is on" with its progress.
+        final updated = await FlutterForegroundTask.updateService(notificationTitle: title, notificationText: text);
+        if (updated is ServiceRequestFailure) {
+          _logger.warning('Could not update the running foreground service', updated.error);
+        }
         return;
       }
 
