@@ -1,18 +1,19 @@
 import 'dart:async';
 
 import 'package:doorstep_app/config/doorstep_theme.dart';
+import 'package:doorstep_app/model/persistence/favorite_device.dart';
 import 'package:doorstep_app/model/persistence/paired_device.dart';
 import 'package:doorstep_app/model/persistence/watched_folder.dart';
 import 'package:doorstep_app/pages/doorstep_browse_page.dart';
-import 'package:doorstep_app/pages/doorstep_pair_scan_page.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
 import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
 import 'package:doorstep_app/provider/doorstep_watcher_provider.dart';
+import 'package:doorstep_app/provider/local_ip_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
+import 'package:doorstep_app/provider/network/scan_facade.dart';
 import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
-import 'package:doorstep_app/util/doorstep_pairing_helper.dart';
 import 'package:doorstep_app/util/native/file_picker.dart';
 import 'package:doorstep_app/util/native/open_folder.dart';
 import 'package:doorstep_app/util/native/pick_directory_path.dart';
@@ -27,7 +28,6 @@ import 'package:doorstep_app/widget/doorstep_status_chip.dart';
 import 'package:doorstep_isolates/model/device.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// Doorstep home.
@@ -55,13 +55,31 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
       // fresh (handles DHCP drift and app restarts without re-scanning).
       Future.microtask(() => ref.notifier(doorstepPairingProvider).reconnectToPairedDevices()); // ignore: discarded_futures
     }
-    Future.microtask(() => ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan())); // ignore: discarded_futures
     _lastRefresh = DateTime.now();
   }
 
-  void _refreshDiscovery() {
+  /// Discovery runs three ways at once so a network that blocks one of them
+  /// still finds the other device:
+  ///  1. UDP multicast (fastest, works on most home routers)
+  ///  2. UDP broadcast on the same interfaces (survives multicast filtering)
+  ///  3. HTTP subnet sweep on the local interfaces (last resort, always works)
+  void _refreshDiscovery({bool deep = false}) {
     ref.redux(nearbyDevicesProvider).dispatch(StartMulticastScan());
+    final subnets = ref.read(localIpProvider).localIps.take(3).toList();
+    if (subnets.isNotEmpty) {
+      // ignore: discarded_futures
+      ref.global.dispatchAsync(StartLegacySubnetScan(subnets: subnets));
+    }
     setState(() => _lastRefresh = DateTime.now());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Kick off the always-on subnet sweep once the first frame is up.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _refreshDiscovery(deep: true);
+    });
   }
 
   @override
@@ -278,43 +296,108 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     await ref.notifier(sendProvider).startSession(target: target, files: files, background: false);
   }
 
-  /// Fallback for networks where UDP discovery is blocked. Reachable from the
-  /// nearby empty state, never the primary path.
+  /// Fallback for networks where *automatic* discovery finds nothing — for
+  /// example a router that blocks both multicast and broadcast. The user types
+  /// the other device's address, and Doorstep runs the exact same HTTP
+  /// discovery against that one address. Nothing is trusted implicitly: the
+  /// device still has to answer the Doorstep handshake, and the user still
+  /// chooses the trust level exactly as in the automatic flow.
   Future<void> _showManualPairing(BuildContext context) async {
-    if (_isMobile) {
-      unawaited(Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DoorstepPairScanPage())));
+    final controller = TextEditingController();
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Connect manually'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Only needed when Doorstep cannot find the other device on its own.\n\nOpen Doorstep on the other device, look at the address on its screen, and type it here.',
+                style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 13.5, height: 1.45),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: TextInputType.url,
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  labelText: 'Device address',
+                  hintText: '192.168.1.5',
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+              child: const Text('Search'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final address = entered?.trim();
+    if (address == null || address.isEmpty) return;
+
+    // Accept both "192.168.1.5" and "192.168.1.5:53317".
+    var host = address;
+    final port = ref.read(deviceFullInfoProvider).port;
+    var targetPort = port;
+    final colon = address.lastIndexOf(':');
+    if (colon > 0 && !address.contains(']')) {
+      final parsed = int.tryParse(address.substring(colon + 1));
+      if (parsed != null && parsed > 0 && parsed <= 65535) {
+        host = address.substring(0, colon);
+        targetPort = parsed;
+      }
+    }
+
+    if (!context.mounted) return;
+    context.showSnackBar('Looking for a Doorstep device at $host…');
+
+    await ref.redux(nearbyDevicesProvider).dispatchAsync(
+      StartFavoriteScan(
+        devices: [FavoriteDevice.fromValues(fingerprint: '', ip: host, port: targetPort, alias: host)],
+        https: true,
+      ),
+    );
+    if (!context.mounted) return;
+
+    Device? found;
+    for (final device in ref.read(nearbyDevicesProvider).allDevices.values) {
+      if (device.ip == host) {
+        found = device;
+        break;
+      }
+    }
+
+    if (found == null) {
+      context.showSnackBar('No Doorstep device answered at $host. Check the address, and that Doorstep is running on the other device.');
       return;
     }
 
-    final deviceInfo = ref.read(deviceFullInfoProvider);
-    final ip = deviceInfo.ip;
-
-    final ownToken = await ref.notifier(doorstepPairingProvider).getOrCreateOwnToken();
-    if (!context.mounted) return;
-
-    ref.notifier(doorstepPairingProvider).beginPairing(ownToken);
-
-    final payload = DoorstepPairingPayload(
-      deviceId: deviceInfo.fingerprint,
-      alias: deviceInfo.alias,
-      ip: ip == null || ip == '-' ? '0.0.0.0' : ip,
-      port: deviceInfo.port,
-      fingerprint: deviceInfo.fingerprint,
-      token: ownToken,
-      timestamp: DateTime.now(),
+    final trust = await showTrustDeviceDialog(
+      context,
+      alias: found.alias,
+      incoming: false,
+      address: '$host:$targetPort',
     );
-
-    unawaited(
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: DoorstepTheme.surfaceOf(context),
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        builder: (context) => _PairingModal(payload: payload),
-      ),
-    );
+    if (trust == null) return;
+    await ref.notifier(doorstepPairingProvider).pairWithDiscoveredDevice(found, trustLevel: trust);
+    if (context.mounted) {
+      context.showSnackBar(
+        trust == DeviceTrustLevel.persistent
+            ? '${found.alias} connected — it will reconnect automatically.'
+            : '${found.alias} connected for this session only.',
+      );
+    }
   }
 }
 
@@ -890,92 +973,3 @@ class _MiniChip extends StatelessWidget {
   }
 }
 
-// ── Pairing modal (fallback path only) ───────────────────────────────────────
-
-class _PairingModal extends StatelessWidget {
-  final DoorstepPairingPayload payload;
-
-  const _PairingModal({required this.payload});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(28, 20, 28, MediaQuery.of(context).viewInsets.bottom + 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: DoorstepTheme.borderOf(context),
-              borderRadius: BorderRadius.circular(100),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Connect manually',
-            style: TextStyle(color: DoorstepTheme.textMainOf(context), fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.4),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Only needed if Doorstep cannot find your other device automatically.\nOpen Doorstep on the other device and scan this code.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13, height: 1.45),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.wifi_rounded, color: DoorstepTheme.primaryOf(context), size: 15),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  'Both devices must be on the same Wi-Fi network (or a hotspot).',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: DoorstepTheme.primaryOf(context), fontSize: 11.5, height: 1.3),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: DoorstepTheme.backgroundOf(context),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: DoorstepTheme.borderOf(context)),
-            ),
-            child: Text(
-              '${payload.alias}  ·  ${payload.ip}:${payload.port}',
-              style: TextStyle(color: DoorstepTheme.primaryOf(context), fontSize: 12, fontFamily: 'monospace'),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: SizedBox(
-              width: 200,
-              height: 200,
-              child: PrettyQrView.data(
-                data: payload.encode(),
-                decoration: const PrettyQrDecoration(
-                  shape: PrettyQrSmoothSymbol(color: Colors.black),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'LAN only · encrypted · nothing leaves your network',
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-}

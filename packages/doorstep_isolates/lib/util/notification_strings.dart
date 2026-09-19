@@ -22,6 +22,14 @@ class NotificationStrings {
   /// Remaining time of a day or more, e.g. "3d 4h 5m".
   final String Function({required Object d, required Object h, required Object m}) remainingTimeDays;
 
+  /// Title of the persistent notification while Doorstep is idle but staying
+  /// on, e.g. "Doorstep is on".
+  final String idleTitle;
+
+  /// Text of the persistent notification while Doorstep is idle, e.g.
+  /// "Ready to receive files".
+  final String idleText;
+
   const NotificationStrings({
     required this.titleReceiving,
     required this.titleSending,
@@ -29,5 +37,7 @@ class NotificationStrings {
     required this.remainingTimeMinutes,
     required this.remainingTimeHours,
     required this.remainingTimeDays,
+    this.idleTitle = 'Doorstep is on',
+    this.idleText = 'Ready to receive files',
   });
 }

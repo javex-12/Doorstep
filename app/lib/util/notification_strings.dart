@@ -12,4 +12,6 @@ final notificationStrings = NotificationStrings(
   remainingTimeMinutes: t.progressPage.remainingTime.minutes,
   remainingTimeHours: t.progressPage.remainingTime.hours,
   remainingTimeDays: t.progressPage.remainingTime.days,
+  idleTitle: t.doorstep.alwaysOnTitle,
+  idleText: t.doorstep.alwaysOnText,
 );

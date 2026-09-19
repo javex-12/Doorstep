@@ -43,6 +43,7 @@ import 'package:doorstep_isolates/model/dto/file_dto.dart';
 import 'package:doorstep_isolates/model/dto/multicast_dto.dart';
 import 'package:doorstep_isolates/rust/api/logging.dart' as rust_logging;
 import 'package:doorstep_isolates/rust/frb_generated.dart';
+import 'package:doorstep_isolates/util/foreground_service.dart';
 import 'package:doorstep_isolates/util/logger.dart';
 import 'package:doorstep_isolates/util/transfer_notification.dart';
 import 'package:flutter/foundation.dart';
@@ -129,6 +130,18 @@ Future<RefenaContainer> preInit(List<String> args) async {
   await initI18n();
 
   TransferNotification.init(notificationStrings);
+
+  // Android: keep Doorstep listening even when the UI is closed, so a trusted
+  // device can push files without anyone opening the app. This must run while
+  // the app is in the foreground — Android rejects starting a foreground
+  // service from the background. On desktop there is nothing to keep alive.
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    ForegroundService.setKeepAlive(
+      enabled: persistenceService.getDoorstepBackgroundService(),
+      title: notificationStrings.idleTitle,
+      text: notificationStrings.idleText,
+    );
+  }
 
   bool startHidden = false;
   if (checkPlatformIsDesktop()) {

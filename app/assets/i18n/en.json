@@ -1,6 +1,12 @@
 {
   "locale": "English",
   "appName": "Doorstep",
+  "doorstep": {
+    "alwaysOnTitle": "Doorstep is on",
+    "alwaysOnText": "Ready to receive files",
+    "incomingTitle": "Device wants to connect",
+    "incomingText": "{device} is on your Doorstep network and wants to connect."
+  },
   "general": {
     "accept": "Accept",
     "accepted": "Accepted",

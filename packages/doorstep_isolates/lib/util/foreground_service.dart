@@ -5,7 +5,7 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('ForegroundService');
 
-const _channelId = 'localsend_foreground_service';
+const _channelId = 'doorstep_foreground_service';
 const _serviceId = 1;
 
 /// Notifications cannot sensibly be redrawn as often as transfer progress arrives.
@@ -27,12 +27,51 @@ class ForegroundService {
   static String? _lastTitle;
   static String? _lastText;
 
+  /// When true, Doorstep stays *on*: the service keeps running (and keeps a
+  /// quiet notification up) even when no transfer is in flight, so files can
+  /// arrive while the app is closed or in the background. This is the
+  /// "always-on" experience — off only if the user turns it off in Settings.
+  static bool _keepAlive = false;
+  static String? _idleTitle;
+  static String? _idleText;
+
   /// The service exists on Android only. On iOS the app keeps running in the background anyway,
   /// and on desktop there is nothing to keep alive.
   static bool get _isSupported => defaultTargetPlatform == TargetPlatform.android;
 
   /// Whether the service is currently keeping the process alive.
   static bool get isRunning => _running;
+
+  /// Whether Doorstep is configured to stay running without any transfer.
+  static bool get keepAlive => _keepAlive;
+
+  /// Turns the always-on behaviour on or off.
+  ///
+  /// Turning it on starts (or keeps) the service with the idle notification.
+  /// Turning it off only stops the service when nothing is transferring, so an
+  /// in-flight transfer is never interrupted.
+  static void setKeepAlive({
+    required bool enabled,
+    required String title,
+    required String text,
+  }) {
+    _idleTitle = title;
+    _idleText = text;
+    _keepAlive = enabled;
+
+    if (!_isSupported) {
+      return;
+    }
+
+    if (enabled) {
+      start(channelName: title, title: title, text: text);
+    } else if (!_running) {
+      return;
+    } else {
+      // Only stand down if no transfer is using the service right now.
+      stop();
+    }
+  }
 
   /// Whether [updateNotification] would actually forward an update right now.
   /// Lets callers skip building a text that gets throttled away anyway.
@@ -135,6 +174,21 @@ class ForegroundService {
         return;
       }
 
+      if (_keepAlive) {
+        // Doorstep is always on: fall back to the idle notification instead of
+        // shutting the service down, so the listener stays alive.
+        _lastTitle = null;
+        _lastText = null;
+        final result = await FlutterForegroundTask.updateService(
+          notificationTitle: _idleTitle ?? 'Doorstep is on',
+          notificationText: _idleText ?? 'Ready to receive files',
+        );
+        if (result is ServiceRequestFailure) {
+          _logger.warning('Could not return the foreground service to idle', result.error);
+        }
+        return;
+      }
+
       _running = false;
       final result = await FlutterForegroundTask.stopService();
       if (result is ServiceRequestFailure) {
@@ -164,8 +218,10 @@ class ForegroundService {
       foregroundTaskOptions: ForegroundTaskOptions(
         // The work happens in the other isolates, so the service has nothing to do on its own.
         eventAction: ForegroundTaskEventAction.nothing(),
-        autoRunOnBoot: false,
-        autoRunOnMyPackageReplaced: false,
+        // Doorstep comes back by itself: after a reboot or an app update the
+        // service is restored so the device keeps receiving without being opened.
+        autoRunOnBoot: true,
+        autoRunOnMyPackageReplaced: true,
         allowWakeLock: true,
         allowWifiLock: true,
       ),

@@ -49,6 +49,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   /// en: 'Doorstep'
   String get appName => 'Doorstep';
 
+  late final Translations$doorstep$en doorstep = Translations$doorstep$en.internal(_root);
   late final Translations$general$en general = Translations$general$en.internal(_root);
   late final Translations$receiveTab$en receiveTab = Translations$receiveTab$en.internal(_root);
   late final Translations$sendTab$en sendTab = Translations$sendTab$en.internal(_root);
@@ -72,6 +73,27 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   late final Translations$tray$en tray = Translations$tray$en.internal(_root);
   late final Translations$web$en web = Translations$web$en.internal(_root);
   late final Translations$assetPicker$en assetPicker = Translations$assetPicker$en.internal(_root);
+}
+
+// Path: doorstep
+class Translations$doorstep$en {
+  Translations$doorstep$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Doorstep is on'
+  String get alwaysOnTitle => 'Doorstep is on';
+
+  /// en: 'Ready to receive files'
+  String get alwaysOnText => 'Ready to receive files';
+
+  /// en: 'Device wants to connect'
+  String get incomingTitle => 'Device wants to connect';
+
+  /// en: '{device} is on your Doorstep network and wants to connect.'
+  String incomingText({required Object device}) => '${device} is on your Doorstep network and wants to connect.';
 }
 
 // Path: general

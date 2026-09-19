@@ -1,4 +1,6 @@
 import 'package:doorstep_app/provider/persistence_provider.dart';
+import 'package:doorstep_app/util/notification_strings.dart';
+import 'package:doorstep_isolates/util/foreground_service.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
 /// User-facing Doorstep behavior switches, persisted separately from the
@@ -60,5 +62,12 @@ class DoorstepSettingsNotifier extends Notifier<DoorstepSettings> {
   Future<void> setBackgroundService(bool value) async {
     state = state.copyWith(backgroundService: value);
     await ref.read(persistenceProvider).setDoorstepBackgroundService(value);
+    // Apply immediately so the ongoing "Doorstep is on" notification appears or
+    // disappears the moment the switch is flipped.
+    ForegroundService.setKeepAlive(
+      enabled: value,
+      title: notificationStrings.idleTitle,
+      text: notificationStrings.idleText,
+    );
   }
 }

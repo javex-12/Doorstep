@@ -90,6 +90,24 @@ class DoorstepBrowseApi {
     return list.map((e) => DoorstepBrowseRoot.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// Finds the laptop's live-browser port *and* its drop zones in one pass.
+  ///
+  /// The laptop normally serves the browser on `doorstepPort + 1`, but it walks
+  /// upward when that port is busy. Probing the same small range here means a
+  /// taken port slows browsing down by milliseconds instead of breaking it.
+  static Future<({int port, List<DoorstepBrowseRoot> roots})> resolveRoots(String host, int basePort, String token) async {
+    Object? lastError;
+    for (final port in doorstepBrowsePortCandidates(basePort)) {
+      try {
+        final roots = await fetchRoots(host, port, token);
+        return (port: port, roots: roots);
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError ?? DoorstepBrowseException(0, 'no browse port answered');
+  }
+
   static Future<List<DoorstepBrowseEntry>> fetchListing(
     String host,
     int port,
@@ -144,6 +162,10 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
   List<PairedDevice> _paired = const [];
   List<DoorstepBrowseRoot>? _roots;
   DoorstepBrowseRoot? _root;
+
+  /// The port the laptop's browser actually answered on (normally
+  /// `doorstepPort + 1`, but it can be higher when that port is taken).
+  int? _browsePort;
   final List<String> _pathStack = [];
   List<DoorstepBrowseEntry>? _entries;
   bool _loading = true;
@@ -189,6 +211,7 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
     setState(() {
       _laptop = laptop;
       _token = token;
+      _browsePort = null;
     });
     await _loadRoots();
   }
@@ -204,6 +227,7 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
       _entries = null;
       _error = null;
       _loading = true;
+      _browsePort = null;
     });
     unawaited(_loadRoots());
   }
@@ -226,10 +250,12 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
       _error = null;
     });
     try {
-      final roots = await DoorstepBrowseApi.fetchRoots(host, doorstepBrowsePort(_laptop!.port), token);
+      final resolved = await DoorstepBrowseApi.resolveRoots(host, _laptop!.port, token);
+      final roots = resolved.roots;
       if (!mounted || laptopId != _laptop?.id) return;
       setState(() {
         _roots = roots;
+        _browsePort = resolved.port;
         _root = null;
         _pathStack.clear();
         _entries = null;
@@ -272,7 +298,7 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
     try {
       final entries = await DoorstepBrowseApi.fetchListing(
         host,
-        doorstepBrowsePort(_laptop!.port),
+        _browsePort ?? doorstepBrowsePort(_laptop!.port),
         token,
         root: requestRootId,
         path: requestPath,
@@ -333,7 +359,7 @@ class _DoorstepBrowsePageState extends State<DoorstepBrowsePage> with Refena {
     try {
       await DoorstepBrowseApi.requestPull(
         host,
-        doorstepBrowsePort(_laptop!.port),
+        _browsePort ?? doorstepBrowsePort(_laptop!.port),
         token,
         root: root.id,
         path: [..._pathStack, entry.name].join('/'),

@@ -16,10 +16,28 @@ import 'package:refena_flutter/refena_flutter.dart';
 
 final _logger = Logger('DoorstepBrowse');
 
-/// The live folder browser is served on `doorstepPort + 1`. The phone learns
-/// the laptop's Doorstep port from the pairing QR and derives the same port,
-/// so both sides stay in sync even when the port is customized.
-int doorstepBrowsePort(int doorstepPort) => doorstepPort + 1;
+/// How many ports above the Doorstep port the browser may use. The laptop takes
+/// the first free one and the phone probes the same range, so a busy
+/// `doorstepPort + 1` no longer breaks browsing (or hangs it "loading forever").
+const int _browsePortSpan = 8;
+
+/// The primary live-browser port for a Doorstep port. Never overflows: a
+/// Doorstep port close to 65535 clamps to the last valid port instead of
+/// throwing on bind.
+int doorstepBrowsePort(int doorstepPort) {
+  final candidate = doorstepPort + 1;
+  return candidate > 65535 ? 65535 : candidate;
+}
+
+/// Every port the browser may live on, in the order both sides probe them:
+/// `doorstepPort + 1`, then upward, skipping anything past 65535.
+Iterable<int> doorstepBrowsePortCandidates(int doorstepPort) sync* {
+  for (var offset = 1; offset <= _browsePortSpan; offset++) {
+    final port = doorstepPort + offset;
+    if (port > 65535) return;
+    yield port;
+  }
+}
 
 /// System junk that must never show up in the phone-side browser.
 const _hiddenFileNames = <String>{'.DS_Store', 'Thumbs.db', 'desktop.ini'};
@@ -59,16 +77,23 @@ class DoorstepBrowseNotifier extends Notifier<DoorstepBrowseState> {
 
   Future<void> _start() async {
     if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
-    final port = doorstepBrowsePort(ref.read(settingsProvider).port);
-    try {
-      _server = await HttpServer.bind(InternetAddress.anyIPv4, port);
-      _server!.listen(_handleRequest, onError: (e) => _logger.warning('Browse server error: $e'));
-      state = DoorstepBrowseState(running: true, port: port);
-      _logger.info('Doorstep browse server listening on port $port');
-    } catch (e) {
-      state = DoorstepBrowseState(running: false, port: port, error: e.toString());
-      _logger.warning('Failed to start Doorstep browse server on port $port: $e');
+    final basePort = ref.read(settingsProvider).port;
+    Object? lastError;
+    for (final port in doorstepBrowsePortCandidates(basePort)) {
+      try {
+        _server = await HttpServer.bind(InternetAddress.anyIPv4, port);
+        _server!.listen(_handleRequest, onError: (e) => _logger.warning('Browse server error: $e'));
+        state = DoorstepBrowseState(running: true, port: port);
+        _logger.info('Doorstep browse server listening on port $port');
+        return;
+      } catch (e) {
+        // Port taken by something else — try the next candidate before giving up.
+        lastError = e;
+        _logger.info('Browse port $port unavailable, trying the next one');
+      }
     }
+    state = DoorstepBrowseState(running: false, port: doorstepBrowsePort(basePort), error: lastError?.toString());
+    _logger.warning('Failed to start Doorstep browse server: $lastError');
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
