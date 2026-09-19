@@ -16,7 +16,7 @@ pub use interface::InterfaceFilter;
 use crate::model::discovery::{DeviceType, MulticastMessageV2, ProtocolTypeV2};
 use serde::Serialize;
 use socket::MulticastSocket;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::UdpSocket;
@@ -152,10 +152,18 @@ pub enum MulticastEvent {
     },
 }
 
-/// A socket announcements are sent on, together with its target address.
+/// A socket announcements are sent on, together with its target address and
+/// the interface's broadcast address for the discovery fallback.
 #[derive(Clone)]
 struct SendSocket {
     target: SocketAddr,
+
+    /// The interface's directed-broadcast address (IPv4 only).
+    broadcast: Option<Ipv4Addr>,
+
+    /// The announcement port, needed to build the broadcast target address.
+    port: u16,
+
     socket: Arc<UdpSocket>,
 }
 
@@ -192,9 +200,26 @@ impl MulticastState {
         };
 
         let sockets = self.sockets.read().await.clone();
-        for SendSocket { target, socket } in sockets {
+        for SendSocket {
+            target,
+            broadcast,
+            socket,
+            port,
+        } in sockets
+        {
             if let Err(err) = socket.send_to(&payload, target).await {
                 tracing::warn!("Could not send multicast message to {target}: {err:#}");
+            }
+
+            // Broadcast fallback: some routers / APs filter multicast but
+            // forward directed broadcast on the local subnet. Both go to the
+            // same port and parse identically, so receivers need no special
+            // handling; duplicates are dropped by fingerprint in the app.
+            if let Some(broadcast) = broadcast {
+                let broadcast_target = SocketAddr::from(SocketAddrV4::new(broadcast, port));
+                if let Err(err) = socket.send_to(&payload, broadcast_target).await {
+                    tracing::debug!("Could not send broadcast message to {broadcast_target}: {err:#}");
+                }
             }
         }
     }
@@ -270,6 +295,8 @@ pub async fn start(
                 .iter()
                 .map(|socket| SendSocket {
                     target: socket.target,
+                    broadcast: socket.broadcast,
+                    port: config.port,
                     socket: socket.socket.clone(),
                 })
                 .collect(),

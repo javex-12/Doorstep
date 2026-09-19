@@ -73,6 +73,10 @@ pub(crate) struct LocalInterfaceV4 {
 
     /// The IPv4 address of the interface, used to join the multicast group.
     pub(crate) address: Ipv4Addr,
+
+    /// The interface's directed-broadcast address, when it has one.
+    /// Used by the UDP broadcast discovery fallback.
+    pub(crate) broadcast: Option<Ipv4Addr>,
 }
 
 /// A local interface that an IPv6 multicast socket can be bound to.
@@ -103,6 +107,9 @@ pub(crate) fn local_interfaces(filter: &InterfaceFilter) -> std::io::Result<Loca
         name: String,
         index: Option<u32>,
         addresses: Vec<IpAddr>,
+        /// Directed-broadcast addresses of this interface's IPv4 networks,
+        /// keyed by the interface address they belong to.
+        broadcasts: Vec<(Ipv4Addr, Ipv4Addr)>,
     }
 
     // Filters apply to an interface as a whole, so all of its addresses have to
@@ -113,19 +120,35 @@ pub(crate) fn local_interfaces(filter: &InterfaceFilter) -> std::io::Result<Loca
             continue;
         }
 
+        // if-addrs reports the broadcast address per IPv4 interface entry.
+        let broadcast = match &interface.addr {
+            if_addrs::IfAddr::V4(v4) => v4.broadcast,
+            _ => None,
+        };
+
         match by_name
             .iter_mut()
             .find(|entry| entry.name == interface.name)
         {
             Some(entry) => {
                 entry.index = entry.index.or(interface.index);
+                if let (IpAddr::V4(address), Some(broadcast)) = (interface.ip(), broadcast) {
+                    entry.broadcasts.push((address, broadcast));
+                }
                 entry.addresses.push(interface.ip());
             }
-            None => by_name.push(Entry {
-                name: interface.name.clone(),
-                index: interface.index,
-                addresses: vec![interface.ip()],
-            }),
+            None => {
+                let mut broadcasts = Vec::new();
+                if let (IpAddr::V4(address), Some(broadcast)) = (interface.ip(), broadcast) {
+                    broadcasts.push((address, broadcast));
+                }
+                by_name.push(Entry {
+                    name: interface.name.clone(),
+                    index: interface.index,
+                    addresses: vec![interface.ip()],
+                    broadcasts,
+                });
+            }
         }
     }
 
@@ -147,10 +170,13 @@ pub(crate) fn local_interfaces(filter: &InterfaceFilter) -> std::io::Result<Loca
         for address in &entry.addresses {
             match address {
                 // IPv4 group membership is joined per address.
-                IpAddr::V4(address) => result.v4.push(LocalInterfaceV4 {
-                    name: entry.name.clone(),
-                    address: *address,
-                }),
+                IpAddr::V4(address) => {
+                    result.v4.push(LocalInterfaceV4 {
+                        name: entry.name.clone(),
+                        address: *address,
+                        broadcast: entry.broadcasts.iter().find(|(a, _)| a == address).map(|(_, b)| *b),
+                    });
+                }
                 IpAddr::V6(_) => has_v6 = true,
             }
         }

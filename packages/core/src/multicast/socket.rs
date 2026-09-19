@@ -14,6 +14,11 @@ pub(crate) struct MulticastSocket {
     /// The group address announcements are sent to through this socket.
     pub(crate) target: SocketAddr,
 
+    /// The interface's directed-broadcast address, when it has one.
+    /// Announcements are additionally sent here so that networks which filter
+    /// multicast but forward broadcast still discover peers.
+    pub(crate) broadcast: Option<Ipv4Addr>,
+
     pub(crate) socket: Arc<UdpSocket>,
 }
 
@@ -42,9 +47,16 @@ pub(crate) fn bind_multicast_sockets(
                 tracing::info!(
                     "Bound UDP multicast socket (interface: {description}, group: {group}, port: {port})",
                 );
+                // Broadcast needs SO_BROADCAST on the sending socket.
+                if interface.broadcast.is_some() {
+                    if let Err(err) = socket.set_broadcast(true) {
+                        tracing::debug!("Could not enable SO_BROADCAST on {description}: {err:#}");
+                    }
+                }
                 sockets.push(MulticastSocket {
                     description,
                     target: SocketAddr::from(SocketAddrV4::new(group, port)),
+                    broadcast: interface.broadcast,
                     socket: Arc::new(socket),
                 });
             }
@@ -64,16 +76,17 @@ pub(crate) fn bind_multicast_sockets(
                     tracing::info!(
                         "Bound UDP multicast socket (interface: {description}, group: {group}, port: {port})",
                     );
-                    sockets.push(MulticastSocket {
-                        description,
-                        target: SocketAddr::from(SocketAddrV6::new(
-                            group,
-                            port,
-                            0,
-                            interface.index,
-                        )),
-                        socket: Arc::new(socket),
-                    });
+                sockets.push(MulticastSocket {
+                    description,
+                    target: SocketAddr::from(SocketAddrV6::new(
+                        group,
+                        port,
+                        0,
+                        interface.index,
+                    )),
+                    broadcast: None,
+                    socket: Arc::new(socket),
+                });
                 }
                 Err(err) => {
                     tracing::warn!(
