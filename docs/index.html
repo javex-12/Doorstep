@@ -92,7 +92,7 @@
     "name": "cydercoder",
     "url": "https://cydercoder.vercel.app"
   },
-  "downloadUrl": "https://trydoorstep.vercel.app/downloads/"
+  "downloadUrl": "https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/"
 }
 </script>
 
@@ -1144,14 +1144,14 @@
         <div class="os">Android</div>
         <h3>Phone or tablet</h3>
         <p>Android 5.0 through 15+. One universal APK that works on every phone — ARM64, ARMv7, and x86_64.</p>
-        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk">
+        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-universal.apk">
           Download for Android (universal APK)
         </a>
         <div class="variant-box">
           <h4>One file, every phone</h4>
           <div class="variant">
             <div class="v-info"><div class="v-name">Universal APK</div><div class="v-desc">Works on ARM64, ARMv7, and x86_64 devices — no need to know your chip.</div></div>
-            <a class="btn small dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk">Download</a>
+            <a class="btn small dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-universal.apk">Download</a>
           </div>
         </div>
       </div>
@@ -1160,18 +1160,18 @@
         <div class="os">Windows</div>
         <h3>Desktop or laptop</h3>
         <p>Windows 10 and 11 (64-bit). Use the installer for a normal setup, or the portable zip to run without installing.</p>
-        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-windows-x86-64-setup.exe">
+        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-Setup.exe">
           Download for Windows (.exe)
         </a>
         <div class="variant-box">
           <h4>Formats</h4>
           <div class="variant">
             <div class="v-info"><div class="v-name">Installer (.exe)</div><div class="v-desc">Guided setup. Recommended.</div></div>
-            <a class="btn small dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-windows-x86-64-setup.exe">Download</a>
+            <a class="btn small dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-Setup.exe">Download</a>
           </div>
           <div class="variant">
             <div class="v-info"><div class="v-name">Portable (.zip)</div><div class="v-desc">No install — extract and run.</div></div>
-            <a class="btn small dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-Windows-x64.zip">Download</a>
+            <a class="btn small dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-Windows-x64.zip">Download</a>
           </div>
         </div>
       </div>
@@ -1180,7 +1180,7 @@
         <div class="os">macOS</div>
         <h3>Mac</h3>
         <p>macOS 12 and later, Intel and Apple Silicon in one universal app. Unzip and drag Doorstep.app to Applications.</p>
-        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-macos-universal.zip">
+        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-macos-universal.zip">
           Download for macOS (universal)
         </a>
         <div class="variant-box">
@@ -1195,7 +1195,7 @@
         <div class="os">Linux</div>
         <h3>Linux desktop</h3>
         <p>AppImage for x86_64 — no install required, just make it executable and run.</p>
-        <a class="btn primary-sm dl-link" href="https://trydoorstep.vercel.app/downloads/Doorstep-1.0.0-linux-x86_64.AppImage">
+        <a class="btn primary-sm dl-link" href="https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/Doorstep-1.0.0-linux-x86_64.AppImage">
           Download for Linux (AppImage)
         </a>
         <div class="variant-box">
@@ -1468,10 +1468,12 @@
     const noteEl = document.getElementById('smart-note');
     const unsureLink = document.getElementById('not-sure-link');
 
-    const DOWNLOAD_BASE = 'https://trydoorstep.vercel.app/downloads/';
+    // Every binary lives in the Vercel Blob store, not in the deployment, so a
+    // large download never slows the site down and never needs a redeploy.
+    const DOWNLOAD_BASE = 'https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/';
     const FILES = {
-      android: 'https://unvsiszbxcxdsn0m.public.blob.vercel-storage.com/app-release.apk',
-      windows: DOWNLOAD_BASE + 'Doorstep-1.0.0-windows-x86-64-setup.exe',
+      android: DOWNLOAD_BASE + 'Doorstep-1.0.0-universal.apk',
+      windows: DOWNLOAD_BASE + 'Doorstep-1.0.0-Setup.exe',
       zip: DOWNLOAD_BASE + 'Doorstep-1.0.0-Windows-x64.zip',
       mac: DOWNLOAD_BASE + 'Doorstep-1.0.0-macos-universal.zip',
       linux: DOWNLOAD_BASE + 'Doorstep-1.0.0-linux-x86_64.AppImage'

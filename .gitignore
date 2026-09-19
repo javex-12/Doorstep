@@ -20,6 +20,9 @@
 # Build outputs (release artifacts copied to dist/)
 /dist/
 
+# Release binaries live in the Vercel Blob store, never in git.
+/docs/downloads/
+
 # Local build logs
 /*.log
 /app/*.log
