@@ -87,9 +87,9 @@ jobs:
           for file in dist/*; do
             echo "Uploading $(basename "$file")"
             npx --yes vercel@latest blob put "$file" \
-              --basename "$(basename "$file")" \
-              --add \
-              --force \
+              --access public \
+              --allow-overwrite true \
+              --pathname "$(basename "$file")" \
               --token "$BLOB_READ_WRITE_TOKEN"
           done
           echo "All uploads finished."
