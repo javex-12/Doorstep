@@ -4,9 +4,11 @@
   data_extraction_rules.xml). A phone that upgrades or restores on an older
   release uses this file instead.
 -->
+<!--
+  Only what Doorstep owns is included: cache and external files are never
+  part of an include, so there is nothing to exclude.
+-->
 <full-backup-content>
     <include domain="sharedpref" path="." />
     <include domain="file" path="." />
-    <exclude domain="file" path="cache" />
-    <exclude domain="root" path="cache" />
 </full-backup-content>

@@ -13,16 +13,16 @@
   transferred, and restoring those would leave orphaned data.
 -->
 <data-extraction-rules>
+    <!--
+      Only what Doorstep owns is included: cache and external files are never
+      part of an include, so there is nothing to exclude.
+    -->
     <cloud-backup>
         <include domain="sharedpref" path="." />
         <include domain="file" path="." />
-        <exclude domain="file" path="cache" />
-        <exclude domain="root" path="cache" />
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="." />
         <include domain="file" path="." />
-        <exclude domain="file" path="cache" />
-        <exclude domain="root" path="cache" />
     </device-transfer>
 </data-extraction-rules>
