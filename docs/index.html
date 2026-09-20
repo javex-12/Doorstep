@@ -267,6 +267,20 @@
     letter-spacing: -0.01em;
   }
   .nav-brand img { width: 26px; height: 26px; border-radius: 7px; display: block; }
+  .nav-version {
+    color: var(--accent);
+    background: rgba(124, 183, 255, 0.1);
+    border: 1px solid rgba(124, 183, 255, 0.25);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .nav-version:hover { background: rgba(124, 183, 255, 0.2); }
+  @media (max-width: 860px) { .nav-version { display: none; } }
   .nav-links { display: flex; align-items: center; gap: 6px; }
   .nav-links a {
     color: var(--text-soft);
@@ -991,6 +1005,7 @@
       <img src="logo.png" alt="Doorstep logo">
       Doorstep
     </a>
+    <a class="nav-version" id="nav-version" href="https://github.com/javex-12/Doorstep/releases" target="_blank" rel="noopener">v1.1.0</a>
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
@@ -1415,7 +1430,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Doorstep · Released under the Apache-2.0 license</span>
+      <span>© 2026 Doorstep · <span id="footer-version">v1.1.0</span> · Released under the Apache-2.0 license</span>
       <span>Based on <a href="https://github.com/localsend/localsend" target="_blank" rel="noopener">LocalSend Core</a></span>
     </div>
   </div>
@@ -1597,6 +1612,21 @@
         }
       })
       .catch(function () { el.textContent = '★'; });
+  })();
+
+  // Version badges — follow the latest GitHub release so they never go stale.
+  (function () {
+    fetch('https://api.github.com/repos/javex-12/Doorstep/releases/latest')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.tag_name) return;
+        var tag = data.tag_name;
+        var nav = document.getElementById('nav-version');
+        var footer = document.getElementById('footer-version');
+        if (nav) nav.textContent = tag;
+        if (footer) footer.textContent = tag;
+      })
+      .catch(function () { /* keep the hardcoded fallback */ });
   })();
 </script>
 
