@@ -68,6 +68,6 @@ jobs:
               --basename "$(basename "$file")" \
               --add \
               --force \
-              --rw-token "$BLOB_READ_WRITE_TOKEN"
+              --token "$BLOB_READ_WRITE_TOKEN"
           done
           echo "All uploads finished."

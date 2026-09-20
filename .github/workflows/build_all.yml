@@ -339,7 +339,7 @@ jobs:
             npx --yes vercel@latest blob put "$file" \
               --access public --allow-overwrite true \
               --pathname "$(basename "$file")" \
-              --rw-token "$BLOB_READ_WRITE_TOKEN"
+              --token "$BLOB_READ_WRITE_TOKEN"
           done
 
       - name: Publish GitHub Release
