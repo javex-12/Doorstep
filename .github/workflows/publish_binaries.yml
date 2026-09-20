@@ -10,6 +10,11 @@ name: Publish site binaries
 
 on:
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Optional: a specific build run to publish from (defaults to the newest one with all 6 artifacts)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -20,20 +25,25 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Find the latest successful build run
+      - name: Find the newest build run with artifacts
         id: latest
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          RUN_ID=$(gh run list \
-            --repo "$GITHUB_REPOSITORY" \
-            --workflow build_all.yml \
-            --status success \
-            --limit 20 \
-            --json databaseId,headBranch \
-            --jq '[.[] | select(.headBranch != "")][0].databaseId')
+          if [ -n "${{ inputs.run_id }}" ]; then
+            RUN_ID="${{ inputs.run_id }}"
+          else
+            # Take the newest build run whose artifacts are all present —
+            # a run is skipped here if only its *publish* step failed.
+            RUN_ID=$(gh run list \
+              --repo "$GITHUB_REPOSITORY" \
+              --workflow build_all.yml \
+              --limit 20 \
+              --json databaseId,headBranch \
+              --jq '[.[] | select(.headBranch != "")][0].databaseId')
+          fi
           if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
-            echo "::error::No successful 'Build all platforms' run found. Run that workflow first."
+            echo "::error::No 'Build all platforms' run found. Run that workflow first."
             exit 1
           fi
           echo "Using run $RUN_ID"
@@ -50,6 +60,18 @@ jobs:
           # gh nests each artifact in a folder of the same name; flatten it.
           find dist -mindepth 2 -type f -exec mv -t dist {} +
           find dist -mindepth 1 -type d -empty -delete
+          # Normalize names to the current version so the bucket always serves
+          # the newest build regardless of what version the artifacts were
+          # named with at build time.
+          VERSION=$(grep '^version:' app/pubspec.yaml | sed 's/version: \([0-9.]*\).*/\1/')
+          echo "Normalizing artifact names to version $VERSION"
+          for f in dist/*; do
+            base=$(basename "$f")
+            if echo "$base" | grep -q "Doorstep-[0-9][0-9]*\.[0-9]"; then
+              new=$(echo "$base" | sed "s/Doorstep-[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/Doorstep-$VERSION/")
+              if [ "$base" != "$new" ]; then mv "$f" "dist/$new"; fi
+            fi
+          done
           echo "--- files ready for upload ---"
           ls -la dist
 
