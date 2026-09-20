@@ -1,24 +1,29 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:doorstep_app/config/doorstep_theme.dart';
 import 'package:doorstep_app/model/state/doorstep_transfer_state.dart';
+import 'package:doorstep_app/pages/progress_page.dart';
 import 'package:doorstep_app/provider/doorstep_transfer_provider.dart';
 import 'package:doorstep_app/provider/network/send_provider.dart';
 import 'package:doorstep_app/provider/network/server/server_provider.dart';
 import 'package:doorstep_app/util/ui/progress_route.dart';
-import 'package:doorstep_app/widget/doorstep_card.dart';
-import 'package:doorstep_app/widget/doorstep_logo.dart';
 import 'package:doorstep_isolates/model/session_status.dart';
 import 'package:flutter/material.dart';
 import 'package:refena_flutter/refena_flutter.dart';
+import 'package:routerino/routerino.dart';
 
-/// The one and only in-app progress surface: a compact banner that slides in
-/// at the bottom while a transfer runs.
+/// The one and only in-app progress surface: a slim banner that rises from the
+/// bottom while a transfer runs.
 ///
-/// It is deliberately *not* a full-screen takeover — a transfer should never
-/// block you from using Doorstep — and it shows **once per session**, not once
-/// per file. If the user opens the detailed progress screen, the banner steps
-/// aside so the two never stack.
+/// Design rules this follows:
+///  - **Never a takeover.** A transfer must not stop you using Doorstep.
+///  - **Once per session**, not once per file. The previous version refreshed on
+///    every file and read as a flashing overlay.
+///  - **Two lines, one bar.** Anything more competes with the file name.
+///  - **No internals.** The user is told *what* is happening, never which
+///    transport is doing it.
+///  - If the detailed screen is open, this steps aside so the two never stack.
 class DoorstepTransferOverlay extends StatefulWidget {
   const DoorstepTransferOverlay({super.key});
 
@@ -52,6 +57,27 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
     return sending || receiving;
   }
 
+  /// The detailed screen needs a session id. Prefer the outbound session, then
+  /// the inbound one — the same order the two providers are consulted in.
+  String? get _activeSessionId {
+    final sending = ref.watch(
+      sendProvider.select((sessions) => sessions.values.where((s) => s.status == SessionStatus.sending).map((s) => s.sessionId).toList()),
+    );
+    if (sending.isNotEmpty) return sending.first;
+    return ref.watch(serverProvider.select((s) => s?.session?.status == SessionStatus.sending ? s?.session?.sessionId : null));
+  }
+
+  void _openDetails() {
+    final sessionId = _activeSessionId;
+    if (sessionId == null) return;
+    // Same navigation the rest of the app uses for this screen, so the
+    // "stepped aside" bookkeeping in ProgressPage stays correct.
+    // ignore: discarded_futures
+    Routerino.context.pushImmediately(
+      () => ProgressPage(showAppBar: true, closeSessionOnClose: false, sessionId: sessionId),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final doorstep = _activeDoorstep;
@@ -81,9 +107,11 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
             minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Material(
               type: MaterialType.transparency,
-              child: _ProgressCard(
+              child: _TransferPill(
                 doorstep: doorstep,
-                onMinimize: () => setState(() => _dismissed = true),
+                canOpenDetails: _activeSessionId != null,
+                onOpenDetails: _openDetails,
+                onDismiss: () => setState(() => _dismissed = true),
               ),
             ),
           ),
@@ -93,129 +121,122 @@ class _DoorstepTransferOverlayState extends State<DoorstepTransferOverlay> with 
   }
 }
 
-class _ProgressCard extends StatelessWidget {
+/// The banner itself: a ring, two lines, a hairline bar.
+class _TransferPill extends StatelessWidget {
   final List<DoorstepTransferState> doorstep;
-  final VoidCallback onMinimize;
+  final bool canOpenDetails;
+  final VoidCallback onOpenDetails;
+  final VoidCallback onDismiss;
 
-  const _ProgressCard({required this.doorstep, required this.onMinimize});
+  const _TransferPill({
+    required this.doorstep,
+    required this.canOpenDetails,
+    required this.onOpenDetails,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
     final hasDoorstep = doorstep.isNotEmpty;
-    final progress = hasDoorstep ? (doorstep.map((t) => t.progress).reduce((a, b) => a + b) / doorstep.length).clamp(0.0, 1.0) : 0.5;
+    final progress = hasDoorstep ? (doorstep.map((t) => t.progress).reduce((a, b) => a + b) / doorstep.length).clamp(0.0, 1.0) : null;
     final current = hasDoorstep ? doorstep.first : null;
-    final percent = (progress * 100).toInt();
+    final primary = DoorstepTheme.primaryOf(context);
+
+    final title = hasDoorstep ? 'Sending to ${current!.targetDevice}' : 'Transferring';
+
+    // One file reads as its own name; several read as a count. Both fit on one
+    // line, and neither mentions a transport.
+    final detail = hasDoorstep
+        ? (doorstep.length == 1 ? current!.fileName : '${doorstep.length} files')
+        : 'Please keep Doorstep open';
+
+    final percent = progress == null ? null : (progress * 100).round();
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 480),
-      child: DoorstepCard(
-        borderColor: DoorstepTheme.borderOf(context),
-        backgroundColor: DoorstepTheme.surfaceOf(context),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      constraints: const BoxConstraints(maxWidth: 440),
+      child: Container(
+        decoration: BoxDecoration(
+          color: DoorstepTheme.surfaceOf(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: DoorstepTheme.borderOf(context)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 13, 8, 13),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Doorstep Emblem + Transfer Direction
             Row(
               children: [
-                const DoorstepLogo(withText: false, size: 36),
-                const SizedBox(width: 14),
+                SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: CustomPaint(
+                    painter: _RingPainter(progress: progress, color: primary, track: DoorstepTheme.borderOf(context)),
+                  ),
+                ),
+                const SizedBox(width: 13),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        hasDoorstep ? 'Sending to ${current!.targetDevice}' : 'Transfer in Progress',
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: DoorstepTheme.textMainOf(context),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Doorstep Network · Direct Peer Link',
-                        style: TextStyle(
-                          color: DoorstepTheme.primaryOf(context),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        detail,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    '$percent%',
-                    style: TextStyle(
-                      color: DoorstepTheme.primaryOf(context),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                if (percent != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      '$percent%',
+                      style: TextStyle(color: primary, fontSize: 12.5, fontWeight: FontWeight.w800),
                     ),
                   ),
+                if (canOpenDetails)
+                  _PillAction(
+                    icon: Icons.unfold_more_rounded,
+                    tooltip: 'Show each file',
+                    onPressed: onOpenDetails,
+                  ),
+                _PillAction(
+                  icon: Icons.close_rounded,
+                  tooltip: 'Hide',
+                  onPressed: onDismiss,
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Current File Name
-            Text(
-              hasDoorstep ? current!.fileName : 'Moving files between devices…',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: DoorstepTheme.textMainOf(context),
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Linear Progress Bar
+            const SizedBox(height: 11),
+            // Hairline progress: present, readable, never the loudest thing.
             ClipRRect(
               borderRadius: BorderRadius.circular(100),
               child: LinearProgressIndicator(
-                value: progress > 0 ? progress : null,
-                minHeight: 8,
-                backgroundColor: DoorstepTheme.borderOf(context),
-                color: DoorstepTheme.primaryOf(context),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Subtitle info row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  hasDoorstep && doorstep.length > 1 ? '${doorstep.length} items remaining' : 'High-speed local transfer',
-                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
-                ),
-                Text(
-                  'Encrypted & Direct',
-                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Actions: keep it out of the way without stopping the transfer.
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: onMinimize,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                label: const Text('Hide'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
+                value: progress,
+                minHeight: 3,
+                backgroundColor: DoorstepTheme.borderOf(context).withValues(alpha: 0.6),
+                color: primary,
               ),
             ),
           ],
@@ -223,4 +244,73 @@ class _ProgressCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PillAction extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  const _PillAction({required this.icon, required this.tooltip, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      icon: Icon(icon, size: 17, color: DoorstepTheme.textMutedOf(context)),
+    );
+  }
+}
+
+/// A determinate ring. Reads faster than a bar at this size because the eye
+/// gets the fraction from the arc itself, not from a length.
+class _RingPainter extends CustomPainter {
+  final double? progress;
+  final Color color;
+  final Color track;
+
+  const _RingPainter({required this.progress, required this.color, required this.track});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2 - 2;
+    final base = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..color = track;
+
+    canvas.drawCircle(center, radius, base);
+
+    if (progress == null) {
+      // Unknown total: a single quarter arc sweeping, so it still reads as
+      // "working" without pretending to know the fraction.
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        math.pi / 2,
+        false,
+        base..color = color,
+      );
+      return;
+    }
+
+    if (progress! <= 0) return;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      math.pi * 2 * progress!.clamp(0.0, 1.0),
+      false,
+      base..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.color != color || oldDelegate.track != track;
 }

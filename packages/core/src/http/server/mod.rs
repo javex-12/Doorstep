@@ -173,8 +173,8 @@ pub async fn start_with_port(
     let info = Arc::new(Mutex::new(info));
     let state = AppState::new(info.clone(), internal_config, v2_config, web_send_config);
 
-    let ipv4_listener = tokio::net::TcpListener::bind(ipv4_socket_addr).await?;
-    let ipv6_listener = match bind_ipv6_only(ipv6_socket_addr) {
+    let ipv4_listener = bind_reusable(ipv4_socket_addr)?;
+    let ipv6_listener = match bind_reusable(ipv6_socket_addr) {
         Ok(listener) => Some(listener),
         Err(err) => {
             tracing::warn!("Failed to start server on {}: {err:#}", ipv6_socket_addr);
@@ -219,18 +219,26 @@ pub async fn start_with_port(
     })
 }
 
-/// Binds an IPv6 listener with `IPV6_V6ONLY` enabled.
+/// Binds a TCP listener that can be re-bound immediately after a previous
+/// server on the same port has stopped.
 ///
-/// Without this flag, some systems (e.g. macOS) bind IPv6 wildcard sockets in
-/// dual-stack mode, which conflicts with the separate IPv4 listener on the same port.
-fn bind_ipv6_only(socket_addr: SocketAddr) -> anyhow::Result<tokio::net::TcpListener> {
-    let socket = socket2::Socket::new(
-        socket2::Domain::IPV6,
-        socket2::Type::STREAM,
-        Some(socket2::Protocol::TCP),
-    )?;
-    socket.set_only_v6(true)?;
-    #[cfg(not(windows))]
+/// `SO_REUSEADDR` is what makes stop → start work without the user picking a new
+/// port: without it the operating system refuses the re-bind while the old
+/// connections are still in `TIME_WAIT` (`Address already in use`). Windows is
+/// the platform where this bites most, because it does not enable the flag for
+/// listening TCP sockets by default.
+fn bind_reusable(socket_addr: SocketAddr) -> anyhow::Result<tokio::net::TcpListener> {
+    let domain = if socket_addr.is_ipv4() {
+        socket2::Domain::IPV4
+    } else {
+        socket2::Domain::IPV6
+    };
+    let socket = socket2::Socket::new(domain, socket2::Type::STREAM, Some(socket2::Protocol::TCP))?;
+    // IPv6 sockets must stay v6-only: an IPv4-mapped wildcard socket would
+    // collide with the dedicated IPv4 listener on the same port.
+    if socket_addr.is_ipv6() {
+        socket.set_only_v6(true)?;
+    }
     socket.set_reuse_address(true)?;
     socket.set_nonblocking(true)?;
     socket.bind(&socket_addr.into())?;

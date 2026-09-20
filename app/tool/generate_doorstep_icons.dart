@@ -73,8 +73,18 @@ void main() {
     final scale = entry.value;
     // Legacy launcher icon (pre-API-26): 48dp full logo.
     _writePng('android/app/src/main/res/$base/ic_launcher.png', _resize(logo, (48 * scale).round()));
-    // Adaptive foreground: the full logo on the (white) background layer.
-    _writePng('android/app/src/main/res/$base/ic_launcher_foreground.png', _resize(logo, (108 * scale).round()));
+    // Adaptive foreground: the glyph alone, centred inside the safe zone.
+    //
+    // This deliberately does NOT use the full-bleed badge. An adaptive icon is
+    // a 108dp layer that Android then crops to the launcher's shape (circle,
+    // squircle, rounded square…), and only the middle ~66dp is guaranteed to
+    // survive. Drawing the badge edge-to-edge there meant the mask sliced its
+    // border off and the remaining mark read as magnified and overflowing.
+    // The background layer supplies the navy, the glyph sits comfortably inside.
+    _writePng(
+      'android/app/src/main/res/$base/ic_launcher_foreground.png',
+      _glyphImage(logo, (108 * scale).round(), minX, minY, glyphW, glyphH, white: true, safeFraction: 0.52),
+    );
     // Quick-settings tile: white glyph on transparency (tile bg is dark).
     _writePng(
       'android/app/src/main/res/$base/ic_launcher_quicktile_foreground.png',
@@ -141,8 +151,20 @@ img.Image _maskable(img.Image logo, int size) {
 /// The white waveform glyph alone on transparency, scaled so its longer side
 /// fills the adaptive safe zone (66dp of the 108dp canvas). [white] picks
 /// white or black pixels.
-img.Image _glyphImage(img.Image logo, int size, int minX, int minY, int glyphW, int glyphH, {required bool white}) {
-  final safe = size * 66.0 / 108.0;
+img.Image _glyphImage(
+  img.Image logo,
+  int size,
+  int minX,
+  int minY,
+  int glyphW,
+  int glyphH, {
+  required bool white,
+  // The fraction of the 108dp canvas the mark may occupy. Defaults to the
+  // documented adaptive safe zone (66/108); the launcher foreground asks for
+  // a little less so the glyph never touches the mask edge.
+  double safeFraction = 66.0 / 108.0,
+}) {
+  final safe = size * safeFraction;
   final targetW = glyphW > glyphH ? safe.round() : (glyphW / glyphH * safe).round();
   final targetH = glyphH > glyphW ? safe.round() : (glyphH / glyphW * safe).round();
   final crop = img.copyCrop(logo, x: minX, y: minY, width: glyphW, height: glyphH);

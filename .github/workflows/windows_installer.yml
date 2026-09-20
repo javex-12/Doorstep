@@ -45,6 +45,8 @@ jobs:
           Copy-Item -Path support/build/windows/x64/vcruntime140.dll -Destination staging
           Copy-Item -Path support/build/windows/x64/vcruntime140_1.dll -Destination staging
           Copy-Item -Path app/assets/packaging/logo.ico -Destination staging
+          Copy-Item -Path app/assets/packaging/wizard.bmp -Destination staging
+          Copy-Item -Path app/assets/packaging/wizard-small.bmp -Destination staging
 
       - name: Get version from pubspec.yaml
         id: get_version

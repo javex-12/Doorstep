@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Doorstep brand navy (#0B132B). The adaptive foreground is the white
+         waveform glyph, so the launcher shows a navy icon with a centred mark
+         no matter which shape the device crops it to. -->
+    <color name="ic_launcher_background">#0B132B</color>
 </resources>

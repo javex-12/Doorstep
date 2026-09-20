@@ -5,10 +5,11 @@ import 'package:collection/collection.dart';
 import 'package:doorstep_app/model/state/server/receive_session_state.dart';
 import 'package:doorstep_app/model/state/server/receiving_file.dart';
 import 'package:doorstep_app/pages/home_page.dart';
-import 'package:doorstep_app/pages/home_page_controller.dart';
 import 'package:doorstep_app/pages/progress_page.dart';
 import 'package:doorstep_app/pages/receive_page.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_clipboard_provider.dart';
+import 'package:doorstep_app/provider/doorstep_connection_request_provider.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
 import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
 import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
@@ -41,6 +42,7 @@ import 'package:doorstep_isolates/util/rust.dart';
 import 'package:doorstep_isolates/util/transfer_notification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:logging/logging.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:refena_flutter/refena_flutter.dart';
@@ -65,18 +67,44 @@ class ReceiveController {
       return;
     }
 
-    // Doorstep: the phone announces itself back after scanning the laptop's QR
-    // code (and on every reconnect). The laptop verifies the handshake token
-    // and stores the phone in its paired-devices list.
-    await server.ref
+    // Doorstep: a nearby device announces itself, carrying the pairing
+    // handshake. A device we already trust is refreshed silently; a *new* one
+    // becomes a pending connection request that this user has to accept or
+    // decline. Nothing is trusted without that answer.
+    final handshake = await server.ref
         .notifier(doorstepPairingProvider)
-        .acceptRegisterHandshake(
+        .handleRegisterHandshake(
           deviceModel: event.info.deviceModel,
           fingerprint: event.info.fingerprint,
           alias: event.info.alias,
           ip: event.ip,
           port: event.info.port,
         );
+
+    if (handshake.outcome == DoorstepHandshakeOutcome.awaitingApproval) {
+      server.ref
+          .notifier(doorstepConnectionRequestProvider)
+          .request(
+            DoorstepConnectionRequest(
+              fingerprint: event.info.fingerprint,
+              alias: event.info.alias,
+              ip: event.ip,
+              port: event.info.port,
+              peerToken: handshake.peerToken,
+              trustLevel: handshake.trustLevel,
+              receivedAt: DateTime.now(),
+            ),
+          );
+      _logger.info('Connection request from ${event.info.alias} (${event.ip}) is waiting for the user');
+      // If the app is in the background, bring the request in front of the user:
+      // nobody can answer a prompt they cannot see.
+      if (checkPlatformIsDesktop()) {
+        // ignore: discarded_futures, unawaited_futures
+        showFromTray().catchError((Object e) {
+          _logger.info('Could not raise the window for a connection request: $e');
+        });
+      }
+    }
 
     // Strip the Doorstep handshake carrier out of the device model before it
     // reaches the device list, so the phone is not shown as "Pixel 8|doorstep=…".
@@ -457,8 +485,10 @@ class ReceiveController {
           closeSession();
           _logger.info('Closing session');
 
+          // Land on the Activity tab: the file that just arrived is right
+          // there, with its Open action — instead of the legacy receive screen.
           // ignore: use_build_context_synchronously, discarded_futures
-          Routerino.context.pushRootImmediately(() => const HomePage(initialTab: HomeTab.receive, appStart: false));
+          Routerino.context.pushRootImmediately(() => const HomePage(initialTab: HomeTab.activity, appStart: false));
 
           // open the dialog to open file instantly
           if (filePath != null && filePath.isNotEmpty) {
@@ -548,7 +578,6 @@ class ReceiveController {
     // ignore: unawaited_futures, discarded_futures
     server.ref.redux(selectedSendingFilesProvider).dispatchAsyncTakeResult(LoadSelectionFromArgsAction(args)).then((filesAdded) {
       if (filesAdded) {
-        server.ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
         // Offer the handed-off files through the quick-send popup: auto-send
         // when exactly one trusted device is online, otherwise show the picker.
         final after = server.ref.read(selectedSendingFilesProvider);
@@ -581,6 +610,16 @@ class ReceiveController {
             timestamp: DateTime.now().toUtc(),
           ),
         );
+
+    // Clipboard sync: a note that arrives is the other device's clipboard, so
+    // put it on this device's clipboard too. Writing is allowed in the
+    // background on every platform (only reading is restricted), and the text
+    // is remembered so the watcher does not bounce it straight back.
+    final clipboard = server.ref.read(doorstepClipboardProvider);
+    if (clipboard.enabled) {
+      server.ref.notifier(doorstepClipboardProvider).noteReceived(message);
+      await Clipboard.setData(ClipboardData(text: message));
+    }
   }
 
   /// Accepts the file request with the given [fileNameMap] (file id -> desired file name).

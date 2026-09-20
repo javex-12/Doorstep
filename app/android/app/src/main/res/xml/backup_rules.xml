@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 and below backup rules (the pre-Android-12 counterpart of
+  data_extraction_rules.xml). A phone that upgrades or restores on an older
+  release uses this file instead.
+-->
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+    <include domain="file" path="." />
+    <exclude domain="file" path="cache" />
+    <exclude domain="root" path="cache" />
+</full-backup-content>

@@ -30,6 +30,10 @@
         android:banner="@drawable/banner"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true"
+        android:allowBackup="true"
+        android:restoreAnyVersion="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
     >
 
         <!-- doorstep: prevent multiple instances by android:launchMode="singleTask" -->

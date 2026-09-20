@@ -96,34 +96,43 @@ Future<RefenaContainer> preInit(List<String> args) async {
     await refreshContextMenu(); // ignore: discarded_futures
   }
 
-  // On Windows, automatically blacklist Hyper-V / Docker / WSL virtual adapters
-  // (172.16.x.x – 172.31.x.x range) to prevent a Rust panic when binding multicast
-  // sockets on the vEthernet (Default Switch) interface.
-  if (defaultTargetPlatform == TargetPlatform.windows) {
-    final existingBlacklist = persistenceService.getNetworkBlacklist();
-    if (existingBlacklist == null || !existingBlacklist.any((ip) => ip.startsWith('172.'))) {
-      try {
-        final interfaces = await NetworkInterface.list(includeLinkLocal: false);
-        final hyperVIps = interfaces
-            .expand((iface) => iface.addresses)
-            .where((addr) {
-              final parts = addr.address.split('.');
-              if (parts.length != 4) return false;
-              final first = int.tryParse(parts[0]) ?? 0;
-              final second = int.tryParse(parts[1]) ?? 0;
-              return first == 172 && second >= 16 && second <= 31;
-            })
-            .map((addr) => addr.address)
-            .toList();
+  // On Windows, exclude Hyper-V / Docker / WSL virtual adapters
+  // (172.16.x.x – 172.31.x.x) once, to prevent a Rust panic when binding
+  // multicast sockets on the vEthernet (Default Switch) interface.
+  //
+  // This runs exactly once per install. It used to re-run on every boot, which
+  // silently re-added the filter after the user cleared it in Settings — the
+  // app looked like it was ignoring the change. The filter is also only ever
+  // *added to*, never restored: once cleared it stays cleared.
+  if (defaultTargetPlatform == TargetPlatform.windows && !persistenceService.getDoorstepHyperVBlacklistApplied()) {
+    try {
+      final existingBlacklist = persistenceService.getNetworkBlacklist();
+      final interfaces = await NetworkInterface.list(includeLinkLocal: false);
+      final hyperVIps = interfaces
+          .expand((iface) => iface.addresses)
+          .where((addr) {
+            final parts = addr.address.split('.');
+            if (parts.length != 4) return false;
+            final first = int.tryParse(parts[0]) ?? 0;
+            final second = int.tryParse(parts[1]) ?? 0;
+            return first == 172 && second >= 16 && second <= 31;
+          })
+          .map((addr) => addr.address)
+          .toList();
 
-        if (hyperVIps.isNotEmpty) {
-          _logger.info('Auto-blacklisting Hyper-V/WSL interfaces on Windows: $hyperVIps');
-          final updated = <String>[...(existingBlacklist ?? const []), ...hyperVIps];
-          await persistenceService.setNetworkBlacklist(updated);
-        }
-      } catch (e) {
-        _logger.warning('Failed to auto-blacklist Hyper-V interfaces: $e');
+      if (hyperVIps.isNotEmpty) {
+        _logger.info('Excluding Hyper-V/WSL interfaces on Windows (one-time): $hyperVIps');
+        // Preserve whichever filter the user already chose: a whitelist stays a
+        // whitelist, and an empty/disabled filter is left untouched so the user
+        // can still turn filtering on by hand later.
+        final updated = <String>{...?existingBlacklist, ...hyperVIps}.toList();
+        await persistenceService.setNetworkBlacklist(updated);
       }
+      await persistenceService.setDoorstepHyperVBlacklistApplied(true);
+    } catch (e) {
+      // Do not mark it applied: a transient failure should not permanently
+      // block the exclusion on a machine that really needs it.
+      _logger.warning('Failed to exclude Hyper-V interfaces: $e');
     }
   }
 
@@ -306,7 +315,8 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
         for (final string in pendingStrings) {
           ref.redux(selectedSendingFilesProvider).dispatch(AddMessageAction(message: string));
         }
-        ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
+        // Do not switch tabs: the quick-send card is the surface for handed-off
+        // content, and the Doorstep home stays where the user left it.
       });
 
       await setupMethodCallHandler();
@@ -385,7 +395,6 @@ class _HandleShareIntentAction extends AsyncGlobalAction {
           ),
         );
 
-    ref.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
     _quickSendNewFiles(ref, before);
   }
 }

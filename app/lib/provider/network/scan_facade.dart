@@ -41,8 +41,12 @@ class StartSmartScan extends AsyncGlobalAction {
     // If no devices has been found, then switch to legacy discovery mode
     // which is purely HTTP/TCP based.
     final stillEmpty = ref.read(nearbyDevicesProvider).devices.isEmpty;
-    final stillInSendTab = ref.read(homePageControllerProvider).currentTab == HomeTab.send;
-    if (forceLegacy || (stillEmpty && stillInSendTab)) {
+    // The legacy HTTP/TCP sweep is the last-resort fallback for routers that
+    // drop both multicast and broadcast. It is only worth running while the
+    // user is actually looking at the Doorstep home (there is nothing to show
+    // them otherwise).
+    final onDoorstepHome = ref.read(homePageControllerProvider).currentTab == HomeTab.doorstep;
+    if (forceLegacy || (stillEmpty && onDoorstepHome)) {
       final networkInterfaces = ref.read(localIpProvider).localIps.take(maxInterfaces).toList();
       if (networkInterfaces.isNotEmpty) {
         await dispatchAsync(StartLegacySubnetScan(subnets: networkInterfaces));
@@ -51,8 +55,8 @@ class StartSmartScan extends AsyncGlobalAction {
       if (!stillEmpty) {
         emitMessage('Already found devices. This network seem to work, no need to start legacy scan.');
       }
-      if (!stillInSendTab) {
-        emitMessage('User left the send tab. No need to start legacy scan.');
+      if (!onDoorstepHome) {
+        emitMessage('User left the Doorstep tab. No need to start the fallback scan.');
       }
     }
   }

@@ -64,6 +64,10 @@ const _doorstepOwnToken = 'doorstep_own_token';
 const _doorstepAutoAccept = 'doorstep_auto_accept';
 const _doorstepSleepMode = 'doorstep_sleep_mode';
 const _doorstepBackgroundService = 'doorstep_background_service';
+const _doorstepHyperVBlacklistApplied = 'doorstep_hyperv_blacklist_applied';
+const _doorstepAskBeforeConnecting = 'doorstep_ask_before_connecting';
+const _doorstepDeclinedPeers = 'doorstep_declined_peers';
+const _doorstepClipboardSync = 'doorstep_clipboard_sync';
 
 // App Window Offset and Size info
 const _windowOffsetX = 'ls_window_offset_x';
@@ -109,6 +113,50 @@ class PersistenceService {
   final bool isFirstAppStart;
 
   PersistenceService._(this._prefs, this.isFirstAppStart);
+
+  /// Every persisted key/value pair, for the manual backup file.
+  ///
+  /// This is a complete snapshot: settings, trusted devices, drop zones,
+  /// activity history and the app's TLS identity. That is why the file is
+  /// sensitive — anyone holding it can impersonate this device — and why the UI
+  /// says so before writing it.
+  Map<String, Object> exportAll() {
+    final values = <String, Object>{};
+    for (final key in _prefs.getKeys()) {
+      final value = _prefs.get(key);
+      if (value != null) {
+        values[key] = value;
+      }
+    }
+    return values;
+  }
+
+  /// Restores a snapshot produced by [exportAll].
+  ///
+  /// Merge, not replace: keys the current version knows about but the backup
+  /// does not are left alone, so restoring an older backup cannot wipe a newer
+  /// setting back to nothing.
+  Future<int> importAll(Map<String, Object?> values) async {
+    var restored = 0;
+    for (final entry in values.entries) {
+      final value = entry.value;
+      if (value is bool) {
+        await _prefs.setBool(entry.key, value);
+      } else if (value is int) {
+        await _prefs.setInt(entry.key, value);
+      } else if (value is double) {
+        await _prefs.setDouble(entry.key, value);
+      } else if (value is String) {
+        await _prefs.setString(entry.key, value);
+      } else if (value is List) {
+        await _prefs.setStringList(entry.key, value.map((e) => e.toString()).toList());
+      } else {
+        continue;
+      }
+      restored++;
+    }
+    return restored;
+  }
 
   static Future<PersistenceService> initialize({
     required bool supportsDynamicColors,
@@ -334,6 +382,55 @@ class PersistenceService {
 
   Future<void> setDoorstepBackgroundService(bool value) async {
     await _prefs.setBool(_doorstepBackgroundService, value);
+  }
+
+  /// Whether Doorstep already ran its one-time Windows Hyper-V/WSL virtual
+  /// adapter exclusion.
+  ///
+  /// This must never run twice: the user is free to clear the network filter in
+  /// Settings, and re-applying it on every boot made the app look like it
+  /// ignored that choice ("it keeps the network blacklisted even though I
+  /// cancelled it").
+  bool getDoorstepHyperVBlacklistApplied() {
+    return _prefs.getBool(_doorstepHyperVBlacklistApplied) ?? false;
+  }
+
+  Future<void> setDoorstepHyperVBlacklistApplied(bool value) async {
+    await _prefs.setBool(_doorstepHyperVBlacklistApplied, value);
+  }
+
+  /// Whether an unknown device that asks to connect must be confirmed by the
+  /// user before it is trusted. Defaults to true: "anyone nearby can see you,
+  /// so you get asked before they get in".
+  bool getDoorstepAskBeforeConnecting() {
+    return _prefs.getBool(_doorstepAskBeforeConnecting) ?? true;
+  }
+
+  Future<void> setDoorstepAskBeforeConnecting(bool value) async {
+    await _prefs.setBool(_doorstepAskBeforeConnecting, value);
+  }
+
+  /// Fingerprints of devices whose connection request was declined.
+  ///
+  /// Remembered so a declined device cannot turn a prompt into a nag: it stays
+  /// silent until the user explicitly connects to it again, or the entry is
+  /// cleared from Settings.
+  List<String> getDoorstepDeclinedPeers() {
+    return _prefs.getStringList(_doorstepDeclinedPeers) ?? const [];
+  }
+
+  Future<void> setDoorstepDeclinedPeers(List<String> value) async {
+    await _prefs.setStringList(_doorstepDeclinedPeers, value);
+  }
+
+  /// Whether clipboard text is mirrored across this user's trusted devices.
+  /// Defaults to off: it moves whatever is copied, so it is strictly opt-in.
+  bool getDoorstepClipboardSync() {
+    return _prefs.getBool(_doorstepClipboardSync) ?? false;
+  }
+
+  Future<void> setDoorstepClipboardSync(bool value) async {
+    await _prefs.setBool(_doorstepClipboardSync, value);
   }
 
   String getShowToken() {

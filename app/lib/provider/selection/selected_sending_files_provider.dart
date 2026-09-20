@@ -30,6 +30,27 @@ class SelectedSendingFilesNotifier extends ReduxNotifier<List<CrossFile>> {
   List<CrossFile> init() => [];
 }
 
+/// Builds the transferable file for a plain-text note.
+///
+/// A note is just a tiny `text/plain` file — it rides the exact same transfer
+/// path as everything else, so it works on every platform and behind every
+/// firewall that already allows Doorstep. Named `Note.txt` so the receiving
+/// side shows something a person recognises instead of a UUID.
+CrossFile buildNoteFile(String message) {
+  final List<int> bytes = utf8.encode(message);
+  return CrossFile(
+    name: 'Note.txt',
+    fileType: FileType.text,
+    size: bytes.length,
+    thumbnail: null,
+    asset: null,
+    path: null,
+    bytes: bytes,
+    lastModified: null,
+    lastAccessed: null,
+  );
+}
+
 /// Adds a message.
 class AddMessageAction extends ReduxAction<SelectedSendingFilesNotifier, List<CrossFile>> {
   final String message;

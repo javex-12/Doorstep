@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:doorstep_app/pages/home_page.dart';
 import 'package:doorstep_app/pages/home_page_controller.dart';
+import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
+import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
+import 'package:doorstep_app/util/native/cross_file_converters.dart';
 import 'package:doorstep_app/util/native/file_picker.dart';
 import 'package:doorstep_app/util/native/platform_check.dart';
 import 'package:doorstep_app/widget/watcher/window_watcher.dart';
@@ -42,9 +45,15 @@ class ShortcutWatcher extends StatelessWidget {
           _PopPageIntent: CallbackAction(onInvoke: (_) async => Navigator.of(Routerino.context).maybePop()),
           _PasteIntent: CallbackAction(
             onInvoke: (_) async {
+              final before = context.read(selectedSendingFilesProvider).toList();
               await context.global.dispatchAsync(PickFileAction(option: FilePickerOption.clipboard, context: context));
-              if (context.mounted) {
-                context.redux(homePageControllerProvider).dispatch(ChangeTabAction(HomeTab.send));
+              if (!context.mounted) return null;
+              // Offer the pasted files through the quick-send card instead of
+              // jumping to the legacy send screen.
+              final after = context.read(selectedSendingFilesProvider);
+              final newFiles = after.where((f) => !before.any((e) => e.isSameFile(otherFile: f))).toList();
+              if (newFiles.isNotEmpty) {
+                context.notifier(doorstepQuickSendProvider).requestQuickSend(newFiles);
               }
               return null;
             },

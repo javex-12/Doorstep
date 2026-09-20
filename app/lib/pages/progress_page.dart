@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:doorstep_app/config/doorstep_theme.dart';
 import 'package:doorstep_app/config/theme.dart';
 import 'package:doorstep_app/gen/strings.g.dart';
 import 'package:doorstep_app/model/state/server/receive_session_state.dart';
@@ -277,7 +278,15 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: DoorstepTheme.textMainOf(context),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
                         if (checkPlatformWithFileSystem() && receiveSession != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
@@ -380,48 +389,76 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                                   Flexible(
                                     child: Text(
                                       fileName,
-                                      style: const TextStyle(fontSize: 16, height: 1),
+                                      style: TextStyle(
+                                        color: DoorstepTheme.textMainOf(context),
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.15,
+                                      ),
                                       maxLines: 1,
-                                      overflow: TextOverflow.fade,
+                                      overflow: TextOverflow.ellipsis,
                                       softWrap: false,
                                     ),
                                   ),
-                                  Text(' (${file.size.asReadableFileSize})', style: const TextStyle(fontSize: 16, height: 1)),
+                                  Text(
+                                    ' · ${file.size.asReadableFileSize}',
+                                    style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12.5, height: 1.15),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 5),
-                              if (fileStatus == FileStatus.sending)
+                              // Every file carries its own bar, so the user can
+                              // read progress per file instead of only as one
+                              // aggregate in the card at the bottom of the page.
+                              // Waiting files sit at 0, done files at full, and
+                              // the one in flight moves. Failed and skipped
+                              // files get no bar at all — there is no fraction
+                              // to show, and the status line below explains them.
+                              if (fileStatus != FileStatus.failed && fileStatus != FileStatus.skipped)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 5),
                                   child: CustomProgressBar(
-                                    progress: progressNotifier.getProgress(sessionId: widget.sessionId, fileId: file.id),
-                                  ),
-                                )
-                              else
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        savedToGallery ? t.progressPage.savedToGallery : fileStatus.label,
-                                        style: TextStyle(color: fileStatus.getColor(context), height: 1),
+                                    progress: switch (fileStatus) {
+                                      FileStatus.finished => 1,
+                                      FileStatus.sending => progressNotifier.getProgress(
+                                        sessionId: widget.sessionId,
+                                        fileId: file.id,
                                       ),
-                                    ),
-                                    if (errorMessage != null) ...[
-                                      const SizedBox(width: 5),
-                                      InkWell(
-                                        onTap: () async {
-                                          await showDialog(
-                                            context: context,
-                                            builder: (_) => ErrorDialog(error: errorMessage!),
-                                          );
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                                          child: Icon(Icons.info, color: Theme.of(context).colorScheme.warning, size: 20),
+                                      _ => 0,
+                                    },
+                                  ),
+                                ),
+                              // The per-file status stays visible for everything
+                              // that is not actively sending, so "Done",
+                              // "Failed" and "Skipped" are never lost behind a bar.
+                              if (fileStatus != FileStatus.sending)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          savedToGallery ? t.progressPage.savedToGallery : fileStatus.label,
+                                          style: TextStyle(color: fileStatus.getColor(context), fontSize: 12.5, height: 1.1),
                                         ),
                                       ),
+                                      if (errorMessage != null) ...[
+                                        const SizedBox(width: 5),
+                                        InkWell(
+                                          onTap: () async {
+                                            await showDialog(
+                                              context: context,
+                                              builder: (_) => ErrorDialog(error: errorMessage!),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                                            child: Icon(Icons.info, color: Theme.of(context).colorScheme.warning, size: 20),
+                                          ),
+                                        ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
                             ],
                           ),
@@ -451,19 +488,44 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
                   child: Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 0,
+                    color: DoorstepTheme.surfaceOf(context),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: DoorstepTheme.borderOf(context)),
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 15, right: 15, bottom: 5, top: 10),
+                      padding: const EdgeInsets.fromLTRB(18, 16, 14, 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            status.getLabel(
-                              remainingTime: _remainingTime ?? '-',
-                            ),
-                            style: const TextStyle(fontSize: 20),
+                          // One line of state, plus the fraction. The remaining
+                          // time lives inside the label; nothing here repeats it.
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  status.getLabel(remainingTime: _remainingTime ?? '-'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: DoorstepTheme.textMainOf(context),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ),
+                              if (_totalBytes > 0)
+                                Text(
+                                  '${((currBytes / _totalBytes) * 100).clamp(0, 100).round()}%',
+                                  style: TextStyle(color: DoorstepTheme.primaryOf(context), fontSize: 13, fontWeight: FontWeight.w800),
+                                ),
+                            ],
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 9),
                           TweenAnimationBuilder(
                             tween: Tween<double>(begin: 0, end: _totalBytes == 0 ? 0 : currBytes / _totalBytes),
                             duration: const Duration(milliseconds: 200),
@@ -471,7 +533,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                             builder: (context, value, child) {
                               return CustomProgressBar(
                                 progress: value,
-                                borderRadius: 5,
+                                borderRadius: 100,
                               );
                             },
                           ),
@@ -507,28 +569,36 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 10),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              TextButton.icon(
-                                style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onSurface),
-                                onPressed: () {
-                                  setState(() => _advanced = !_advanced);
-                                },
-                                icon: const Icon(Icons.info),
-                                label: Text(_advanced ? t.general.hide : t.general.advanced),
+                              TextButton(
+                                onPressed: () => setState(() => _advanced = !_advanced),
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  foregroundColor: DoorstepTheme.textMutedOf(context),
+                                ),
+                                child: Text(_advanced ? t.general.hide : t.general.advanced),
                               ),
-                              TextButton.icon(
-                                style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.onSurface),
+                              const Spacer(),
+                              FilledButton(
                                 onPressed: () => _exit(closeSession: true),
-                                icon: Icon(status == SessionStatus.sending ? Icons.close : Icons.check_circle),
-                                label: Text(
-                                  status == SessionStatus.sending
-                                      ? t.general.cancel
-                                      : _finishTimer != null
-                                      ? '${t.general.done} ($_finishCounter)'
-                                      : t.general.done,
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(status == SessionStatus.sending ? Icons.close_rounded : Icons.check_rounded, size: 17),
+                                    const SizedBox(width: 7),
+                                    Text(
+                                      status == SessionStatus.sending
+                                          ? t.general.cancel
+                                          : _finishTimer != null
+                                          ? '${t.general.done} ($_finishCounter)'
+                                          : t.general.done,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

@@ -136,6 +136,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path staging | Out-Null
           Copy-Item -Path app/build/windows/x64/runner/Release/* -Destination staging -Recurse
           Copy-Item -Path app/assets/packaging/logo.ico -Destination staging
+          Copy-Item -Path app/assets/packaging/wizard.bmp -Destination staging
+          Copy-Item -Path app/assets/packaging/wizard-small.bmp -Destination staging
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
             "/DStagingDir=${{ github.workspace }}\staging" `

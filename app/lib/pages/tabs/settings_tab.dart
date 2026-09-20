@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:doorstep_app/config/doorstep_theme.dart';
@@ -9,10 +10,12 @@ import 'package:doorstep_app/pages/debug/discovery_debug_page.dart';
 import 'package:doorstep_app/pages/language_page.dart';
 import 'package:doorstep_app/pages/settings/network_interfaces_page.dart';
 import 'package:doorstep_app/pages/tabs/settings_tab_controller.dart';
+import 'package:doorstep_app/provider/doorstep_clipboard_provider.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
 import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
 import 'package:doorstep_app/provider/network/nearby_devices_provider.dart';
 import 'package:doorstep_app/provider/network/server/server_provider.dart';
+import 'package:doorstep_app/provider/persistence_provider.dart';
 import 'package:doorstep_app/provider/settings_provider.dart';
 import 'package:doorstep_app/util/alias_generator.dart';
 import 'package:doorstep_app/util/device_type_ext.dart';
@@ -36,8 +39,10 @@ import 'package:doorstep_app/widget/labeled_checkbox.dart';
 import 'package:doorstep_app/widget/responsive_list_view.dart';
 import 'package:doorstep_isolates/constants.dart';
 import 'package:doorstep_isolates/model/device.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 
@@ -60,6 +65,7 @@ class SettingsTab extends StatelessWidget {
       builder: (context, vm) {
         final ref = context.ref;
         final doorstep = ref.watch(doorstepSettingsProvider);
+        final clipboard = ref.watch(doorstepClipboardProvider);
         final pairedDevices = ref.watch(doorstepPairingProvider);
         final nearbyCount = ref.watch(nearbyDevicesProvider).allDevices.length;
         final isMobile = checkPlatform([TargetPlatform.android, TargetPlatform.iOS]);
@@ -92,7 +98,7 @@ class SettingsTab extends StatelessWidget {
                     },
                   ),
                 DoorstepListTile(
-                  icon: Icons.bolt_rounded,
+                  icon: Icons.verified_user_rounded,
                   title: 'Auto-accept from trusted devices',
                   subtitle: doorstep.autoAcceptFromPaired ? 'Files arrive without a prompt' : 'You confirm every incoming transfer',
                   trailing: Switch(
@@ -103,6 +109,40 @@ class SettingsTab extends StatelessWidget {
                   ),
                   onTap: () async {
                     await ref.notifier(doorstepSettingsProvider).setAutoAcceptFromPaired(!doorstep.autoAcceptFromPaired);
+                  },
+                ),
+                DoorstepListTile(
+                  icon: Icons.shield_outlined,
+                  title: 'Ask before connecting',
+                  subtitle: doorstep.askBeforeConnecting
+                      ? 'You approve every new device that asks to connect'
+                      : 'Devices nearby connect without asking you first',
+                  trailing: Switch(
+                    value: doorstep.askBeforeConnecting,
+                    onChanged: (b) async {
+                      await ref.notifier(doorstepSettingsProvider).setAskBeforeConnecting(b);
+                    },
+                  ),
+                  onTap: () async {
+                    await ref.notifier(doorstepSettingsProvider).setAskBeforeConnecting(!doorstep.askBeforeConnecting);
+                  },
+                ),
+                DoorstepListTile(
+                  icon: Icons.content_paste_go_rounded,
+                  title: 'Sync the clipboard',
+                  // Mobile blocks reading the clipboard in the background, so the
+                  // phone-side wording is honest about needing the app open.
+                  subtitle: clipboard.enabled
+                      ? (isMobile ? 'On — sent while Doorstep is open' : 'On — copied text reaches your devices')
+                      : 'Off — the clipboard stays on this device',
+                  trailing: Switch(
+                    value: clipboard.enabled,
+                    onChanged: (b) async {
+                      await ref.notifier(doorstepClipboardProvider).setEnabled(b);
+                    },
+                  ),
+                  onTap: () async {
+                    await ref.notifier(doorstepClipboardProvider).setEnabled(!clipboard.enabled);
                   },
                 ),
                 if (isMobile)
@@ -434,6 +474,33 @@ class SettingsTab extends StatelessWidget {
                   onTap: () async {
                     await ref.notifier(settingsProvider).setEnableAnimations(!vm.settings.enableAnimations);
                   },
+                ),
+              ],
+            ),
+
+            // ── Back up & restore ───────────────────────────────────────────
+            // Android wipes an app's private storage on uninstall; the desktop
+            // build keeps its settings in the user profile and survives. Auto
+            // Backup covers the common case, and this section is the guarantee:
+            // a backup file the user holds, so a reinstall or a new phone can
+            // come back exactly as it was.
+            DoorstepSection(
+              title: 'Back up & restore',
+              subtitle: 'Keep your settings and connected devices safe',
+              children: [
+                DoorstepListTile(
+                  icon: Icons.save_alt_rounded,
+                  title: 'Back up to a file',
+                  subtitle: 'Settings, connected devices, folders and history',
+                  trailing: const DoorstepChevron(),
+                  onTap: () => _backupDoorstep(context),
+                ),
+                DoorstepListTile(
+                  icon: Icons.settings_backup_restore_rounded,
+                  title: 'Restore from a backup',
+                  subtitle: 'Bring back a file from this device or an old phone',
+                  trailing: const DoorstepChevron(),
+                  onTap: () => _restoreDoorstep(context),
                 ),
               ],
             ),
@@ -833,6 +900,91 @@ Future<void> _confirmRevoke(BuildContext context, Ref ref, PairedDevice device) 
   if (context.mounted) {
     context.showSnackBar('${device.alias} disconnected.');
   }
+}
+
+/// Writes a complete Doorstep snapshot into a folder the user picks.
+///
+/// The file contains this device's identity (its TLS key material) as well as
+/// the user's settings, so it is treated as sensitive: the confirmation dialog
+/// says so before anything is written.
+Future<void> _backupDoorstep(BuildContext context) async {
+  final ref = context.ref;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Back up Doorstep?'),
+      content: Text(
+        'This writes settings, the devices you trust, your drop zones and your transfer history to a file you choose.\n\n'
+        'Keep it private: it also contains this device\'s identity, so anyone with the file can impersonate it.',
+        style: TextStyle(color: DoorstepTheme.textMutedOf(ctx), fontSize: 13.5, height: 1.45),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+        FilledButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Choose folder')),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  final directory = await pickDirectoryPath();
+  if (directory == null || !context.mounted) return;
+
+  final now = DateTime.now();
+  final stamp = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  final file = File(p.join(directory, 'doorstep-backup-$stamp.json'));
+
+  try {
+    final values = ref.read(persistenceProvider).exportAll();
+    await file.writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'format': 'doorstep-backup',
+        'version': 1,
+        'savedAt': now.toIso8601String(),
+        'values': values,
+      }),
+    );
+    if (!context.mounted) return;
+    context.showSnackBar('Backed up to ${file.path}');
+  } catch (e) {
+    if (!context.mounted) return;
+    context.showSnackBar('Could not write the backup: $e');
+  }
+}
+
+/// Restores a snapshot written by [_backupDoorstep].
+///
+/// Merge rather than replace, and a restart is required because the running app
+/// has already read the old values into memory.
+Future<void> _restoreDoorstep(BuildContext context) async {
+  final ref = context.ref;
+
+  final XFile? picked;
+  try {
+    picked = await openFile(
+      acceptedTypeGroups: const [XTypeGroup(label: 'Doorstep backup', extensions: ['json'])],
+    );
+  } catch (e) {
+    if (context.mounted) context.showSnackBar('Could not open a file: $e');
+    return;
+  }
+  if (picked == null || !context.mounted) return;
+
+  final int restored;
+  try {
+    final decoded = jsonDecode(await picked.readAsString());
+    if (decoded is! Map || decoded['format'] != 'doorstep-backup') {
+      if (context.mounted) context.showSnackBar('That is not a Doorstep backup file.');
+      return;
+    }
+    final values = (decoded['values'] as Map).cast<String, Object?>();
+    restored = await ref.read(persistenceProvider).importAll(values);
+  } catch (e) {
+    if (context.mounted) context.showSnackBar('Could not read that backup: $e');
+    return;
+  }
+
+  if (!context.mounted) return;
+  context.showSnackBar('Restored $restored settings. Restart Doorstep to apply everything.');
 }
 
 extension on ThemeMode {

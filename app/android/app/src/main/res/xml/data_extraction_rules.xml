@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ backup / device-transfer rules.
+
+  Doorstep keeps everything (settings, trusted devices, drop zones, activity
+  history, its TLS identity) in SharedPreferences. Without an explicit rule
+  Android still backs up "most" app data, but the exact set is not guaranteed —
+  which is why reinstalling could come back empty on a phone while the desktop
+  build kept its settings in %APPDATA%.
+
+  Everything Doorstep owns is included here so a reinstall restores the app the
+  way the user left it. The cache is excluded: it only holds files being
+  transferred, and restoring those would leave orphaned data.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+        <exclude domain="file" path="cache" />
+        <exclude domain="root" path="cache" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="." />
+        <include domain="file" path="." />
+        <exclude domain="file" path="cache" />
+        <exclude domain="root" path="cache" />
+    </device-transfer>
+</data-extraction-rules>

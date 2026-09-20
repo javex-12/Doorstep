@@ -97,6 +97,10 @@ class ServerService extends Notifier<ServerState?> {
     required int port,
     required bool https,
     WebSendState? webSendState,
+    // Internal: a retry is attempted once, after tearing the old listener down.
+    // The recursion guard matters — without it, a port genuinely taken by
+    // another application would retry forever.
+    bool attemptRetry = true,
   }) async {
     if (state != null) {
       _logger.info('Server already running.');
@@ -171,6 +175,24 @@ class ServerService extends Notifier<ServerState?> {
     } catch (e) {
       await subscription.cancel();
       _syncServerState(alias: alias, port: port, https: https, serverRunning: false, download: false);
+
+      if (attemptRetry) {
+        // A listener that was stopped moments ago can still hold the port while
+        // its connections drain (Windows keeps it busy for a moment, and a
+        // crashed server leaves the socket behind). Tear the old one down
+        // properly and try the *same* port once more, instead of making the user
+        // pick a different port to get going again.
+        _logger.warning('Start on port $port failed; stopping cleanly and retrying once', e);
+        await stopServer();
+        return startServer(
+          alias: alias,
+          port: port,
+          https: https,
+          webSendState: webSendState,
+          attemptRetry: false,
+        );
+      }
+
       _logger.warning('Failed to start server', e);
       rethrow;
     }
@@ -194,7 +216,15 @@ class ServerService extends Notifier<ServerState?> {
     _logger.info('Stopping server...');
     await _subscription?.cancel();
     _subscription = null;
-    await ref.redux(parentIsolateProvider).dispatchAsync(IsolateHttpServerStopAction());
+    try {
+      await ref.redux(parentIsolateProvider).dispatchAsync(IsolateHttpServerStopAction());
+    } catch (e) {
+      // The server may already be gone — it crashed, or its port was lost. The
+      // isolate reports that as an error, but there is nothing to stop, and a
+      // failed stop must never block a restart. That is exactly the state that
+      // used to leave the port looking "stuck" until it was changed.
+      _logger.warning('Ignoring error while stopping the server: $e');
+    }
     state = null;
     _logger.info('Server stopped.');
   }

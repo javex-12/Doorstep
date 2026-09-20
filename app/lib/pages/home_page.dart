@@ -7,9 +7,8 @@ import 'package:doorstep_app/gen/strings.g.dart';
 import 'package:doorstep_app/pages/home_page_controller.dart';
 import 'package:doorstep_app/pages/tabs/doorstep_activity_tab.dart';
 import 'package:doorstep_app/pages/tabs/doorstep_drop_zone_tab.dart';
-import 'package:doorstep_app/pages/tabs/receive_tab.dart';
-import 'package:doorstep_app/pages/tabs/send_tab.dart';
 import 'package:doorstep_app/pages/tabs/settings_tab.dart';
+import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
 import 'package:doorstep_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:doorstep_app/util/native/cross_file_converters.dart';
 import 'package:doorstep_app/widget/doorstep_logo.dart';
@@ -23,7 +22,12 @@ enum HomeTab {
   activity(Icons.history),
   settings(Icons.settings),
 
-  // ── Hidden: used internally by receive/send provider callbacks ───────
+  // ── Legacy indices ───────────────────────────────────────────────────
+  // Kept only so existing state machines (the receive/send providers) have a
+  // stable internal value to switch to. They are never rendered: the pages are
+  // plain placeholders in [HomePage]. Before this, selecting one of these
+  // presented the old LocalSend send/receive screens, which is why transfers
+  // "reverted to LocalSend" until the user tapped the Doorstep tab again.
   receive(Icons.wifi),
   send(Icons.send),
   ;
@@ -34,6 +38,9 @@ enum HomeTab {
 
   /// Only these tabs appear in the nav bar / rail
   static const List<HomeTab> visible = [doorstep, activity, settings];
+
+  /// True for the internal values that must never be shown to the user.
+  bool get isLegacy => this == HomeTab.receive || this == HomeTab.send;
 
   String get label {
     switch (this) {
@@ -101,6 +108,7 @@ class _HomePageState extends State<HomePage> with Refena {
         });
       },
       onDragDone: (event) async {
+        final before = ref.read(selectedSendingFilesProvider).toList();
         if (event.files.length == 1 && Directory(event.files.first.path).existsSync()) {
           // user dropped a directory
           await ref.redux(selectedSendingFilesProvider).dispatchAsync(AddDirectoryAction(event.files.first.path));
@@ -115,7 +123,15 @@ class _HomePageState extends State<HomePage> with Refena {
                 ),
               );
         }
-        vm.changeTab(HomeTab.send);
+        // Stay on the Doorstep home and offer the drop through the quick-send
+        // card, exactly like the Windows "Send with Doorstep" shell verb does.
+        // (Previously this jumped to the legacy send screen.)
+        vm.changeTab(HomeTab.doorstep);
+        final after = ref.read(selectedSendingFilesProvider);
+        final newFiles = after.where((f) => !before.any((e) => e.isSameFile(otherFile: f))).toList();
+        if (newFiles.isNotEmpty) {
+          ref.notifier(doorstepQuickSendProvider).requestQuickSend(newFiles);
+        }
       },
       child: ResponsiveBuilder(
         builder: (sizingInformation) {
@@ -167,8 +183,12 @@ class _HomePageState extends State<HomePage> with Refena {
                             DoorstepDropZoneTab(),
                             DoorstepActivityTab(),
                             SettingsTab(),
-                            ReceiveTab(), // index 3 — hidden, used by receive_controller
-                            SendTab(), // index 4 — hidden, used by send_provider
+                            // Indices 3 and 4 are the legacy receive/send slots. The
+                            // providers still switch to them internally, so they must
+                            // exist — but they render nothing. Every user-facing
+                            // transfer surface is Doorstep's own.
+                            SizedBox.shrink(),
+                            SizedBox.shrink(),
                           ],
                         ),
                         if (_dragAndDropIndicator)
@@ -180,9 +200,9 @@ class _HomePageState extends State<HomePage> with Refena {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.file_download, size: 128),
-                                const SizedBox(height: 30),
-                                Text(t.sendTab.placeItems, style: Theme.of(context).textTheme.titleLarge),
+                                Icon(Icons.file_download_rounded, size: 96, color: Theme.of(context).colorScheme.primary),
+                                const SizedBox(height: 24),
+                                Text('Drop to send with Doorstep', style: Theme.of(context).textTheme.titleLarge),
                               ],
                             ),
                           ),

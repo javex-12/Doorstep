@@ -92,7 +92,7 @@ class _QuickSendCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Doorstep Network · Direct Peer Link',
+                        'Ready to send',
                         style: TextStyle(
                           color: DoorstepTheme.primaryOf(context),
                           fontSize: 11.5,
@@ -149,7 +149,7 @@ class _SearchingBody extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Listening for your trusted devices on the Doorstep Network…',
+                'Looking for your devices…',
                 style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13, height: 1.4),
               ),
             ),

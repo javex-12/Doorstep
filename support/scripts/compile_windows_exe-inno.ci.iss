@@ -47,6 +47,10 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+; Doorstep artwork instead of the stock Inno wizard.
+WizardImageFile={#StagingDir}\wizard.bmp
+WizardImageStretch=no
+WizardSmallImageFile={#StagingDir}\wizard-small.bmp
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 

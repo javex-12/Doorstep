@@ -19,17 +19,29 @@ class DoorstepSettings {
   /// Doorstep UI is closed. Defaults to true — that is the Doorstep promise.
   final bool backgroundService;
 
+  /// Whether an *unknown* device that asks to connect must be confirmed before
+  /// it is trusted. Doorstep is visible to anyone nearby, so this is the door:
+  /// decline and the device is not stored (and is not asked again).
+  final bool askBeforeConnecting;
+
   const DoorstepSettings({
     this.autoAcceptFromPaired = true,
     this.sleepMode = false,
     this.backgroundService = true,
+    this.askBeforeConnecting = true,
   });
 
-  DoorstepSettings copyWith({bool? autoAcceptFromPaired, bool? sleepMode, bool? backgroundService}) {
+  DoorstepSettings copyWith({
+    bool? autoAcceptFromPaired,
+    bool? sleepMode,
+    bool? backgroundService,
+    bool? askBeforeConnecting,
+  }) {
     return DoorstepSettings(
       autoAcceptFromPaired: autoAcceptFromPaired ?? this.autoAcceptFromPaired,
       sleepMode: sleepMode ?? this.sleepMode,
       backgroundService: backgroundService ?? this.backgroundService,
+      askBeforeConnecting: askBeforeConnecting ?? this.askBeforeConnecting,
     );
   }
 }
@@ -46,7 +58,13 @@ class DoorstepSettingsNotifier extends Notifier<DoorstepSettings> {
       autoAcceptFromPaired: persistence.getDoorstepAutoAccept(),
       sleepMode: persistence.getDoorstepSleepMode(),
       backgroundService: persistence.getDoorstepBackgroundService(),
+      askBeforeConnecting: persistence.getDoorstepAskBeforeConnecting(),
     );
+  }
+
+  Future<void> setAskBeforeConnecting(bool value) async {
+    state = state.copyWith(askBeforeConnecting: value);
+    await ref.read(persistenceProvider).setDoorstepAskBeforeConnecting(value);
   }
 
   Future<void> setAutoAcceptFromPaired(bool value) async {

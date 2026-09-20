@@ -6,7 +6,9 @@ import 'package:doorstep_app/model/persistence/paired_device.dart';
 import 'package:doorstep_app/model/persistence/watched_folder.dart';
 import 'package:doorstep_app/pages/doorstep_browse_page.dart';
 import 'package:doorstep_app/provider/device_info_provider.dart';
+import 'package:doorstep_app/provider/doorstep_connection_request_provider.dart';
 import 'package:doorstep_app/provider/doorstep_pairing_provider.dart';
+import 'package:doorstep_app/provider/doorstep_quick_send_provider.dart';
 import 'package:doorstep_app/provider/doorstep_settings_provider.dart';
 import 'package:doorstep_app/provider/doorstep_watcher_provider.dart';
 import 'package:doorstep_app/provider/local_ip_provider.dart';
@@ -45,7 +47,6 @@ class DoorstepDropZoneTab extends StatefulWidget {
 class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   static bool get _isMobile => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
-  DateTime? _lastRefresh;
   bool _initialScanScheduled = false;
 
   @override
@@ -56,7 +57,6 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
       // fresh (handles DHCP drift and app restarts without re-scanning).
       Future.microtask(() => ref.notifier(doorstepPairingProvider).reconnectToPairedDevices()); // ignore: discarded_futures
     }
-    _lastRefresh = DateTime.now();
   }
 
   /// Discovery runs three ways at once so a network that blocks one of them
@@ -71,7 +71,6 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
       // ignore: discarded_futures
       ref.global.dispatchAsync(StartLegacySubnetScan(subnets: subnets));
     }
-    setState(() => _lastRefresh = DateTime.now());
   }
 
   @override
@@ -93,6 +92,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     final settings = context.watch(doorstepSettingsProvider);
     final deviceInfo = context.watch(deviceFullInfoProvider);
     final nearbyDevices = context.watch(nearbyDevicesProvider).allDevices;
+    final connectionRequests = context.watch(doorstepConnectionRequestProvider);
     final pairedFingerprints = pairedDevices.map((d) => d.fingerprint).toSet();
     final discoveredNearby = nearbyDevices.values
         .where((d) => !pairedFingerprints.contains(d.fingerprint) && d.fingerprint != deviceInfo.fingerprint)
@@ -117,28 +117,36 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
               ),
               const SizedBox(height: 20),
 
+              // ── Someone nearby wants to connect ──────────────────────────
+              // This is the door: a device that found Doorstep asks to come in,
+              // and only the person holding the phone can let it.
+              if (connectionRequests.isNotEmpty) ...[
+                for (final request in connectionRequests) _ConnectionRequestCard(request: request),
+                const SizedBox(height: 20),
+              ],
+
               _StatusPanel(
                 alias: deviceInfo.alias,
                 ip: deviceInfo.ip,
                 port: deviceInfo.port,
-                pairedCount: pairedDevices.length,
-                nearbyCount: discoveredNearby.length,
-                dropZoneCount: watchedFolders.length,
                 sleepMode: settings.sleepMode,
+                // Battery saver is a phone concern; a plugged-in computer has no
+                // reason to stop announcing itself.
                 onToggleSleep: _isMobile
                     ? () => ref
                           .notifier(doorstepSettingsProvider)
                           .setSleepMode(!settings.sleepMode) // ignore: discarded_futures
                     : null,
-                showDropZones: !_isMobile,
               ),
               const SizedBox(height: 26),
 
               // ── Nearby ────────────────────────────────────────────────────
               DoorstepSection(
-                title: 'Nearby on the Doorstep network',
+                title: 'Nearby',
+                // Plain language on purpose: the user never needs to reason about
+                // networks, only about devices.
                 subtitle: discoveredNearby.isEmpty
-                    ? 'Make sure both devices are on the same Wi-Fi (or the same hotspot)'
+                    ? 'Anyone near you with Doorstep open appears here'
                     : '${discoveredNearby.length} ready to connect',
                 action: TextButton(
                   onPressed: _refreshDiscovery,
@@ -147,17 +155,7 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
                 ),
                 children: discoveredNearby.isEmpty
                     ? [
-                        DoorstepEmptyState(
-                          inline: true,
-                          kind: DoorstepEmptyKind.searching,
-                          icon: Icons.wifi_tethering_rounded,
-                          title: 'Looking for devices…',
-                          message: _lastRefresh == null
-                              ? 'Doorstep is listening for other Doorstep devices on this network.'
-                              : 'Nothing found yet. Both devices need to be on the same Wi-Fi network, or your phone on the laptop\'s hotspot.',
-                          secondaryLabel: 'Having trouble? Connect manually',
-                          onSecondary: () => _showManualPairing(context),
-                        ),
+                        _SearchingRow(onManual: () => _showManualPairing(context)),
                       ]
                     : [
                         ...discoveredNearby.map((d) => _DiscoveredDeviceRow(device: d)),
@@ -181,6 +179,23 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
                         ),
                       ]
                     : pairedDevices.map((d) => _PairedDeviceRow(device: d)).toList(),
+              ),
+
+              // ── Share ─────────────────────────────────────────────────────
+              // The smallest useful transfer: no file, no folder, no picker.
+              DoorstepSection(
+                title: 'Share',
+                subtitle: pairedDevices.isEmpty ? 'Connect a device first' : 'Send something without a folder',
+                children: [
+                  DoorstepListTile(
+                    icon: Icons.sticky_note_2_outlined,
+                    title: 'Send a note',
+                    subtitle: 'Type or paste text and send it straight over',
+                    enabled: pairedDevices.isNotEmpty,
+                    trailing: const DoorstepChevron(),
+                    onTap: () => _sendNote(context),
+                  ),
+                ],
               ),
 
               // ── Drop zones / send ─────────────────────────────────────────
@@ -257,6 +272,50 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
     if (!added && context.mounted) {
       context.showSnackBar('Could not add that folder as a drop zone.');
     }
+  }
+
+  /// Composes a note and hands it to the quick-send card.
+  ///
+  /// Quick-send sends straight away when exactly one trusted device is online
+  /// and shows a picker otherwise, so a note needs no device picker of its own.
+  Future<void> _sendNote(BuildContext context) async {
+    final paired = ref.read(doorstepPairingProvider);
+    if (paired.isEmpty) {
+      context.showSnackBar('Connect a device first.');
+      return;
+    }
+
+    final controller = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Send a note'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 5,
+            minLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              hintText: 'Paste a link, an address, a code…',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(controller.text),
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    );
+
+    final message = text?.trim();
+    if (message == null || message.isEmpty) return;
+    ref.notifier(doorstepQuickSendProvider).requestQuickSend([buildNoteFile(message)]);
   }
 
   Future<void> _openBrowse(BuildContext context) async {
@@ -405,87 +464,120 @@ class _DoorstepDropZoneTabState extends State<DoorstepDropZoneTab> with Refena {
   }
 }
 
-// ── Status panel (hero) ───────────────────────────────────────────────────────
+// ── Searching (empty nearby state) ───────────────────────────────────────────
 
-class _StatusPanel extends StatelessWidget {
-  final String alias;
-  final String? ip;
-  final int port;
-  final int pairedCount;
-  final int nearbyCount;
-  final int dropZoneCount;
-  final bool sleepMode;
-  final VoidCallback? onToggleSleep;
-  final bool showDropZones;
+/// One slim line while discovery runs.
+///
+/// An empty state with an icon, a headline, a paragraph and a link is the right
+/// treatment for "you have nothing yet"; it is the wrong treatment for "this is
+/// still happening". Discovery is expected to find something within a second or
+/// two, so it gets a single row that disappears on its own.
+class _SearchingRow extends StatelessWidget {
+  final VoidCallback onManual;
 
-  const _StatusPanel({
-    required this.alias,
-    required this.ip,
-    required this.port,
-    required this.pairedCount,
-    required this.nearbyCount,
-    required this.dropZoneCount,
-    required this.sleepMode,
-    required this.onToggleSleep,
-    required this.showDropZones,
-  });
+  const _SearchingRow({required this.onManual});
 
   @override
   Widget build(BuildContext context) {
-    final connected = ip != null && ip != '-' && ip!.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 15,
+            height: 15,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.8,
+              color: DoorstepTheme.primaryOf(context),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Looking for devices…',
+              style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 13.5),
+            ),
+          ),
+          TextButton(
+            onPressed: onManual,
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+            child: const Text('Connect manually'),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    final (chipLabel, chipTone, chipIcon) = sleepMode
-        ? ('Sleep mode', DoorstepStatusTone.warning, Icons.bedtime_rounded)
-        : connected
-        ? ('Ready to receive', DoorstepStatusTone.positive, Icons.check_circle_rounded)
-        : ('Not connected to Wi-Fi', DoorstepStatusTone.negative, Icons.wifi_off_rounded);
+// ── Incoming connection request ──────────────────────────────────────────────
+
+/// A device nearby is asking to connect.
+///
+/// Accepting trusts it exactly like connecting by hand. Declining keeps it out
+/// and remembers the answer, so the door stays closed without nagging.
+class _ConnectionRequestCard extends StatefulWidget {
+  final DoorstepConnectionRequest request;
+
+  const _ConnectionRequestCard({required this.request});
+
+  @override
+  State<_ConnectionRequestCard> createState() => _ConnectionRequestCardState();
+}
+
+class _ConnectionRequestCardState extends State<_ConnectionRequestCard> with Refena {
+  bool _busy = false;
+
+  Future<void> _answer({required bool accept}) async {
+    setState(() => _busy = true);
+    final notifier = ref.notifier(doorstepConnectionRequestProvider);
+    if (accept) {
+      await notifier.accept(widget.request.fingerprint);
+    } else {
+      await notifier.decline(widget.request.fingerprint);
+    }
+    if (!mounted) return;
+    context.showSnackBar(accept ? '${widget.request.alias} connected.' : 'Connection declined.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final request = widget.request;
+    final remembered = request.trustLevel == DeviceTrustLevel.persistent;
 
     return DoorstepCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: DoorstepTheme.primaryOf(context).withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS
-                      ? Icons.phone_android_rounded
-                      : Icons.laptop_mac_rounded,
-                  color: DoorstepTheme.primaryOf(context),
-                  size: 25,
-                ),
+                child: Icon(Icons.person_add_alt_1_rounded, color: DoorstepTheme.primaryOf(context), size: 22),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 13),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      alias,
+                      '${request.alias} wants to connect',
                       style: TextStyle(
                         color: DoorstepTheme.textMainOf(context),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      connected ? '$ip:$port' : 'Not on a network',
-                      style: TextStyle(
-                        color: DoorstepTheme.textMutedOf(context),
-                        fontSize: 12.5,
-                        fontFamily: 'monospace',
-                      ),
+                      '${request.ip}:${request.port} · ${remembered ? 'to be remembered' : 'this session only'}',
+                      style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5, fontFamily: 'monospace'),
                     ),
                   ],
                 ),
@@ -495,28 +587,21 @@ class _StatusPanel extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              DoorstepStatusChip(label: chipLabel, tone: chipTone, icon: chipIcon, pulse: connected && !sleepMode),
-              const Spacer(),
-              if (onToggleSleep != null)
-                TextButton.icon(
-                  onPressed: onToggleSleep,
-                  icon: Icon(sleepMode ? Icons.bedtime_rounded : Icons.bedtime_outlined, size: 16),
-                  label: Text(sleepMode ? 'Wake' : 'Sleep'),
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: sleepMode ? DoorstepTheme.warning : DoorstepTheme.textMutedOf(context),
-                  ),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy ? null : () => _answer(accept: false),
+                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 13)),
+                  child: const Text('Decline'),
                 ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Divider(height: 1, color: DoorstepTheme.borderOf(context).withValues(alpha: 0.7)),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              _Stat(label: 'Nearby', value: '$nearbyCount'),
-              _Stat(label: 'Devices', value: '$pairedCount'),
-              if (showDropZones) _Stat(label: 'Drop zones', value: '$dropZoneCount'),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _busy ? null : () => _answer(accept: true),
+                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 13)),
+                  child: const Text('Connect'),
+                ),
+              ),
             ],
           ),
         ],
@@ -525,34 +610,146 @@ class _StatusPanel extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
-  final String label;
-  final String value;
+// ── Status panel (hero) ───────────────────────────────────────────────────────
 
-  const _Stat({required this.label, required this.value});
+/// This device's state, as one quiet line.
+///
+/// The old panel was a hero card with a big icon tile, a status chip, a divider
+/// and three count columns — all of which duplicated what the section headers
+/// below already say ("2 ready to connect", "1 connected"). What a user cannot
+/// get anywhere else is whether *this* device is reachable, so that is all this
+/// shows now.
+class _StatusPanel extends StatelessWidget {
+  final String alias;
+  final String? ip;
+  final int port;
+  final bool sleepMode;
+  final VoidCallback? onToggleSleep;
+
+  const _StatusPanel({
+    required this.alias,
+    required this.ip,
+    required this.port,
+    required this.sleepMode,
+    required this.onToggleSleep,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final connected = ip != null && ip != '-' && ip!.isNotEmpty;
+    final ready = connected && !sleepMode;
+
+    final (label, tone) = sleepMode
+        ? ('Sleep mode', DoorstepTheme.warningOf(context))
+        : connected
+        ? ('Ready for transfers', DoorstepTheme.successOf(context))
+        : ('Not on a network', DoorstepTheme.dangerOf(context));
+
+    return DoorstepCard(
+      padding: const EdgeInsets.fromLTRB(18, 14, 10, 14),
+      child: Row(
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: DoorstepTheme.textMainOf(context),
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
+          _StatusDot(color: tone, pulse: ready),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: DoorstepTheme.textMainOf(context),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  connected ? '$alias · $ip:$port' : alias,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 12),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            style: TextStyle(color: DoorstepTheme.textMutedOf(context), fontSize: 11.5, fontWeight: FontWeight.w600),
-          ),
+          if (onToggleSleep != null)
+            IconButton(
+              tooltip: sleepMode ? 'Wake Doorstep' : 'Sleep mode — stop announcing',
+              onPressed: onToggleSleep,
+              icon: Icon(sleepMode ? Icons.brightness_high_rounded : Icons.bedtime_outlined, size: 20),
+              color: sleepMode ? DoorstepTheme.warningOf(context) : DoorstepTheme.textMutedOf(context),
+            ),
         ],
       ),
+    );
+  }
+}
+
+/// A small status light. It breathes while this device is ready, so "ready"
+/// reads at a glance without an icon, a badge or a colour name.
+class _StatusDot extends StatefulWidget {
+  final Color color;
+  final bool pulse;
+
+  const _StatusDot({required this.color, required this.pulse});
+
+  @override
+  State<_StatusDot> createState() => _StatusDotState();
+}
+
+class _StatusDotState extends State<_StatusDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.pulse) {
+      // ignore: discarded_futures
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_StatusDot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.pulse && !_controller.isAnimating) {
+      // ignore: discarded_futures
+      _controller.repeat(reverse: true);
+    } else if (!widget.pulse && _controller.isAnimating) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Container(
+          width: 11,
+          height: 11,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.color.withValues(alpha: widget.pulse ? 0.72 + 0.28 * _controller.value : 1),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: widget.pulse ? 0.18 + 0.22 * _controller.value : 0.25),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -617,7 +814,16 @@ class _DiscoveredDeviceRow extends StatelessWidget {
                 address: '${device.ip}:${device.port}',
               );
               if (trust == null) return;
-              await ref.notifier(doorstepPairingProvider).pairWithDiscoveredDevice(device, trustLevel: trust);
+              try {
+                await ref.notifier(doorstepPairingProvider).pairWithDiscoveredDevice(device, trustLevel: trust);
+              } catch (e) {
+                // The device is discovered but not reachable yet. Say what
+                // happened instead of letting a raw exception reach the user.
+                if (context.mounted) {
+                  context.showSnackBar('Could not finish connecting to ${device.alias}. Make sure it is still open, then try again.');
+                }
+                return;
+              }
               if (context.mounted) {
                 context.showSnackBar(
                   trust == DeviceTrustLevel.persistent
@@ -758,7 +964,7 @@ class _FolderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 7),
                     _MiniChip(
-                      icon: folder.autoTransfer ? Icons.bolt_rounded : Icons.touch_app_rounded,
+                      icon: folder.autoTransfer ? Icons.sync_rounded : Icons.touch_app_rounded,
                       label: folder.autoTransfer ? 'Automatic' : 'Manual',
                       tone: folder.autoTransfer ? DoorstepStatusTone.positive : DoorstepStatusTone.warning,
                       onTap: () => ref.notifier(doorstepWatcherProvider).toggleAutoTransfer(folder.id), // ignore: discarded_futures
