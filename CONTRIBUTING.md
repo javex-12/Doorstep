@@ -1,143 +1,210 @@
 # Contributing to Doorstep
 
-Doorstep is an open-source project, and we welcome contributions from anyone who is interested in helping improve the app. Whether you're a developer, a translator, or a documentation writer, there are many ways to get involved.
+Thanks for wanting to help. This page covers everything you need: getting the
+app running, the conventions the project follows, and where to start.
 
-Doorstep disallows AI generated contributions unless:
+> **Code of conduct:** by participating you agree to the
+> [Code of Conduct](CODE_OF_CONDUCT.md). Be decent; it is not hard.
 
-- they are bug fixes or
-- very small or
-- you prove your expertise in your field
+---
 
-## Getting Started
+## Ways to contribute
 
-If you're interested in contributing code to Doorstep, you'll need to follow these steps:
+Not everything is code, and the non-code work matters just as much:
 
-## Run
+| You want to… | Start here |
+|---|---|
+| Write code | [Set up a dev environment](#set-up-a-dev-environment) |
+| Fix a bug | [Good first issues](#finding-work) |
+| Translate the app | [Translations](#translations) |
+| Improve these docs | Open a PR — docs changes are merged quickly |
+| Report a bug | [Bug report template](https://github.com/javex-12/Doorstep/issues/new?template=bug_report.yml) |
+| Suggest a feature | [Feature request template](https://github.com/javex-12/Doorstep/issues/new?template=feature_request.yml) |
+| Report a security issue | [SECURITY.md](SECURITY.md) — **never** a public issue |
 
-After you have installed [Flutter](https://flutter.dev), then you can start this app by typing the following commands:
+A note on AI-generated contributions: Doorstep accepts them **only** for genuine
+bug fixes, trivially small changes, or when you can demonstrate real expertise
+in the relevant area. Substantive design and feature work needs to be yours.
 
-```shell
+## Set up a dev environment
+
+### Prerequisites
+
+| Tool | Version | Notes |
+|---|---|---|
+| [Flutter](https://docs.flutter.dev/get-started/install) | `3.41.9` | Pinned in [.fvmrc](.fvmrc) — use `fvm flutter` / `fvm dart` |
+| [FVM](https://fvm.app) | latest | Manages the pinned Flutter version |
+| [Rust](https://rustup.rs) | stable | The networking core and HTTP server |
+| Android Studio / Xcode | — | Only for the platform you want to build |
+| Visual Studio 2022 | C++ desktop workload | Windows builds only |
+
+### Clone and run
+
+```bash
+git clone https://github.com/javex-12/Doorstep.git
+cd Doorstep
+
+fvm flutter --version          # picks up the pinned version
 cd app
-flutter pub get
-dart run build_runner build -d
-flutter run
+
+fvm flutter pub get
+fvm dart run build_runner build   # dart_mappable, freezed, flutter_gen, mockito
+fvm dart run slang                # i18n codegen (slang_build_runner is disabled)
+fvm flutter run
 ```
 
-## Translation
+The Rust plugin (`rust_lib_doorstep`) builds automatically through cargokit
+during `flutter run` / `flutter build` — there is nothing extra to start.
 
-You can help in translating this app to other languages!
+### Check your work before opening a PR
 
-1. Fork this repository
-2. Choose one
-   - Add missing translations in existing languages: Only update `_missing_translations_<locale>.json` in [assets/i18n](https://github.com/javex-12/Doorstep/tree/main/app/assets/i18n)
-   - Fix existing translations: Update `strings_<locale>.i18n.json` in [assets/i18n](https://github.com/javex-12/Doorstep/tree/main/app/assets/i18n)
-   - Add new languages: Create a new file, see also: [locale codes](https://saimana.com/list-of-country-locale-code/).
-3. Optional: Re-run this app
-   1. Run `cd app` to enter the app directory.
-   2. Make sure you have [run](#run) this app once.
-   3. Update translations via `flutter pub run slang`
-   4. Run the app via `flutter run`
-4. Open a pull request
-
-**_Take note:_ Fields decorated with `@` are not meant to be translated, they are not used in the app in any way, being merely informative text about the file or to give context to the translator.**
-
-Thanks to all [translators](https://github.com/javex-12/Doorstep/tree/main/app/lib/pages/about/translators.dart)!
-
-## Contributing Guidelines
-
-Before you submit a pull request to Doorstep, please ensure that you have followed these guidelines:
-
-- Code should be well-documented and formatted according to the [Dart Style Guide](https://dart.dev/guides/language/effective-dart/style).
-- All changes should be covered by tests.
-- Commits should be well-written and descriptive, with a clear summary of the changes made and any relevant context.
-- Pull requests should target the `main` branch and include a clear summary of the changes made.
-
-## Bug Reports and Feature Requests
-
-If you encounter a bug in Doorstep or have a feature request, please submit an issue to the [issue tracker](https://github.com/javex-12/Doorstep/issues). Please be sure to provide a clear description of the problem or feature request, along with any relevant context or steps to reproduce the issue.
-
-## Security Issues
-
-If you discover a security issue in Doorstep, please do not submit an issue to the public issue tracker. Instead, please open a private security advisory on the [GitHub repo](https://github.com/javex-12/Doorstep/security) so that we can address the issue as quickly and effectively as possible.
-
-## Distribution
-
-Doorstep is distributed directly from this repository — every release ships ready-to-run binaries for all supported platforms.
-
-| Platform | Artifacts |
-|----------|-----------|
-| Windows  | EXE installer, portable ZIP (built by the release pipeline) |
-| Android  | APKs for 32-bit (`armeabi-v7a`) and 64-bit (`arm64-v8a`, `x86_64`) devices |
-| macOS    | DMG installer |
-| Linux    | AppImage, TAR, DEB |
-
-Maintained by [cydercoder](https://cydercoder.vercel.app) ([@javex-12](https://github.com/javex-12)).
-
-App stores and package managers (Play Store, App Store, winget, etc.) are planned but not yet published. If you would like to help package Doorstep, please open an issue!
-
-## Notes
-
-Useful notes.
-
-### Compile production APK
-
-You will need the signing keys to generate an APK.
-
-Either generate one or use the debug signing options:
-
-```groovy
-// File: android/app/build.gradle
-buildTypes {
-  release {
-    signingConfig signingConfigs.debug // using debug signing
-  }
-}
-```
-
-### Bump Flutter
-
-Suppose we want to update flutter to `3.41.9`:
-
-1. Update flutter from fvm: `fvm use 3.41.9`
-2. Update flutter from submodule:
-   1. `git submodule update --init`
-   2. `cd support/submodules/flutter`
-   3. `git fetch`
-   4. `git checkout 3.41.9`
-   5. `cd ../../..`
-   6. `git add support/submodules/flutter`
-3. Update flutter constraints:
-   1. In CI: `.github/workflows/ci.yml`
-   2. In pubspec: `pubspec.yaml`
-
-### Release
-
-Make sure to set up the self-hosted runner to compile arm64 linux binaries.
-
-To set up the runner, follow the following instructions:
-
-Install Flutter
+This is exactly what CI runs:
 
 ```bash
-sudo apt install git
-git clone https://github.com/flutter/flutter.git $HOME/flutter
-nano $HOME/.bashrc
+cd app
+fvm dart format --set-exit-if-changed lib test
+fvm flutter analyze
+fvm flutter test
+
+# Rust — the --features part is mandatory: a bare check fails by design
+cd ../packages/core && cargo test --features full
+cd ../doorstep_isolates/rust && cargo check
 ```
 
-Add the following to the end of the file:
+Notes that save time:
 
-```bash
-export PATH="$PATH:$HOME/flutter/bin"
+- Formatting is **150 columns** (`page_width` in `analysis_options.yaml`).
+- `fvm dart run build_runner build` sometimes rewrites `app/test/mocks.mocks.dart`
+  at 80 columns — revert that file if it shows up in your diff.
+- `packages/localsend_isolates`-style packages have their own `build.yaml` and
+  need their own `pub get` + `build_runner` run when their models change.
+
+## Project layout
+
+```
+app/                          Flutter app (doorstep_app)
+  lib/pages/                  Screens and tabs
+  lib/provider/               Refena providers — state lives here
+  lib/widget/                 Reusable widgets and the Doorstep design system
+  lib/gen/                    Generated — do not edit
+packages/doorstep_isolates/   Dart isolates + flutter_rust_bridge bindings
+  lib/src/isolate/            Parent/child isolate plumbing
+  lib/src/task/               Pure helpers only — no isolate logic here
+  rust/                       The Flutter plugin crate (rust_lib_doorstep)
+packages/core/                doorstep_core — protocol, HTTP, crypto, WebRTC
+packages/typed_isolates/      Small typed Dart isolate wrapper
+server/                       WebSocket signalling server for WebRTC
+cli/                          doorstep-cli — terminal client
+support/scripts/              Release and packaging scripts
+docs/                         Architecture and protocol documentation
 ```
 
-Restart the terminal.
+Dependency direction is one-way: `app` → `doorstep_isolates` → (`typed_isolates`,
+`rust_lib_doorstep` → `doorstep_core`). The app never depends on
+`flutter_rust_bridge` or the plugin crate directly.
 
-```bash
-flutter doctor
-```
+## Conventions
 
-Next, follow the instructions to set up the GitHub runner.
+**State management** is [Refena](https://pub.dev/packages/refena_flutter), not
+Riverpod. Plain state uses `NotifierProvider`; anything the isolate layer
+touches uses `ReduxProvider` with dispatched action classes.
 
-Start the "Release Draft" workflow from the "Actions" tab: https://github.com/javex-12/Doorstep/actions/workflows/release.yml
+**Heavy networking never runs on the main isolate.** Child isolates translate
+typed task messages into calls on `lib/src/task/`, which is pure helpers only —
+isolate logic is prohibited there (see its README).
 
-Finally, compile binaries not yet supported by the pipeline.
+**Models** are `dart_mappable`. Mind the configured method names: `fromJson` /
+`toJson` are the Map converters and `deserialize` / `serialize` are the string
+ones.
+
+**New server ↔ app interactions** extend `ServerEventV2` rather than adding side
+channels. Only one upload session is active at a time; cancellation safety comes
+from drop guards, not from extra flags.
+
+**Brand** — colour changes must reach every page, not just Settings and the nav.
+Use the helpers in `lib/config/doorstep_theme.dart` instead of hardcoding
+colours.
+
+**Keep it simple for the user.** If a change makes the user think about
+networks, protocols or transports, it is the wrong shape. "It just works" is a
+design constraint, not a slogan.
+
+## Finding work
+
+Look at the issue tracker for the `good-first-issue` and `help-wanted` labels:
+
+- **`good-first-issue`** — scoped, self-contained, no deep domain knowledge needed.
+- **`help-wanted`** — needs domain knowledge (native Wi-Fi, mTLS, Rust async).
+- **`documentation`** — docs, diagrams, translation gaps.
+
+Unsure where to start? Open an issue and describe what you want to work on —
+nobody is expected to guess.
+
+## Pull requests
+
+1. Fork, then create a branch from `main`.
+2. Keep the change focused — one fix or one feature per PR.
+3. Run the checks listed above.
+4. Write a clear description: *what* changed and *why*. Link the issue if there
+   is one.
+5. New behaviour needs a test where one is practical.
+
+Reviews are conversational — expect questions, not verdicts. Changes are
+requested only when they matter.
+
+## Translations
+
+The app speaks many languages, and translations are managed through the files in
+[`app/assets/i18n`](app/assets/i18n).
+
+1. Fork the repository.
+2. Pick one:
+   - **Fill missing strings** — edit `_missing_translations_<locale>.json`
+   - **Fix a string** — edit `<locale>.json`
+   - **Add a language** — create the new file ([locale codes](https://saimana.com/list-of-country-locale-code/))
+3. Optional, to see it live:
+   ```bash
+   cd app && fvm dart run slang && fvm flutter run
+   ```
+4. Open a pull request.
+
+**Do not translate fields whose keys start with `@`** — they are metadata for
+translators and are never shown in the app.
+
+## Release process (maintainers)
+
+Versions live in three places that CI keeps in sync:
+
+- `app/pubspec.yaml` — `version:`
+- `support/scripts/compile_windows_exe-inno.iss` — `MyAppVersion`
+- `cli/Cargo.toml` — `version`
+
+To ship:
+
+1. Bump the version in all three places.
+2. Commit and tag: `git tag vX.Y.Z && git push origin main --tags`
+3. Pushing the tag runs [Build all platforms](.github/workflows/build_all.yml):
+   universal Android APK, Windows installer + portable zip, Linux AppImage,
+   universal macOS zip, unsigned iOS ipa — plus a GitHub Release and an upload
+   to the Blob store that the [download page](https://javex-12.github.io/Doorstep/) serves from.
+4. There is no step 4. The tag is the release.
+
+### Bumping Flutter
+
+Pinned in four places: `.fvmrc`, `.github/workflows/ci.yml`, `app/pubspec.yaml`
+and the `support/submodules/flutter` submodule.
+
+1. `fvm use <version>`
+2. Submodule:
+   ```bash
+   git submodule update --init
+   cd support/submodules/flutter
+   git fetch && git checkout <version>
+   cd ../../.. && git add support/submodules/flutter
+   ```
+3. Update the constraint in `.github/workflows/ci.yml` and `app/pubspec.yaml`.
+
+## Recognition
+
+Every contributor is credited in the release notes. Translators appear in-app
+under **Settings → About → Translators**.

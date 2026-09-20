@@ -1,0 +1,73 @@
+name: Publish site binaries
+
+# Refreshes the downloads that trydoorstep.vercel.app serves from the Vercel
+# Blob store, using the most recent successful "Build all platforms" run.
+#
+# Use this when the binaries already exist and only the website needs to pick
+# them up — for example after a partial upload or a renamed artifact. It never
+# builds anything itself; run "Build all platforms" first if there is no run
+# with artifacts yet.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Find the latest successful build run
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow build_all.yml \
+            --status success \
+            --limit 20 \
+            --json databaseId,headBranch \
+            --jq '[.[] | select(.headBranch != "")][0].databaseId')
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::No successful 'Build all platforms' run found. Run that workflow first."
+            exit 1
+          fi
+          echo "Using run $RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          gh run download "${{ steps.latest.outputs.run_id }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir dist
+          # gh nests each artifact in a folder of the same name; flatten it.
+          find dist -mindepth 2 -type f -exec mv -t dist {} +
+          find dist -mindepth 1 -type d -empty -delete
+          echo "--- files ready for upload ---"
+          ls -la dist
+
+      - name: Upload to the Vercel Blob bucket
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: |
+          if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then
+            echo "::error::BLOB_READ_WRITE_TOKEN is not set — add it as a repository secret."
+            exit 1
+          fi
+          shopt -s nullglob
+          for file in dist/*; do
+            echo "Uploading $(basename "$file")"
+            npx --yes vercel@latest blob put "$file" \
+              --basename "$(basename "$file")" \
+              --add \
+              --force \
+              --rw-token "$BLOB_READ_WRITE_TOKEN"
+          done
+          echo "All uploads finished."

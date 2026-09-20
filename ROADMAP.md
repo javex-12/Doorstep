@@ -4,7 +4,8 @@ Doorstep moves files between **your own** devices with no account, no cloud and 
 pairing ritual: open it, see your devices, tap, done.
 
 This document is both the public roadmap and the engineering plan. Items marked
-**shipped** are already in `main`.
+**shipped** are already in `main`. See [FEATURES.md](FEATURES.md) for the honest
+status of every ecosystem feature and the per-platform reality.
 
 ---
 
@@ -153,6 +154,7 @@ they don't, nothing else matters.
 - [ ] iOS: Wi-Fi Aware + infrastructure only, documented
 
 ### Docs & community  *(runs alongside)*
+- [x] `FEATURES.md` — what is real, what is planned, and the iOS truth
 - [ ] `CONTRIBUTING.md` — setup, conventions, first issue
 - [ ] `docs/architecture.md`, `docs/networking.md`, `docs/discovery.md`,
       `docs/transfer-flow.md`

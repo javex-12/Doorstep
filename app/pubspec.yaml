@@ -3,7 +3,7 @@ description: Doorstep - a LAN-only file bridge. Pair once, drop files into a fol
 homepage: https://github.com/javex-12/Doorstep
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   flutter: ^3.41.0
