@@ -964,18 +964,43 @@
   .reveal.in { opacity: 1; transform: translateY(0); }
 
   /* ---------- Responsive ---------- */
+  .nav-burger { display: none; background: none; border: 0; padding: 10px; cursor: pointer; flex-direction: column; gap: 5px; }
+  .nav-burger span { display: block; width: 22px; height: 2px; border-radius: 2px; background: var(--text); transition: transform 0.2s ease, opacity 0.2s ease; }
+  .nav-burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-burger.open span:nth-child(2) { opacity: 0; }
+  .nav-burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   @media (max-width: 920px) {
     .hero-grid { grid-template-columns: 1fr; gap: 64px; }
     header.hero { padding: 140px 0 70px; }
     .steps, .features, .dl-cards, .notes { grid-template-columns: 1fr; }
     .contribute-links { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
+    .nav-burger { display: flex; }
+    .nav-cta { display: none; }
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      padding: 12px 20px 18px;
+      background: rgba(11, 19, 43, 0.98);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      backdrop-filter: blur(12px);
+    }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 12px 14px; font-size: 16px; }
   }
   @media (max-width: 560px) {
     section { padding: 72px 0; }
     .container { padding: 0 20px; }
     .smart-card { padding: 34px 22px; }
     .contribute { padding: 44px 22px; }
+    footer .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+    .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1006,7 +1031,7 @@
       Doorstep
     </a>
     <a class="nav-version" id="nav-version" href="https://github.com/javex-12/Doorstep/releases" target="_blank" rel="noopener">v1.1.0</a>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#download">Download</a>
@@ -1014,6 +1039,9 @@
       <a href="#open-source">Open source</a>
     </div>
     <a class="nav-cta" href="#download">Download</a>
+    <button class="nav-burger" id="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -1628,7 +1656,23 @@
       })
       .catch(function () { /* keep the hardcoded fallback */ });
   })();
+  // Mobile menu.
+  (function () {
+    var burger = document.getElementById('nav-burger');
+    var links = document.getElementById('nav-links');
+    if (!burger || !links) return;
+    burger.addEventListener('click', function () {
+      var open = links.classList.toggle('open');
+      burger.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') {
+        links.classList.remove('open');
+        burger.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
 </script>
-
-</body>
 </html>
